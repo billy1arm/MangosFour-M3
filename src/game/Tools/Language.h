@@ -436,7 +436,7 @@ enum MangosStrings
     LANG_COMMAND_GRAVEYARDALRLINKED                          = 450,    /* Graveyard #%u already linked to zone #%u (current). */
     LANG_COMMAND_GRAVEYARDLINKED                             = 451,    /* Graveyard #%u linked to zone #%u (current). */
     LANG_COMMAND_GRAVEYARDWRONGZONE                          = 452,    /* Graveyard #%u can't be linked to subzone or not existed zone #%u (internal error). */
-    LANG_COMMAND_NOCURRENCYFOUND        = 453,
+    LANG_COMMAND_NOCURRENCYFOUND                             = 453,
     LANG_COMMAND_GRAVEYARDERROR                              = 454,    /* No faction in Graveyard with id= #%u , fix your DB */
     LANG_COMMAND_GRAVEYARD_NOTEAM                            = 455,    /* invalid team, please fix database */
     LANG_COMMAND_GRAVEYARD_ANY                               = 456,    /* any */
