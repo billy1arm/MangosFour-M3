@@ -76,7 +76,13 @@ namespace MMAP
     // see following files:
     // src/tools/map-extractor/system.cpp
     // src/game/GridMap.cpp
+
+// TODO: This should be pulled from ExtractorCommon.h/cpp
+#if defined(CATA)
     static char const* MAP_VERSION_MAGIC = "c1.4";
+#elif defined(MISTS)
+    static char const* MAP_VERSION_MAGIC = "p1.4";
+#endif
     /**
      * @brief
      *

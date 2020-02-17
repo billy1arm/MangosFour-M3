@@ -39,7 +39,12 @@
 #include <mutex>
 
 char const* MAP_MAGIC         = "MAPS";
+// TODO: This should be pulled from ExtractorCommon.h/cpp
+#if defined(CATA)
 char const* MAP_VERSION_MAGIC = "c1.4";
+#elif defined(MISTS)
+char const* MAP_VERSION_MAGIC = "p1.4";
+#endif
 char const* MAP_AREA_MAGIC    = "AREA";
 char const* MAP_HEIGHT_MAGIC  = "MHGT";
 char const* MAP_LIQUID_MAGIC  = "MLIQ";
