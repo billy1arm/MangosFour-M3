@@ -28,7 +28,11 @@
 #include "Platform/Define.h"
 
 #ifndef MANGOS_PACKAGENAME
+#if defined (CATA)
 #define MANGOS_PACKAGENAME "MaNGOS Three"
+#elif defined (MISTS)
+#define MANGOS_PACKAGENAME "MaNGOS Four"
+#endif
 #endif
 
 #ifndef MANGOS_VERSION

@@ -253,10 +253,17 @@ enum ItemClass
     ITEM_CLASS_KEY                              = 13,
     ITEM_CLASS_PERMANENT                        = 14,
     ITEM_CLASS_MISC                             = 15,
-    ITEM_CLASS_GLYPH                            = 16
+    ITEM_CLASS_GLYPH                            = 16,
+#if defined (MISTS)
+    ITEM_CLASS_BATTLE_PET                       = 17
+#endif
 };
 
+#if defined (CATA)
 #define MAX_ITEM_CLASS                            17
+#elif defined (MISTS)
+#define MAX_ITEM_CLASS                            18
+#endif
 
 enum ItemSubclassConsumable
 {
@@ -481,10 +488,31 @@ enum ItemSubclassGlyph
     ITEM_SUBCLASS_GLYPH_SHAMAN                  = 7,
     ITEM_SUBCLASS_GLYPH_MAGE                    = 8,
     ITEM_SUBCLASS_GLYPH_WARLOCK                 = 9,
+#if defined (MISTS)
+    ITEM_SUBCLASS_GLYPH_MONK                    = 10,
+#endif
     ITEM_SUBCLASS_GLYPH_DRUID                   = 11
 };
 
 #define MAX_ITEM_SUBCLASS_GLYPH                   12
+
+#if defined (MISTS)
+enum ItemSubclassBattlePet
+{
+    ITEM_SUBCLASS_BATTLE_PET_AQUATIC            = 1,
+    ITEM_SUBCLASS_BATTLE_PET_BEAST              = 2,
+    ITEM_SUBCLASS_BATTLE_PET_CRITTER            = 3,
+    ITEM_SUBCLASS_BATTLE_PET_DRAGONKIN          = 4,
+    ITEM_SUBCLASS_BATTLE_PET_ELEMENTAL          = 5,
+    ITEM_SUBCLASS_BATTLE_PET_FLYING             = 6,
+    ITEM_SUBCLASS_BATTLE_PET_HUMANOID           = 7,
+    ITEM_SUBCLASS_BATTLE_PET_MAGICAL            = 8,
+    ITEM_SUBCLASS_BATTLE_PET_MECHANICAL         = 9,
+    ITEM_SUBCLASS_BATTLE_PET_UNDEAD             = 10
+};
+
+#define MAX_ITEM_SUBCLASS_BATTLE_PET              11
+#endif
 
 const uint32 MaxItemSubclassValues[MAX_ITEM_CLASS] =
 {
@@ -504,7 +532,10 @@ const uint32 MaxItemSubclassValues[MAX_ITEM_CLASS] =
     MAX_ITEM_SUBCLASS_KEY,
     MAX_ITEM_SUBCLASS_PERMANENT,
     MAX_ITEM_SUBCLASS_JUNK,
-    MAX_ITEM_SUBCLASS_GLYPH
+    MAX_ITEM_SUBCLASS_GLYPH,
+#if defined (MISTS)
+    MAX_ITEM_SUBCLASS_BATTLE_PET
+#endif
 };
 
 inline uint8 ItemSubClassToDurabilityMultiplierId(uint32 ItemClass, uint32 ItemSubClass)

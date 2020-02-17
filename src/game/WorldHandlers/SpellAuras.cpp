@@ -7669,6 +7669,17 @@ void Aura::HandleShapeshiftBoosts(bool apply)
             HotWSpellId = 24899;
             MasterShaperSpellId = 48418;
             break;
+#if defined (MISTS)
+        case FORM_SERPENTSTANCE:
+            spellId1 = 115070;
+            break;
+        case FORM_OXSTANCE:
+            spellId1 = 115069;
+            break;
+        case FORM_TIGERSTANCE:
+            spellId1 = 103985;
+            break;
+#endif
         case FORM_BATTLESTANCE:
             spellId1 = 21156;
             break;
@@ -7720,11 +7731,14 @@ void Aura::HandleShapeshiftBoosts(bool apply)
         case FORM_TEST_OF_STRENGTH:
         case FORM_BLB_PLAYER:
         case FORM_SHADOW_DANCE:
+#if defined (CATA)
         case FORM_TEST:
+#endif
         case FORM_ZOMBIE:
         case FORM_UNDEAD:
         case FORM_FRENZY:
         case FORM_NONE:
+        default:
             break;
     }
 
@@ -7732,10 +7746,22 @@ void Aura::HandleShapeshiftBoosts(bool apply)
     {
         if (spellId1)
         {
+#if defined (MISTS)
+            if(target->GetTypeId() == TYPEID_PLAYER)
+            {
+                ((Player*)target)->RemoveSpellCooldown(spellId1);
+            }
+#endif
             target->CastSpell(target, spellId1, true, NULL, this);
         }
         if (spellId2)
         {
+#if defined (MISTS)
+            if(target->GetTypeId() == TYPEID_PLAYER)
+            {
+                ((Player*)target)->RemoveSpellCooldown(spellId2);
+            }
+#endif
             target->CastSpell(target, spellId2, true, NULL, this);
         }
 

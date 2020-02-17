@@ -394,6 +394,9 @@ enum UnitMods
     UNIT_MOD_ECLIPSE,
     UNIT_MOD_HOLY_POWER,
     UNIT_MOD_ALTERNATIVE,
+#if defined (MISTS)
+    UNIT_MOD_CHI,
+#endif
     UNIT_MOD_ARMOR,                                         // UNIT_MOD_ARMOR..UNIT_MOD_RESISTANCE_ARCANE must be in existing order, it's accessed by index values of SpellSchools enum.
     UNIT_MOD_RESISTANCE_HOLY,
     UNIT_MOD_RESISTANCE_FIRE,
@@ -413,7 +416,11 @@ enum UnitMods
     UNIT_MOD_RESISTANCE_START = UNIT_MOD_ARMOR,
     UNIT_MOD_RESISTANCE_END = UNIT_MOD_RESISTANCE_ARCANE + 1,
     UNIT_MOD_POWER_START = UNIT_MOD_MANA,
+#if defined (CATA)
     UNIT_MOD_POWER_END = UNIT_MOD_ALTERNATIVE + 1
+#elif defined (MISTS)
+    UNIT_MOD_POWER_END = UNIT_MOD_CHI + 1
+#endif
 };
 
 enum BaseModGroup
