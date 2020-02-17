@@ -32,7 +32,11 @@
 namespace VMAP
 {
     const char VMAP_MAGIC[] = "VMAP_4.0";                       /**< used in final vmap files */
+#if defined (CATA)
     const char RAW_VMAP_MAGIC[] = "VMAPc06";                // used in extracted vmap files with raw data
+#else //if defined (MISTS)
+    const char RAW_VMAP_MAGIC[] = "VMAPp06";                // used in extracted vmap files with raw data
+#endif
     const char GAMEOBJECT_MODELS[] = "temp_gameobject_models";  /**< TODO */
 
     /**
