@@ -216,6 +216,7 @@ void WorldSession::HandleCharEnumOpcode(WorldPacket & /*recv_data*/)
 
 void WorldSession::HandleCharCreateOpcode(WorldPacket& recv_data)
 {
+#if defined (CATA)
     std::string name;
     uint8 race_, class_;
 
@@ -228,6 +229,16 @@ void WorldSession::HandleCharCreateOpcode(WorldPacket& recv_data)
     uint8 gender, skin, face, hairStyle, hairColor, facialHair, outfitId;
     recv_data >> gender >> skin >> face;
     recv_data >> hairStyle >> hairColor >> facialHair >> outfitId;
+#elif defined (MISTS)
+    std::string name;
+    uint8 race_, class_, gender, skin, face, hairStyle, hairColor, facialHair, outfitId;
+
+    recv_data >> gender >> hairColor >> outfitId;
+    recv_data >> race_ >> class_ >> face>> facialHair >> skin >> hairStyle;
+
+    uint8 nameLength = recv_data.ReadBits(7);
+    name = recv_data.ReadString(nameLength);
+#endif
 
     WorldPacket data(SMSG_CHAR_CREATE, 1);                  // returned with diff.values in all cases
 
