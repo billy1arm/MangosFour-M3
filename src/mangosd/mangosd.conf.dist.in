@@ -807,7 +807,7 @@ SD3ErrorLogFile              = "scriptdev3-errors.log"
 
 GameType                                  = 1
 RealmZone                                 = 1
-Expansion                                 = 4
+Expansion                                 = 5
 DBC.Locale                                = 255
 DeclinedNames                             = 0
 StrictPlayerNames                         = 0

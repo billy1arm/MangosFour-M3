@@ -966,12 +966,27 @@ void LoadDBCStores(const std::string& dataPath)
         exit(1);
     }
 
+#if defined(cata)
+int lastAreaStore = 4713; // last area (areaflag) added in 4.3.4
+int lastCharTitlesStore = 287; // last char title added in 4.3.4
+int lastGemPropertiesStore = 2250; // last gem property added in 4.3.4
+int lastMapStore = 980; // last map added in 4.3.4
+int lastSpellStore = 121820; // last added spell in 4.3.4
+
+#elif defined(MISTS)
+int lastAreaStore = 6539; // last area (areaflag) added in 5.1.0
+int lastCharTitlesStore = 319; // last char title added in 5.1.0
+int lastGemPropertiesStore = 2402; // last gem property added in 5.1.0
+int lastMapStore = 1076; // last map added in 5.1.0
+int lastSpellStore = 131203; // last added spell in 5.1.0
+#endif
+
     // Check loaded DBC files proper version
-    if (!sAreaStore.LookupEntry(4713)              ||       // last area (areaflag) added in 4.3.4
-        !sCharTitlesStore.LookupEntry(287)         ||       // last char title added in 4.3.4
-        !sGemPropertiesStore.LookupEntry(2250)     ||       // last gem property added in 4.3.4
-        !sMapStore.LookupEntry(980)                ||       // last map added in 4.3.4
-        !sSpellStore.LookupEntry(121820)           )        // last added spell in 4.3.4
+    if (!sAreaStore.LookupEntry(lastAreaStore)                   ||       // last area (areaflag)
+        !sCharTitlesStore.LookupEntry(lastCharTitlesStore)       ||       // last char title
+        !sGemPropertiesStore.LookupEntry(lastGemPropertiesStore) ||       // last gem property
+        !sMapStore.LookupEntry(lastMapStore)                     ||       // last map
+        !sSpellStore.LookupEntry(lastSpellStore)                  )       // last added spell
     {
         sLog.outError("\nYou have mixed version DBC files. Please re-extract DBC files for one from client build: %s", AcceptableClientBuildsListStr().c_str());
         Log::WaitBeforeContinueIfNeed();
@@ -1138,6 +1153,7 @@ ContentLevels GetContentLevelsForMap(uint32 mapid)
         case 1:  return CONTENT_61_70;
         case 2:  return CONTENT_71_80;
         case 3:  return CONTENT_81_85;
+        case 4:  return CONTENT_86_90;
     }
 }
 

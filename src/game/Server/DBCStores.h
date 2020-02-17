@@ -68,6 +68,9 @@ enum ContentLevels
     CONTENT_61_70,
     CONTENT_71_80,
     CONTENT_81_85,
+#if defined(MISTS)
+    CONTENT_86_90,
+#endif
 };
 ContentLevels GetContentLevelsForMapAndZone(uint32 mapId, uint32 zoneId);
 

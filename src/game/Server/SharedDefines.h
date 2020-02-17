@@ -42,6 +42,8 @@ enum Gender
 #define MAX_GENDER                       3
 
 // Race value is index in ChrRaces.dbc
+#if defined(CATA)
+// Race value is index in ChrRaces.dbc
 enum Races
 {
     RACE_HUMAN              = 1,
@@ -65,26 +67,84 @@ enum Races
     RACE_TAUNKA             = 19,
     RACE_NORTHREND_SKELETON = 20,
     RACE_ICE_TROLL          = 21,
-    RACE_WORGEN             = 22
+    RACE_WORGEN             = 22,
 };
 
 // max+1 for player race
 #define MAX_RACES         23
+#elif defined(MISTS)
+// Race value is index in ChrRaces.dbc
+enum Races
+{
+    RACE_HUMAN              = 1,
+    RACE_ORC                = 2,
+    RACE_DWARF              = 3,
+    RACE_NIGHTELF           = 4,
+    RACE_UNDEAD             = 5,
+    RACE_TAUREN             = 6,
+    RACE_GNOME              = 7,
+    RACE_TROLL              = 8,
+    RACE_GOBLIN             = 9,
+    RACE_BLOODELF           = 10,
+    RACE_DRAENEI            = 11,
+    RACE_FEL_ORC            = 12,
+    RACE_NAGA               = 13,
+    RACE_BROKEN             = 14,
+    RACE_SKELETON           = 15,
+    RACE_VRYKUL             = 16,
+    RACE_TUSKARR            = 17,
+    RACE_FOREST_TROLL       = 18,
+    RACE_TAUNKA             = 19,
+    RACE_NORTHREND_SKELETON = 20,
+    RACE_ICE_TROLL          = 21,
+    RACE_WORGEN             = 22,
+    RACE_HUMAN_GILNEAN      = 23,
+    RACE_PANDAREN_NEUTRAL   = 24,
+    RACE_PANDAREN_ALLI      = 25,
+    RACE_PANDAREN_HORDE     = 26
+};
 
+// max+1 for player race
+#define MAX_RACES         27
+#endif
+
+#if defined(CATA)
 #define RACEMASK_ALL_PLAYABLE \
     ((1<<(RACE_HUMAN-1))    |(1<<(RACE_ORC-1))      |(1<<(RACE_DWARF-1))   | \
-     (1<<(RACE_NIGHTELF-1))  |(1<<(RACE_UNDEAD-1))   |(1<<(RACE_TAUREN-1))  | \
-     (1<<(RACE_GNOME-1))     |(1<<(RACE_TROLL-1))    |(1<<(RACE_BLOODELF-1))| \
+    (1<<(RACE_NIGHTELF-1))  |(1<<(RACE_UNDEAD-1))   |(1<<(RACE_TAUREN-1))  | \
+    (1<<(RACE_GNOME-1))     |(1<<(RACE_TROLL-1))    |(1<<(RACE_BLOODELF-1))| \
     (1<<(RACE_DRAENEI-1))   |(1<<(RACE_GOBLIN-1))   |(1<<(RACE_WORGEN-1)))
+#elif defined(MISTS)
+#define RACEMASK_ALL_PLAYABLE \
+    ((1<<(RACE_HUMAN-1))           |(1<<(RACE_ORC-1))      |(1<<(RACE_DWARF-1))   | \
+    (1<<(RACE_NIGHTELF-1))         |(1<<(RACE_UNDEAD-1))   |(1<<(RACE_TAUREN-1))  | \
+    (1<<(RACE_GNOME-1))            |(1<<(RACE_TROLL-1))    |(1<<(RACE_BLOODELF-1))| \
+    (1<<(RACE_DRAENEI-1))          |(1<<(RACE_GOBLIN-1))   |(1<<(RACE_WORGEN-1))  | \
+    (1<<(RACE_PANDAREN_NEUTRAL-1)) |(1<<(RACE_PANDAREN_ALLI-1))|(1<<(RACE_PANDAREN_HORDE-1)))
+#endif
 
 // for most cases batter use ChrRace data for team check as more safe, but when need full mask of team can be use this defines.
+#if defined(CATA)
 #define RACEMASK_ALLIANCE \
     ((1<<(RACE_HUMAN-1))    |(1<<(RACE_DWARF-1))    |(1<<(RACE_NIGHTELF-1))| \
     (1<<(RACE_GNOME-1))     |(1<<(RACE_DRAENEI-1))  |(1<<(RACE_WORGEN-1)))
+#elif defined(MISTS)
+#define RACEMASK_ALLIANCE \
+    ((1<<(RACE_HUMAN-1))    |(1<<(RACE_DWARF-1))    |(1<<(RACE_NIGHTELF-1))| \
+    (1<<(RACE_GNOME-1))     |(1<<(RACE_DRAENEI-1))  |(1<<(RACE_WORGEN-1))  | \
+    (1<<(RACE_PANDAREN_NEUTRAL-1)) | (1<<(RACE_PANDAREN_ALLI-1)))
+#endif
 
+#if defined(CATA)
 #define RACEMASK_HORDE \
-    ((1<<(RACE_ORC-1))      |(1<<(RACE_UNDEAD-1))   |(1<<(RACE_TAUREN-1))  | \
+    ((1<<(RACE_ORC-1))      |(1<<(RACE_UNDEAD-1))   |(1<<(RACE_TAUREN-1)) | \
     (1<<(RACE_TROLL-1))     |(1<<(RACE_BLOODELF-1)) |(1<<(RACE_GOBLIN-1)))
+#elif defined(MISTS)
+#define RACEMASK_HORDE \
+    ((1<<(RACE_ORC-1))      |(1<<(RACE_UNDEAD-1))   |(1<<(RACE_TAUREN-1)) | \
+    (1<<(RACE_TROLL-1))     |(1<<(RACE_BLOODELF-1)) |(1<<(RACE_GOBLIN-1)) | \
+    (1<<(RACE_PANDAREN_NEUTRAL-1)) | (1<<(RACE_PANDAREN_HORDE-1)))
+#endif
 
 // Class value is index in ChrClasses.dbc
 enum Classes
@@ -98,18 +158,28 @@ enum Classes
     CLASS_SHAMAN        = 7,
     CLASS_MAGE          = 8,
     CLASS_WARLOCK       = 9,
-    // CLASS_UNK2       = 10,unused
+#if defined(MISTS)
+    CLASS_MONK          = 10,
+#endif
     CLASS_DRUID         = 11,
 };
 
 // max+1 for player class
 #define MAX_CLASSES       12
 
+#if defined(CATA)
 #define CLASSMASK_ALL_PLAYABLE \
     ((1<<(CLASS_WARRIOR-1))|(1<<(CLASS_PALADIN-1))|(1<<(CLASS_HUNTER-1))| \
-     (1<<(CLASS_ROGUE-1))  |(1<<(CLASS_PRIEST-1)) |(1<<(CLASS_SHAMAN-1))| \
-     (1<<(CLASS_MAGE-1))   |(1<<(CLASS_WARLOCK-1))|(1<<(CLASS_DRUID-1)) | \
-     (1<<(CLASS_DEATH_KNIGHT-1)) )
+    (1<<(CLASS_ROGUE-1))   |(1<<(CLASS_PRIEST-1)) |(1<<(CLASS_SHAMAN-1))| \
+    (1<<(CLASS_MAGE-1))    |(1<<(CLASS_WARLOCK-1))|(1<<(CLASS_DRUID-1)) | \
+    (1<<(CLASS_DEATH_KNIGHT-1)))
+#elif defined(MISTS)
+#define CLASSMASK_ALL_PLAYABLE \
+    ((1<<(CLASS_WARRIOR-1))     |(1<<(CLASS_PALADIN-1))|(1<<(CLASS_HUNTER-1))| \
+    (1<<(CLASS_ROGUE-1))        |(1<<(CLASS_PRIEST-1)) |(1<<(CLASS_SHAMAN-1))| \
+    (1<<(CLASS_MAGE-1))         |(1<<(CLASS_WARLOCK-1))|(1<<(CLASS_DRUID-1)) | \
+    (1<<(CLASS_DEATH_KNIGHT-1)) | (1<<(CLASS_MONK-1)))
+#endif
 
 #define CLASSMASK_ALL_CREATURES ((1<<(CLASS_WARRIOR-1)) | (1<<(CLASS_PALADIN-1)) | (1<<(CLASS_ROGUE-1)) | (1<<(CLASS_MAGE-1)) )
 #define MAX_CREATURE_CLASS 4
@@ -3773,11 +3843,15 @@ enum TrackedAuraType
 
 // we need to stick to 1 version or half of the stuff will work for someone
 // others will not and opposite
-// will only support WoW, WoW:TBC, WoW:WotLK and WoW:Cataclysm 4.3.4 client build 15595...
+// will only support WoW, WoW:TBC, WoW:WotLK , WoW:Cataclysm and WoW:MOP 5.1.0 client build 16357...
 
+#if defined(CATA)
 #define EXPECTED_MANGOSD_CLIENT_BUILD        {15595, 0}
 #define EXPECTED_MANGOSD_CLIENT_VERSION      "4.3.4"
-
+#elif defined(MISTS)
+#define EXPECTED_MANGOSD_CLIENT_BUILD        {16357, 0}
+#define EXPECTED_MANGOSD_CLIENT_VERSION      "4.3.4"
+#endif
 // max supported expansion level in mangosd
 // NOTE: not set it more that supported by targeted client version with all expansions installed
 // account with expansion > client supported will rejected at connection by client
@@ -3789,9 +3863,16 @@ enum Expansions
     EXPANSION_TBC                       = 1,                // TBC
     EXPANSION_WOTLK                     = 2,                // WotLK
     EXPANSION_CATA                      = 3,                // Cataclysm
+#if defined(MISTS)
+    EXPANSION_MOP                       = 4,                // Mists of Pandaria
+#endif
 };
 
+#if defined(CATA)
 #define MAX_EXPANSION 3
+#elif defined(MISTS)
+#define MAX_EXPANSION 4
+#endif
 
 // Maxlevel for expansion
 enum MaxLevel
@@ -3800,9 +3881,16 @@ enum MaxLevel
     MAX_LEVEL_TBC                       = 70,
     MAX_LEVEL_WOTLK                     = 80,
     MAX_LEVEL_CATACLYSM                 = 85,
+#if defined(MISTS)
+    MAX_LEVEL_MOP                       = 90
+#endif
 };
 
+#if defined(CATA)
 static const MaxLevel maxLevelForExpansion[MAX_EXPANSION + 1] = { MAX_LEVEL_CLASSIC, MAX_LEVEL_TBC, MAX_LEVEL_WOTLK, MAX_LEVEL_CATACLYSM };
+#elif defined(MISTS)
+static const MaxLevel maxLevelForExpansion[MAX_EXPANSION + 1] = { MAX_LEVEL_CLASSIC, MAX_LEVEL_TBC, MAX_LEVEL_WOTLK, MAX_LEVEL_CATACLYSM , MAX_LEVEL_MOP };
+#endif
 
 // Max creature level (included some bosses and elite)
 #define DEFAULT_MAX_CREATURE_LEVEL 90
