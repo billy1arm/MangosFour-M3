@@ -4923,8 +4923,10 @@ void Spell::EffectTriggerMissileSpell(SpellEffectEntry const* effect)
             m_caster->GetMap()->ScriptsStart(DBS_ON_SPELL, m_spellInfo->Id, m_caster, unitTarget);
         }
         else
+        {
             sLog.outError("EffectTriggerMissileSpell of spell %u (eff: %u): triggering unknown spell id %u",
                       m_spellInfo->Id, effect->EffectIndex, triggered_spell_id);
+        }
         return;
     }
 
