@@ -596,12 +596,12 @@ void WorldSession::HandleBuyItemOpcode(WorldPacket& recv_data)
     }
 }
 
-void WorldSession::HandleListInventoryOpcode(WorldPacket& recvdata)
+void WorldSession::HandleListInventoryOpcode(WorldPacket& recvData)
 {
     ObjectGuid guid;
 
 #if defined (CATA)
-    recvdata >> guid;
+    recvData >> guid;
 #elif defined (MISTS)
     guid[1] = recvData.ReadBit();
     guid[3] = recvData.ReadBit();

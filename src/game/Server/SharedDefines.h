@@ -105,7 +105,8 @@ enum Races
 };
 
 // max+1 for player race
-#define MAX_RACES         27
+#define MAX_RACES             27
+#define MAX_PLAYABLE_RACES    15
 #endif
 
 #if defined(CATA)
