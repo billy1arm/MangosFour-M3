@@ -214,30 +214,35 @@ void WorldSession::HandleCharEnumOpcode(WorldPacket & /*recv_data*/)
                                   PET_SAVE_AS_CURRENT, GetAccountId());
 }
 
-void WorldSession::HandleCharCreateOpcode(WorldPacket& recv_data)
+void WorldSession::HandleCharCreateOpcode(WorldPacket& recvData)
 {
 #if defined (CATA)
     std::string name;
     uint8 race_, class_;
 
-    recv_data >> name;
+    recvData >> name;
 
-    recv_data >> race_;
-    recv_data >> class_;
+    recvData >> race_;
+    recvData >> class_;
 
     // extract other data required for player creating
     uint8 gender, skin, face, hairStyle, hairColor, facialHair, outfitId;
-    recv_data >> gender >> skin >> face;
-    recv_data >> hairStyle >> hairColor >> facialHair >> outfitId;
+    recvData >> gender >> skin >> face;
+    recvData >> hairStyle >> hairColor >> facialHair >> outfitId;
 #elif defined (MISTS)
-    std::string name;
-    uint8 race_, class_, gender, skin, face, hairStyle, hairColor, facialHair, outfitId;
+    uint8 hairStyle, face, facialHair, hairColor, race_, class_, skin, gender, outfitId;
 
-    recv_data >> gender >> hairColor >> outfitId;
-    recv_data >> race_ >> class_ >> face>> facialHair >> skin >> hairStyle;
+    recvData >> outfitId >> hairStyle >> class_ >> skin;
+    recvData >> face >> race_ >> facialHair >> gender >> hairColor;
 
-    uint8 nameLength = recv_data.ReadBits(7);
-    name = recv_data.ReadString(nameLength);
+    uint32 nameLength = recvData.ReadBits(6);
+    uint8 unk = recvData.ReadBit();
+    std::string name = recvData.ReadString(nameLength);
+
+    if (unk)
+    {
+        recvData.read_skip<uint32>();
+    }
 #endif
 
     WorldPacket data(SMSG_CHAR_CREATE, 1);                  // returned with diff.values in all cases
