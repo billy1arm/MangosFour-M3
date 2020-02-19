@@ -257,7 +257,7 @@ enum Powers
 #endif
     MAX_POWERS                              = 17,
 #if defined (MISTS)
-    POWER_ALL                               = 127,
+    POWER_ALL                               = 171,
 #endif
     POWER_HEALTH                            = 0xFFFFFFFE ///< Health, everyone has this (-2 as signed value)
 };
