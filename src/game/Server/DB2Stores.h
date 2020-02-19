@@ -34,6 +34,9 @@
 extern DB2Storage <ItemEntry>                    sItemStore;
 extern DB2Storage <ItemCurrencyCostEntry>        sItemCurrencyCostStore;
 extern DB2Storage <ItemExtendedCostEntry>        sItemExtendedCostStore;
+#if defined (MISTS)
+extern DB2Storage <SceneScriptEntry>             sSceneScriptStore;
+#endif
 
 void LoadDB2Stores(const std::string& dataPath);
 

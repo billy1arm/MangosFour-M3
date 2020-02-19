@@ -37,6 +37,9 @@
 DB2Storage <ItemEntry>                    sItemStore(Itemfmt);
 DB2Storage <ItemCurrencyCostEntry>        sItemCurrencyCostStore(ItemCurrencyCostfmt);
 DB2Storage <ItemExtendedCostEntry>        sItemExtendedCostStore(ItemExtendedCostEntryfmt);
+#if defined (MISTS)
+DB2Storage <SceneScriptEntry>             sSceneScriptStore(SceneScriptfmt);
+#endif
 
 typedef std::list<std::string> StoreProblemList1;
 uint32 DB2FileCount = 0;
@@ -116,6 +119,9 @@ void LoadDB2Stores(const std::string& dataPath)
     LoadDB2(availableDb2Locales,bad_db2_files,sItemStore,                db2Path,"Item.db2");
     LoadDB2(availableDb2Locales,bad_db2_files,sItemCurrencyCostStore,    db2Path,"ItemCurrencyCost.db2");
     LoadDB2(availableDb2Locales,bad_db2_files,sItemExtendedCostStore,    db2Path,"ItemExtendedCost.db2");
+#if defined (MISTS)
+    LoadDB2(availableDb2Locales,bad_db2_files,sSceneScriptStore,         db2Path, "SceneScript.db2");
+#endif
 
     // error checks
     if (bad_db2_files.size() >= DB2FileCount)
@@ -141,10 +147,16 @@ void LoadDB2Stores(const std::string& dataPath)
 #elif defined(MISTS)
     int lastItemStore = 109014;             // last item added in 5.4.7 (18019)
     int lastItemExtendedCostStore = 5268;   // last item extended cost added in 5.4.7 (18019)
+    int lastSceneScriptStore = 11156;       // last scene script store in 5.4.7 (18019)
 #endif
     // Check loaded DB2 files proper version
     if (!sItemStore.LookupEntry(lastItemStore)                          ||       // last item added in 5.4.1 (17538)
+#if defined (CATA)
         !sItemExtendedCostStore.LookupEntry(lastItemExtendedCostStore)  )        // last item extended cost added in 5.4.1 (17538)
+#elif defined (MISTS)
+        !sItemExtendedCostStore.LookupEntry(lastItemExtendedCostStore)  ||       // last item extended cost added in 5.4.1 (17538)
+        !sSceneScriptStore.LookupEntry(lastSceneScriptStore ))                                   // last scene script added in 5.4.7 (18019)
+#endif
     {
         sLog.outString("");
         sLog.outError("Please extract correct db2 files from build %s", AcceptableClientBuildsListStr().c_str());
