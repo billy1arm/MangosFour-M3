@@ -342,7 +342,7 @@ enum Opcodes
     CMSG_DESTROYITEM                                      = 0x4A27, // 4.3.4 15595
     SMSG_INVENTORY_CHANGE_FAILURE                         = 0x2236, // 4.3.4 15595
     SMSG_OPEN_CONTAINER                                   = 0x4714, // 4.3.4 15595
-    CMSG_INSPECT                                          = 0x0927, // 4.3.4 15595
+    CMSG_INSPECT                                          = 0x01D4, // 5.4.7 18019
     SMSG_INSPECT_RESULTS_UPDATE                           = 0x0B98, // 5.3.0 17128
     CMSG_INITIATE_TRADE                                   = 0x7916, // 4.3.4 15595
     CMSG_BEGIN_TRADE                                      = 0x721E, // 4.3.4 15595
@@ -1437,7 +1437,7 @@ enum Opcodes
     SMSG_PVP_OPTIONS_ENABLED                              = 0x0381, // 5.3.0
     CMSG_REQUEST_HOTFIX                                   = 0x2401, // 4.3.4 15595
     SMSG_DB_REPLY                                         = 0x38A4, // 4.3.4 15595
-    CMSG_OBJECT_UPDATE_FAILED                             = 0x3808, // 4.3.4 15595
+    CMSG_OBJECT_UPDATE_FAILED                             = 0x0882, // 5.4.7 18019
     CMSG_REFORGE_ITEM                                     = 0x331A, // 4.3.4 15595
     SMSG_REFORGE_RESULT                                   = 0x58A4, // 4.3.4 15595
     CMSG_LOAD_SCREEN                                      = 0x2422, // 4.3.4 15595
