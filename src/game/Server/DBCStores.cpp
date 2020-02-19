@@ -979,11 +979,11 @@ int lastMapStore = 980; // last map added in 4.3.4
 int lastSpellStore = 121820; // last added spell in 4.3.4
 
 #elif defined(MISTS)
-int lastAreaStore = 5491; // last area (areaflag) added in 5.4.7 (18019)
-int lastCharTitlesStore = 389; // last char title added in 5.4.7 (18019)
-int lastGemPropertiesStore = 2467; // last gem property added in 5.4.7 (18019)
-int lastMapStore = 1173; // last map added in 5.4.7 (18019)
-int lastSpellStore = 155748; // last added spell in 5.4.7 (18019)
+int lastAreaStore = 5491; // last area (areaflag) added in 5.4.8 (18414)
+int lastCharTitlesStore = 389; // last char title added in 5.4.8 (18414)
+int lastGemPropertiesStore = 2467; // last gem property added in 5.4.8 (18414)
+int lastMapStore = 1173; // last map added in 5.4.8 (18414)
+int lastSpellStore = 163227; // last added spell in 5.4.8 (18414)
 #endif
 
     // Check loaded DBC files proper version
