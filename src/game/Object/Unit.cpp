@@ -85,9 +85,13 @@ float baseMoveSpeed[MAX_MOVE_TYPE] =
 
 void MovementInfo::Read(ByteBuffer& data, uint16 opcode)
 {
-    bool hasTransportData = false,
-        hasMovementFlags = false,
-        hasMovementFlags2 = false;
+    bool hasTransportData = false;
+    bool hasMovementFlags = false;
+    bool hasMovementFlags2 = false;
+#if defined (MISTS)
+    bool hasUnkTime = false;
+    uint32 counterCount = 0;
+#endif
 
     MovementStatusElements* sequence = GetMovementStatusElementsSequence(opcode);
     if(!sequence)
@@ -329,13 +333,29 @@ void MovementInfo::Read(ByteBuffer& data, uint16 opcode)
                     data >> fallTime;
                 }
                 break;
+#if defined (CATA)
             case MSEMovementCounter:
                 data.read_skip<uint32>();
                 break;
-#if defined (CATA)
             case MSEByteParam:
                  data >> byteParam;
                  break;
+#endif
+#if defined (MISTS)
+            case MSECounterCount:
+                counterCount = data.ReadBits(22);
+                break;
+            case MSEMovementCounter:
+                for (int i = 0; i < counterCount; i++)
+                    data.read_skip<uint32>();
+                break;
+            case MSEHasUnkTime:
+                hasUnkTime = !data.ReadBit();
+                break;
+            case MSEUnkTime:
+                if (hasUnkTime)
+                    data.read_skip<uint32>();
+                  break;
 #endif
             default:
                 MANGOS_ASSERT(false && "Wrong movement status element");
@@ -573,6 +593,14 @@ void MovementInfo::Write(ByteBuffer& data, uint16 opcode) const
             case MSEMovementCounter:
                 data << uint32(0);
                 break;
+#if defined (MISTS)
+            case MSECounterCount:
+                data.WriteBits(0, 22);
+                break;
+            case MSEUintCount:
+                data << uint32(0);
+                break;
+#endif
             default:
                 MANGOS_ASSERT(false && "Wrong movement status element");
                 break;

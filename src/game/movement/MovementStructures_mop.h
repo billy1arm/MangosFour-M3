@@ -99,10 +99,13 @@ enum MovementStatusElements
     MSEMovementCounter,
     MSEUnknownArray,
     MSEUnkInt32,
+    MSECounterCount,
+    MSEUintCount,
+    MSEHasUnkTime,
+    MSEUnkTime,
     MSEEnd,
     MSE_COUNT
 };
-
 
 MovementStatusElements PlayerMoveSequence[] =
 {
@@ -138,7 +141,7 @@ MovementStatusElements PlayerMoveSequence[] =
     MSEHasTimestamp,
     MSEFlags2,
     MSEGuidBit5,
-    MSEHasUnknownBit,
+    MSECounterCount,
     MSEGuidBit6,
     MSEPositionY,
     MSETransportGuidByte7,
