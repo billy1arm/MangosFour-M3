@@ -747,7 +747,11 @@ bool Player::Create(uint32 guidlow, const std::string& name, uint8 race, uint8 c
     SetFlag(UNIT_FIELD_FLAGS_2, UNIT_FLAG2_REGENERATE_POWER);
     SetFloatValue(UNIT_MOD_CAST_SPEED, 1.0f);               // fix cast time showed in spell tooltip on client
     SetFloatValue(UNIT_FIELD_HOVERHEIGHT, 1.0f);            // default for players in 3.0.3
-
+#if defined (MISTS)
+    SetUInt32Value(PLAYER_FIELD_HOME_PLAYER_REALM, 1);
+    SetFloatValue(PLAYER_FIELD_UI_SPELL_HIT_MODIFIER, 1.0f);
+    SetFloatValue(PLAYER_FIELD_HOME_REALM_TIME_OFFSET, 1);
+#endif
     SetInt32Value(PLAYER_FIELD_WATCHED_FACTION_INDEX, -1);  // -1 is default value
 
     SetByteValue(PLAYER_BYTES, 0, skin);
@@ -3425,8 +3429,9 @@ void Player::InitStatsForLevel(bool reapplyMods)
     RemoveByteFlag(UNIT_FIELD_BYTES_2, 1, UNIT_BYTE2_FLAG_FFA_PVP);
 
     // restore if need some important flags
+#if defined (CATA)
     SetUInt32Value(PLAYER_FIELD_BYTES2, 0);                 // flags empty by default
-
+#endif
     if (reapplyMods)                                        // reapply stats values only on .reset stats (level) command
     {
         _ApplyAllStatBonuses();
@@ -16769,6 +16774,7 @@ bool Player::SatisfyQuestDay(Quest const* qInfo, bool msg) const
     }
 
     bool have_slot = false;
+#if defined (CATA)
     for (uint32 quest_daily_idx = 0; quest_daily_idx < PLAYER_MAX_DAILY_QUESTS; ++quest_daily_idx)
     {
         uint32 id = GetUInt32Value(PLAYER_FIELD_DAILY_QUESTS_1 + quest_daily_idx);
@@ -16782,7 +16788,7 @@ bool Player::SatisfyQuestDay(Quest const* qInfo, bool msg) const
             have_slot = true;
         }
     }
-
+#endif
     if (!have_slot)
     {
         if (msg)
@@ -19510,11 +19516,12 @@ void Player::_LoadQuestStatus(QueryResult* result)
 
 void Player::_LoadDailyQuestStatus(QueryResult* result)
 {
+#if defined (CATA)
     for (uint32 quest_daily_idx = 0; quest_daily_idx < PLAYER_MAX_DAILY_QUESTS; ++quest_daily_idx)
     {
         SetUInt32Value(PLAYER_FIELD_DAILY_QUESTS_1 + quest_daily_idx, 0);
     }
-
+#endif
     // QueryResult *result = CharacterDatabase.PQuery("SELECT `quest` FROM `character_queststatus_daily` WHERE `guid` = '%u'", GetGUIDLow());
 
     if (result)
@@ -19539,7 +19546,9 @@ void Player::_LoadDailyQuestStatus(QueryResult* result)
                 continue;
             }
 
+#if defined (CATA)
             SetUInt32Value(PLAYER_FIELD_DAILY_QUESTS_1 + quest_daily_idx, quest_id);
+#endif
             ++quest_daily_idx;
 
             DEBUG_LOG("Daily quest {%u} cooldown for player (GUID: %u)", quest_id, GetGUIDLow());
@@ -20824,12 +20833,15 @@ void Player::_SaveDailyQuestStatus()
 
     stmtDel.PExecute(GetGUIDLow());
 
+#if defined (CATA)
     for (uint32 quest_daily_idx = 0; quest_daily_idx < PLAYER_MAX_DAILY_QUESTS; ++quest_daily_idx)
+    {
         if (GetUInt32Value(PLAYER_FIELD_DAILY_QUESTS_1 + quest_daily_idx))
         {
             stmtIns.PExecute(GetGUIDLow(), GetUInt32Value(PLAYER_FIELD_DAILY_QUESTS_1 + quest_daily_idx));
         }
-
+    }
+#endif
     m_DailyQuestChanged = false;
 }
 
@@ -24062,6 +24074,7 @@ void Player::SendAurasForTarget(Unit* target)
 
 void Player::SetDailyQuestStatus(uint32 quest_id)
 {
+#if defined (CATA)
     for (uint32 quest_daily_idx = 0; quest_daily_idx < PLAYER_MAX_DAILY_QUESTS; ++quest_daily_idx)
     {
         if (!GetUInt32Value(PLAYER_FIELD_DAILY_QUESTS_1 + quest_daily_idx))
@@ -24071,6 +24084,7 @@ void Player::SetDailyQuestStatus(uint32 quest_id)
             break;
         }
     }
+#endif
 }
 
 void Player::SetWeeklyQuestStatus(uint32 quest_id)
@@ -24087,11 +24101,12 @@ void Player::SetMonthlyQuestStatus(uint32 quest_id)
 
 void Player::ResetDailyQuestStatus()
 {
+#if defined (CATA)
     for (uint32 quest_daily_idx = 0; quest_daily_idx < PLAYER_MAX_DAILY_QUESTS; ++quest_daily_idx)
     {
         SetUInt32Value(PLAYER_FIELD_DAILY_QUESTS_1 + quest_daily_idx, 0);
     }
-
+#endif
     // DB data deleted in caller
     m_DailyQuestChanged = false;
 }
