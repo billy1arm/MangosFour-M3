@@ -1260,7 +1260,7 @@ void ExtractMapsFromMpq(uint32 build, const int locale)
 #if defined(MISTS)      // MOP has broken version files, some report as 17520
     if (build==17520)
 	{
-		build = 17538;
+		build = 18273;
 	}
 #endif
     uint32 map_count = ReadMapDBC(locale);
@@ -1643,7 +1643,7 @@ int main(int argc, char* arg[])
 #if defined(MISTS)      // MOP has broken version files, some report as 17520
                 if (build==17520)
                 {
-                    build = 17538;
+                    build = 18273;
                 }
 #endif
                 printf("Detected client build: %u\n", build);
@@ -1658,7 +1658,7 @@ int main(int argc, char* arg[])
 #if defined(MISTS)      // MOP has broken version files, some report as 17520
                 if (build==17520)
                 {
-                    build = 17538;
+                    build = 18273;
                 }
 #endif
                 printf("Detected client build: %u\n", build);

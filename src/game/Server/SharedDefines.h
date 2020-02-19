@@ -4337,8 +4337,8 @@ enum TrackedAuraType
 #define EXPECTED_MANGOSD_CLIENT_BUILD        {15595, 0}
 #define EXPECTED_MANGOSD_CLIENT_VERSION      "4.3.4"
 #elif defined(MISTS)
-#define EXPECTED_MANGOSD_CLIENT_BUILD        {17538, 0}
-#define EXPECTED_MANGOSD_CLIENT_VERSION      "5.4.1"
+#define EXPECTED_MANGOSD_CLIENT_BUILD        {18273, 0}
+#define EXPECTED_MANGOSD_CLIENT_VERSION      "5.4.8"
 #endif
 
 // max supported expansion level in mangosd
