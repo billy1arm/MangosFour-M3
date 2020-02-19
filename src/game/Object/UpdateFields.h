@@ -522,10 +522,16 @@ enum EPlayerFields
 
 enum EContainerFields
 {
+#if defined (CATA)
     CONTAINER_FIELD_NUM_SLOTS                        = ITEM_END + 0x0,
     CONTAINER_ALIGN_PAD                              = ITEM_END + 0x1,
     CONTAINER_FIELD_SLOT_1                           = ITEM_END + 0x2,
     CONTAINER_END                                    = ITEM_END + 0x4A
+#elif defined (MISTS)
+    CONTAINER_FIELD_SLOT                             = ITEM_END + 0x0000, // Size: 72, Type: LONG, Flags: PUBLIC
+    CONTAINER_FIELD_NUM_SLOTS                        = ITEM_END + 0x0048, // Size: 1, Type: INT, Flags: PUBLIC
+    CONTAINER_END                                    = ITEM_END + 0x0049
+#endif
 };
 
 enum EGameObjectFields

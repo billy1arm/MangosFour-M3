@@ -498,9 +498,10 @@ bool Creature::UpdateEntry(uint32 Entry, Team team, const CreatureData* data /*=
     SetUInt32Value(UNIT_FIELD_FLAGS_2, unitFlags2);
 
     // preserve all current dynamic flags if exist
+#if defined (CATA)
     uint32 dynFlags = GetUInt32Value(UNIT_DYNAMIC_FLAGS);
     SetUInt32Value(UNIT_DYNAMIC_FLAGS, dynFlags ? dynFlags : GetCreatureInfo()->DynamicFlags);
-
+#endif
     SetModifierValue(UNIT_MOD_ARMOR, BASE_VALUE, float(GetCreatureInfo()->Armor));
     SetModifierValue(UNIT_MOD_RESISTANCE_HOLY, BASE_VALUE, float(GetCreatureInfo()->ResistanceHoly));
     SetModifierValue(UNIT_MOD_RESISTANCE_FIRE, BASE_VALUE, float(GetCreatureInfo()->ResistanceFire));
@@ -649,7 +650,10 @@ void Creature::Update(uint32 update_diff, uint32 diff)
 
                 SelectLevel(cinfo);
                 UpdateAllStats();  // to be sure stats is correct regarding level of the creature
+#if defined (CATA)
                 SetUInt32Value(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_NONE);
+#endif
+
                 if (m_IsDeadByDefault)
                 {
                     SetDeathState(JUST_DIED);
@@ -1213,7 +1217,9 @@ void Creature::PrepareBodyLootState()
                 // ... or can have skinning after
                 (GetCreatureInfo()->SkinningLootId && sWorld.getConfig(CONFIG_BOOL_CORPSE_EMPTY_LOOT_SHOW)))
         {
+#if defined (CATA)
             SetFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_LOOTABLE);
+#endif
             return;
         }
     }
@@ -1223,12 +1229,16 @@ void Creature::PrepareBodyLootState()
     // if not have normal loot allow skinning if need
     if (!lootForSkin && GetCreatureInfo()->SkinningLootId)
     {
+#if defined (CATA)
       RemoveFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_LOOTABLE);
+#endif
       SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_SKINNABLE);
       return;
     }
 
+#if defined (CATA)
     RemoveFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_LOOTABLE);
+#endif
     RemoveFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_SKINNABLE);
 }
 
@@ -1301,8 +1311,10 @@ void Creature::SetLootRecipient(Unit* unit)
     {
         m_lootRecipientGuid.Clear();
         m_lootGroupRecipientId = 0;
+#if defined (CATA)
         RemoveFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_TAPPED);
         RemoveFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_TAPPED_BY_PLAYER);
+#endif
         return;
     }
 
@@ -1321,8 +1333,10 @@ void Creature::SetLootRecipient(Unit* unit)
         m_lootGroupRecipientId = group->GetId();
     }
 
+#if defined (CATA)
     SetFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_TAPPED);
     SetFlag(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_TAPPED_BY_PLAYER);
+#endif
 }
 
 void Creature::SaveToDB()
@@ -2064,7 +2078,9 @@ void Creature::SetDeathState(DeathState s)
 
         // Dynamic flags may be adjusted by spells. Clear them
         // first and let spell from *addon apply where needed.
+#if defined (CATA)
         SetUInt32Value(UNIT_DYNAMIC_FLAGS, UNIT_DYNFLAG_NONE);
+#endif
         LoadCreatureAddon(true);
 
         // Flags after LoadCreatureAddon. Any spell in *addon
