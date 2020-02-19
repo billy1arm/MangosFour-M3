@@ -881,14 +881,19 @@ void WorldSession::HandleReturnToGraveyard(WorldPacket& /*recvPacket*/)
     }
 }
 
-void WorldSession::HandleAreaTriggerOpcode(WorldPacket& recv_data)
+void WorldSession::HandleAreaTriggerOpcode(WorldPacket& recvData)
 {
     DEBUG_LOG("WORLD: Received opcode CMSG_AREATRIGGER");
 
     uint32 Trigger_ID;
-
-    recv_data >> Trigger_ID;
+    recvData >> Trigger_ID;
+#if defined (MISTS)
+    uint8 unk1, unk2;
+    unk1 = recvData.ReadBit();
+    unk2 = recvData.ReadBit();
+#endif
     DEBUG_LOG("Trigger ID: %u", Trigger_ID);
+
     Player* player = GetPlayer();
 
     if (player->IsTaxiFlying())
