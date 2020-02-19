@@ -304,7 +304,7 @@ enum Opcodes
     CMSG_FORCE_MOVE_UNROOT_ACK                            = 0x7808, // 4.3.4 15595
     MSG_MOVE_ROOT                                         = 0x10ED,
     MSG_MOVE_UNROOT                                       = 0x10EE,
-    MSG_MOVE_HEARTBEAT                                    = 0x3914, // 4.3.4 15595
+    MSG_MOVE_HEARTBEAT                                    = 0x01F2, // 5.4.8 18414
     SMSG_MOVE_KNOCK_BACK                                  = 0x5CB4, // 4.3.4 15595
     CMSG_MOVE_KNOCK_BACK_ACK                              = 0x721C, // 4.3.4 15595
     SMSG_MOVE_UPDATE_KNOCK_BACK                           = 0x3DB2, // 4.3.4 15595
@@ -1411,7 +1411,7 @@ enum Opcodes
     UMSG_UNKNOWN_1332                                     = 0x1535,
     UMSG_UNKNOWN_1333                                     = 0x1536,
     UMSG_UNKNOWN_1334                                     = 0x1537,
-    SMSG_PLAYER_MOVE                                      = 0x79A2, // 4.3.4 15595
+    SMSG_PLAYER_MOVE                                      = 0x1A32, // 5.4.8 18414
     SMSG_SPLINE_MOVE_SET_FLIGHT_BACK_SPEED                = 0x38B3, // 4.3.4 15595
     SMSG_SPLINE_MOVE_SET_FLIGHT_SPEED                     = 0x39A0, // 4.3.4 15595
     SMSG_SPLINE_MOVE_SET_PITCH_RATE                       = 0x14B0, // 4.3.4 15595
