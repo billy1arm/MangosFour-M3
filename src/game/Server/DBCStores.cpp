@@ -693,12 +693,12 @@ void LoadDBCStores(const std::string& dataPath)
                     break;
             }
 
-#if defined (MISTS)
-            if (spellEffect->EffectSpellId < MAX_EFFECT_INDEX && spellEffect->Difficulty == 0)
-#endif
-            {
+//#if defined (MISTS)
+//            if (spellEffect->EffectSpellId < MAX_EFFECT_INDEX && spellEffect->Difficulty == 0)
+//#endif
+//            {
                 sSpellEffectMap[spellEffect->EffectSpellId].effects[spellEffect->EffectIndex] = spellEffect;
-            }
+            //}
         }
     }
 

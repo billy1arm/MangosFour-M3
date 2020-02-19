@@ -107,7 +107,7 @@ enum Opcodes
     SMSG_CHAR_CREATE                                      = 0x2D05, // 4.3.4 15595
     SMSG_CHAR_ENUM                                        = 0x10B0, // 4.3.4 15595
     SMSG_CHAR_DELETE                                      = 0x0304, // 4.3.4 15595
-    CMSG_PLAYER_LOGIN                                     = 0x01E1, // 5.4.1 17538
+	CMSG_PLAYER_LOGIN                                     = 0x17D3, // 5.4.7 18019
     SMSG_NEW_WORLD                                        = 0x04D9, // 5.3.0
     SMSG_TRANSFER_PENDING                                 = 0x18A6, // 4.3.4 15595
     SMSG_TRANSFER_ABORTED                                 = 0x0537, // 4.3.4 15595
@@ -594,6 +594,7 @@ enum Opcodes
     CMSG_GM_CREATE_ITEM_TARGET                            = 0x1211,
     CMSG_GMTICKET_GETTICKET                               = 0x0326, // 4.3.4 15595
     SMSG_GMTICKET_GETTICKET                               = 0x2C15, // 4.3.4 15595
+    CMSG_LEARN_TALENT                                     = 0x1776, // 5.4.1 17538
     CMSG_UNLEARN_TALENTS                                  = 0x1214,
     SMSG_INSTANCE_ENCOUNTER                               = 0x1215,
     SMSG_GAMEOBJECT_DESPAWN_ANIM                          = 0x0981, // 5.3.0 17128
@@ -655,7 +656,6 @@ enum Opcodes
     SMSG_PERIODICAURALOG                                  = 0x0416, // 4.3.4 15595
     SMSG_SPELLDAMAGESHIELD                                = 0x2927, // 4.3.4 15595
     SMSG_SPELLNONMELEEDAMAGELOG                           = 0x4315, // 4.3.4 15595
-    CMSG_LEARN_TALENT                                     = 0x1776, // 5.4.1 17538
     SMSG_RESURRECT_FAILED                                 = 0x1253,
     CMSG_TOGGLE_PVP                                       = 0x6815, // 4.3.4 15595
     SMSG_ZONE_UNDER_ATTACK                                = 0x053F, // 5.3.0 17128

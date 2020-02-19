@@ -670,24 +670,47 @@ void WorldSession::HandleCharDeleteOpcode(WorldPacket& recv_data)
     SendPacket(&data);
 }
 
-void WorldSession::HandlePlayerLoginOpcode(WorldPacket& recv_data)
+void WorldSession::HandlePlayerLoginOpcode(WorldPacket& recvData)
 {
+#if defined (MISTS)
+    ObjectGuid playerGuid;
+
+    playerGuid[7] = recvData.ReadBit();
+    playerGuid[6] = recvData.ReadBit();
+    playerGuid[0] = recvData.ReadBit();
+    playerGuid[4] = recvData.ReadBit();
+    playerGuid[5] = recvData.ReadBit();
+    playerGuid[2] = recvData.ReadBit();
+    playerGuid[3] = recvData.ReadBit();
+    playerGuid[1] = recvData.ReadBit();
+
+    recvData.ReadByteSeq(playerGuid[5]);
+    recvData.ReadByteSeq(playerGuid[0]);
+    recvData.ReadByteSeq(playerGuid[1]);
+    recvData.ReadByteSeq(playerGuid[6]);
+    recvData.ReadByteSeq(playerGuid[7]);
+    recvData.ReadByteSeq(playerGuid[2]);
+    recvData.ReadByteSeq(playerGuid[3]);
+    recvData.ReadByteSeq(playerGuid[4]);
+
+    float unk = recvData.ReadSingle();
+
+    DEBUG_LOG("WORLD: Received opcode Player Logon Message from %s, unk float: %f", playerGuid.GetString().c_str(), unk);
+#endif
     if (PlayerLoading() || GetPlayer() != NULL)
     {
-        sLog.outError("Player tryes to login again, AccountId = %d", GetAccountId());
+        sLog.outError("Player trying to login again, AccountId = %d", GetAccountId());
         return;
     }
 
     m_playerLoading = true;
 
-    ObjectGuid playerGuid;
-
 #if defined(CATA)
-    recv_data.ReadGuidMask<2, 3, 0, 6, 4, 5, 1, 7>(playerGuid);
-    recv_data.ReadGuidBytes<2, 7, 0, 3, 5, 6, 1, 4>(playerGuid);
+    recvData.ReadGuidMask<2, 3, 0, 6, 4, 5, 1, 7>(playerGuid);
+    recvData.ReadGuidBytes<2, 7, 0, 3, 5, 6, 1, 4>(playerGuid);
 #elif defined(MISTS)
-    recv_data.ReadGuidMask<2, 0, 4, 3, 5, 6, 1, 7>(playerGuid);
-    recv_data.ReadGuidBytes<0, 3, 7, 6, 1, 2, 4, 5>(playerGuid);
+    recvData.ReadGuidMask<2, 0, 4, 3, 5, 6, 1, 7>(playerGuid);
+    recvData.ReadGuidBytes<0, 3, 7, 6, 1, 2, 4, 5>(playerGuid);
 #endif
 
     DEBUG_LOG("WORLD: Received opcode Player Logon Message from %s", playerGuid.GetString().c_str());
