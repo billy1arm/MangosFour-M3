@@ -460,11 +460,28 @@ void WorldSession::HandleCastSpellOpcode(WorldPacket& recvPacket)
 
 void WorldSession::HandleCancelCastOpcode(WorldPacket& recvPacket)
 {
-    uint32 spellId;
-
+    uint32 spellId = 0;
+#if defined (CATA)
     recvPacket.read_skip<uint8>();                          // counter, increments with every CANCEL packet, don't use for now
     recvPacket >> spellId;
+#elif defined (MISTS)
+    uint8 counter = 0;
 
+    bool hasCounter = !recvPacket.ReadBit();
+    bool hasSpellId = !recvPacket.ReadBit();
+
+    recvPacket.FlushBits();
+
+    if (hasCounter)
+    {
+        recvPacket >> counter;
+    }
+
+    if (hasSpellId)
+    {
+        recvPacket >> spellId;
+    }
+#endif
     // ignore for remote control state (for player case)
     Unit* mover = _player->GetMover();
     if (mover != _player && mover->GetTypeId() == TYPEID_PLAYER)
