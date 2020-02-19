@@ -4331,13 +4331,13 @@ enum TrackedAuraType
 
 // we need to stick to 1 version or half of the stuff will work for someone
 // others will not and opposite
-// will only support WoW, WoW:TBC, WoW:WotLK , WoW:Cataclysm and WoW:MOP 5.3.0 client build 17538...
+// will only support WoW:MOP 5.4.8 client build 18414...
 
 #if defined(CATA)
 #define EXPECTED_MANGOSD_CLIENT_BUILD        {15595, 0}
 #define EXPECTED_MANGOSD_CLIENT_VERSION      "4.3.4"
 #elif defined(MISTS)
-#define EXPECTED_MANGOSD_CLIENT_BUILD        {18273, 0}
+#define EXPECTED_MANGOSD_CLIENT_BUILD        {18414, 0}
 #define EXPECTED_MANGOSD_CLIENT_VERSION      "5.4.8"
 #endif
 
