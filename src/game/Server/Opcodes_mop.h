@@ -483,7 +483,7 @@ enum Opcodes
     CMSG_QUEST_CONFIRM_ACCEPT                             = 0x0D15, // 4.3.4 15595
     SMSG_QUEST_CONFIRM_ACCEPT                             = 0x6F07, // 4.3.4 15595
     CMSG_PUSHQUESTTOPARTY                                 = 0x4B14, // 4.3.4 15595
-    CMSG_LIST_INVENTORY                                   = 0x0346, // 5.4.1 17538
+    CMSG_LIST_INVENTORY                                   = 0x10DD, // 5.4.7 18019
     SMSG_LIST_INVENTORY                                   = 0x7CB0, // 4.3.4 15595
     CMSG_SELL_ITEM                                        = 0x0B7D, // 5.4.1 17538
     SMSG_SELL_ITEM                                        = 0x6105, // 4.3.4 15595
@@ -912,7 +912,7 @@ enum Opcodes
     CMSG_MOVE_SET_FLY                                     = 0x1347,
     CMSG_SOCKET_GEMS                                      = 0x2F04, // 4.3.4 15595
     CMSG_ARENA_TEAM_CREATE                                = 0x04A1, // 4.3.4 15595
- SMSG_ARENA_TEAM_COMMAND_RESULT                           = 0x06C1, // 5.3.0 17128
+    SMSG_ARENA_TEAM_COMMAND_RESULT                           = 0x06C1, // 5.3.0 17128
     MSG_MOVE_UPDATE_CAN_TRANSITION_BETWEEN_SWIM_AND_FLY   = 0x134B,
     CMSG_ARENA_TEAM_QUERY                                 = 0x0514, // 4.3.4 15595
     SMSG_ARENA_TEAM_QUERY_RESPONSE                        = 0x6336, // 4.3.4 15595
