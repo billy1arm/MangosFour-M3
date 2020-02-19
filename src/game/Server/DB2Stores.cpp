@@ -139,8 +139,8 @@ void LoadDB2Stores(const std::string& dataPath)
     int lastItemStore = 83086;              // last item added in 5.4.1 (17538)
     int lastItemExtendedCostStore = 3872;   // last item extended cost added in 4.3.4 (15595)
 #elif defined(MISTS)
-    int lastItemStore = 107499;             // last item added in 5.4.1 (17538)
-    int lastItemExtendedCostStore = 5268;   // last item extended cost added in 5.4.1 (17538)
+    int lastItemStore = 109014;             // last item added in 5.4.7 (18019)
+    int lastItemExtendedCostStore = 5268;   // last item extended cost added in 5.4.7 (18019)
 #endif
     // Check loaded DB2 files proper version
     if (!sItemStore.LookupEntry(lastItemStore)                          ||       // last item added in 5.4.1 (17538)

@@ -693,7 +693,12 @@ void LoadDBCStores(const std::string& dataPath)
                     break;
             }
 
-            sSpellEffectMap[spellEffect->EffectSpellId].effects[spellEffect->EffectIndex] = spellEffect;
+#if defined (MISTS)
+            if (spellEffect->EffectSpellId < MAX_EFFECT_INDEX && spellEffect->Difficulty == 0)
+#endif
+            {
+                sSpellEffectMap[spellEffect->EffectSpellId].effects[spellEffect->EffectIndex] = spellEffect;
+            }
         }
     }
 
@@ -974,11 +979,11 @@ int lastMapStore = 980; // last map added in 4.3.4
 int lastSpellStore = 121820; // last added spell in 4.3.4
 
 #elif defined(MISTS)
-int lastAreaStore = 6539; // last area (areaflag) added in 5.4.1
-int lastCharTitlesStore = 389; // last char title added in 5.4.1
-int lastGemPropertiesStore = 2467; // last gem property added in 5.4.1
-int lastMapStore = 1173; // last map added in 5.4.1
-int lastSpellStore = 152028; // last added spell in 5.4.1
+int lastAreaStore = 5491; // last area (areaflag) added in 5.4.7 (18019)
+int lastCharTitlesStore = 389; // last char title added in 5.4.7 (18019)
+int lastGemPropertiesStore = 2467; // last gem property added in 5.4.7 (18019)
+int lastMapStore = 1173; // last map added in 5.4.7 (18019)
+int lastSpellStore = 155748; // last added spell in 5.4.7 (18019)
 #endif
 
     // Check loaded DBC files proper version
@@ -1274,6 +1279,9 @@ ContentLevels GetContentLevelsForMapAndZone(uint32 mapId, uint32 zoneId)
         case 1:  return CONTENT_61_70;
         case 2:  return CONTENT_71_80;
         case 3:  return CONTENT_81_85;
+#if defined (MISTS)
+        case 4:  return CONTENT_86_90;
+#endif
     }
 }
 
