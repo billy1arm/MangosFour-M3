@@ -1091,15 +1091,29 @@ void WorldSession::SetAccountData(AccountDataType type, time_t time_, const std:
 
 void WorldSession::SendAccountDataTimes(uint32 mask)
 {
+#if defined (CATA)
     WorldPacket data(SMSG_ACCOUNT_DATA_TIMES, 4 + 1 + 4 + 8 * 4); // changed in WotLK
     data << uint32(time(NULL));                             // unix time of something
     data << uint8(1);
     data << uint32(mask);                                   // type mask
     for (uint32 i = 0; i < NUM_ACCOUNT_DATA_TYPES; ++i)
+    {
         if (mask & (1 << i))
         {
             data << uint32(GetAccountData(AccountDataType(i))->Time);// also unix time
         }
+    }
+#elif defined (MISTS)
+    WorldPacket data(SMSG_ACCOUNT_DATA_TIMES, 4 + 1 + 4 + NUM_ACCOUNT_DATA_TYPES * 4);
+    data << uint32(mask);                                   // type mask
+    data << uint32(time(NULL));                             // unix time of something
+
+    for (uint32 i = 0; i < NUM_ACCOUNT_DATA_TYPES; ++i)
+    {
+        data << uint32(GetAccountData(AccountDataType(i))->Time);// also unix time
+    }
+    data.WriteBit(1);
+#endif
     SendPacket(&data);
 }
 
