@@ -147,7 +147,13 @@ namespace Movement
 
     void PacketBuilder::WriteCreateBits(const MoveSpline& move_spline, ByteBuffer& data)
     {
+#if defined (CATA)
         if (!data.WriteBit(!move_spline.Finalized()))
+#elif defined (MISTS)
+        bool hasFullSpline = !move_spline.Finalized();
+        data.WriteBit(hasFullSpline);
+        if (!hasFullSpline)
+#endif
         {
             return;
         }
@@ -157,32 +163,64 @@ namespace Movement
         bool hasSplineStartTime = move_spline.splineflags & (MoveSplineFlag::Trajectory | MoveSplineFlag::Animation);
         bool hasSplineVerticalAcceleration = (move_spline.splineflags & MoveSplineFlag::Trajectory) && move_spline.effect_start_time < move_spline.Duration();
 
+#if defined (CATA)
         data.WriteBits(uint8(move_spline.spline.mode()), 2);
+#endif
         data.WriteBit(hasSplineStartTime);
         data.WriteBits(nodes, 22);
+#if defined (MISTS)
+        data.WriteBits(move_spline.splineflags.raw(), 25);
+#endif
 
         switch (move_spline.splineflags & MoveSplineFlag::Mask_Final_Facing)
         {
             case MoveSplineFlag::Final_Target:
             {
+#if defined (CATA)
                 data.WriteBits(2, 2);
 
                 data.WriteGuidMask<4, 3, 7, 2, 6, 1, 0, 5>(ObjectGuid(move_spline.facing.target));
+#elif defined (MISTS)
+                data.WriteBits(1, 2);
+
+                data.WriteGuidMask<0, 1, 6, 5, 2, 3, 4, 7>(ObjectGuid(move_spline.facing.target));
+#endif
                 break;
             }
             case MoveSplineFlag::Final_Angle:
                 data.WriteBits(0, 2);
                 break;
             case MoveSplineFlag::Final_Point:
+#if defined (CATA)
                 data.WriteBits(1, 2);
+#elif defined (MISTS)
+                data.WriteBits(3, 2);
+#endif
                 break;
             default:
+#if defined (CATA)
                 data.WriteBits(3, 2);
+#elif defined (MISTS)
+                data.WriteBits(2, 2);
+#endif
                 break;
         }
 
+#if defined (MISTS)
+        bool hasUnkSplineCounter = false;
+        data.WriteBit(hasUnkSplineCounter);
+        if (hasUnkSplineCounter)
+        {
+            data.WriteBits(0, 23);  // unk
+            data.WriteBits(0, 2);   // unk
+        }
+
+        data.WriteBits(uint8(move_spline.spline.mode()), 2);
+#endif
         data.WriteBit(hasSplineVerticalAcceleration);
+#if defined (CATA)
         data.WriteBits(move_spline.splineflags.raw(), 25);
+#endif
     }
 
     void PacketBuilder::WriteCreateBytes(const MoveSpline& move_spline, ByteBuffer& data)
@@ -193,22 +231,44 @@ namespace Movement
             uint32 nodes = move_spline.getPath().size();
             bool hasSplineStartTime = move_spline.splineflags & (MoveSplineFlag::Trajectory | MoveSplineFlag::Animation);
             bool hasSplineVerticalAcceleration = (move_spline.splineflags & MoveSplineFlag::Trajectory) && move_spline.effect_start_time < move_spline.Duration();
+#if defined (MISTS)
+            bool hasUnkSplineCounter = false;
+            uint32 unkSplineCounter = 0;
 
+            if (hasUnkSplineCounter)
+            {
+                for (int i = 0; i < unkSplineCounter; ++i)
+                    data << float(0.0f) << float(0.0f);
+            }
+
+            if (move_spline.splineflags & MoveSplineFlag::Final_Target)
+                data.WriteGuidBytes<3, 2, 0, 5, 6, 7, 4, 1>(ObjectGuid(move_spline.facing.target));
+
+            data << int32(move_spline.timePassed());
+            data << int32(move_spline.Duration());
+#endif
             if (hasSplineVerticalAcceleration)
             {
                 data << float(move_spline.vertical_acceleration);   // added in 3.1
             }
 
+#if defined (CATA)
             data << int32(move_spline.timePassed());
+#elif defined (MISTS)
+            data << float(1.f);
+            data << float(1.f);
+#endif
 
             if (move_spline.splineflags & MoveSplineFlag::Final_Angle)
             {
                 data << float(NormalizeOrientation(move_spline.facing.angle));
             }
+#if defined (CATA)
             else if (move_spline.splineflags & MoveSplineFlag::Final_Target)
             {
                 data.WriteGuidBytes<5, 3, 7, 1, 6, 4, 2, 0>(ObjectGuid(move_spline.facing.target));
             }
+#endif
 
             for (uint32 i = 0; i < nodes; ++i)
             {
@@ -222,14 +282,17 @@ namespace Movement
                 data << float(move_spline.facing.f.x) << float(move_spline.facing.f.z) << float(move_spline.facing.f.y);
             }
 
+#if defined (CATA)
             data << float(1.f);
             data << int32(move_spline.Duration());
+#endif
             if (hasSplineStartTime)
             {
                 data << int32(move_spline.effect_start_time);   // added in 3.1
             }
-
+#if defined (CATA)
             data << float(1.f);
+#endif
         }
 
         if (!move_spline.isCyclic())
