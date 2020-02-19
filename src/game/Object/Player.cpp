@@ -23647,17 +23647,20 @@ void Player::SendInitialPacketsBeforeAddToMap()
     GetSocial()->SendSocialList();
 
     // Homebind
-    WorldPacket data(SMSG_BINDPOINTUPDATE, 5 * 4);
 #if defined (CATA)
+    WorldPacket data(SMSG_BINDPOINTUPDATE, 5 * 4);
     data << m_homebindX << m_homebindY << m_homebindZ;
     data << (uint32) m_homebindMapId;
 #elif defined (MISTS)
-    data << m_homebindZ;
+    WorldPacket data(SMSG_BINDPOINTUPDATE,  4 + 4 + 4 + 4 + 4);
     data << m_homebindX;
-    data << (uint32) m_homebindMapId;
+    data << m_homebindZ;
     data << m_homebindY;
 #endif
     data << (uint32) m_homebindAreaId;
+#if defined (MISTS)
+    data << (uint32) m_homebindMapId;
+#endif
     GetSession()->SendPacket(&data);
 
     // SMSG_SET_PROFICIENCY

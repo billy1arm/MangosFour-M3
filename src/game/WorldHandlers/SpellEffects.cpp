@@ -13725,6 +13725,9 @@ void Spell::EffectBind(SpellEffectEntry const* effect)
     data << float(loc.coord_x);
     data << float(loc.coord_y);
     data << float(loc.coord_z);
+#if defined (MISTS)
+    data << uint32(area_id);
+#endif
     data << uint32(loc.mapid);
     data << uint32(area_id);
     player->SendDirectMessage(&data);
