@@ -952,15 +952,23 @@ void WorldSession::SendAuthResponse(uint8 code, bool queued, uint32 queuePos)
 {
     bool hasAccountData = true;
 
+#if defined (CATA)
     WorldPacket packet(SMSG_AUTH_RESPONSE, 1 /*bits*/ + 4 + 1 + 4 + 1 + 4 + 1 + 1 + (queued ? 4 : 0));
     packet << uint8(code);
     packet.WriteBit(queued);                            // IsInQueue
     if (queued)
+    {
         packet.WriteBit(1);                             // unk
+    }
+#elif defined (MISTS)
+    WorldPacket packet(SMSG_AUTH_RESPONSE, 80);
+#endif
 
     packet.WriteBit(hasAccountData);
+
     if (hasAccountData)
     {
+#if defined (CATA)
         packet.WriteBit(0);
         packet.WriteBits(0, 21);
         packet.WriteBits(0, 21);
@@ -973,6 +981,30 @@ void WorldSession::SendAuthResponse(uint8 code, bool queued, uint32 queuePos)
         packet << uint32(0);
         packet << uint32(0);
         packet << uint8(5); //TODO: FIXME uint8(Expansion());                   // Unknown, these two show the same
+#elif defined (MISTS)
+        packet.WriteBits(MAX_CLASSES - 1, 23);
+        packet.WriteBits(0, 21);
+        packet.WriteBit(0);
+        packet.WriteBit(0);
+        packet.WriteBit(0);
+        packet.WriteBit(0);
+        packet.WriteBits(MAX_PLAYABLE_RACES, 23);
+        packet.WriteBit(0);
+
+        packet.WriteBit(queued);
+
+        if (queued)
+        {
+            packet.WriteBit(1);
+        }
+
+        packet.FlushBits();
+
+        if (queued)
+        {
+            packet << uint32(queuePos);
+        }
+#endif
 
         for (uint8 i = 0; i < MAX_PLAYABLE_RACES; ++i)
         {
@@ -980,21 +1012,39 @@ void WorldSession::SendAuthResponse(uint8 code, bool queued, uint32 queuePos)
             packet << uint8(raceExpansionInfo[i].raceOrClass);
         }
 
+#if defined (CATA)
         packet << uint8(5); //TODO: FIXME uint8(Expansion());                   // Unknown, these two show the same
         packet << uint32(0);
-
+#endif
         for (uint8 i = 0; i < MAX_CLASSES - 1; ++i)
         {
             packet << uint8(classExpansionInfo[i].raceOrClass);
             packet << uint8(classExpansionInfo[i].expansion);
         }
 
+#if defined (CATA)
         packet << uint32(0);
         packet << uint32(0);
+#elif defined (MISTS)
+        packet << uint32(0);
+        packet << uint8(Expansion());
+        packet << uint32(Expansion());
+        packet << uint32(0);
+        packet << uint8(Expansion());
+        packet << uint32(0);
+        packet << uint32(0);
+        packet << uint32(0);
+#endif
     }
 
+#if defined (CATA)
     if (queued)
+    {
         packet << uint32(queuePos);
+    }
+#elif defined (MISTS)
+    packet << uint8(code);
+#endif
 
     SendPacket(&packet);
 }
