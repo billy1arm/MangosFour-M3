@@ -136,6 +136,9 @@ class WorldSocket : protected WorldHandler
 
         /// Called on open ,the void* is the acceptor.
         int HandleWowConnection(WorldPacket& recvPacket);
+#if defined (MISTS)
+        int SendAuthChallenge();
+#endif
 
         virtual int open(void*) override;
 

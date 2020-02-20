@@ -310,8 +310,37 @@ int WorldSocket::HandleWowConnection(WorldPacket& recvPacket)
 {
     std::string ClientToServerMsg;
     recvPacket >> ClientToServerMsg;
+#if defined (CATA)
     return 0;
+#elif defined (MISTS)
+    DEBUG_LOG("Received MSG_WOW_CONNECTION FROM %s", m_Session ? m_Session->GetRemoteAddress().c_str() : "<unk>");
+    if (strcmp(ClientToServerMsg.c_str(), "D OF WARCRAFT CONNECTION - CLIENT TO SERVER") != 0)
+    {
+        sLog.outError("WorldSocket::ProcessIncoming: received wrong data in MSG_WOW_CONNECTION.");
+        return -1;
+    }
+
+    return SendAuthChallenge();
+#endif
 }
+
+#if defined (MISTS)
+int WorldSocket::SendAuthChallenge()
+{
+    DEBUG_LOG("Sending SMSG_AUTH_CHALLENGE");
+    WorldPacket packet(SMSG_AUTH_CHALLENGE, 37);
+    packet << uint16(0);
+
+    for (int i = 0; i < 8; i++)
+        packet << uint32(0);
+
+    packet << uint8(1);
+    packet << uint32(m_Seed);
+
+    return SendPacket(packet);
+
+}
+#endif
 
 int WorldSocket::close(int)
 {

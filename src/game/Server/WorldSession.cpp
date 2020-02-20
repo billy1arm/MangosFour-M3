@@ -876,12 +876,14 @@ void WorldSession::SendAuthWaitQue(uint32 position)
         WorldPacket packet( SMSG_AUTH_RESPONSE, 2 );
         packet.WriteBit(false);
         packet.WriteBit(false);
+        packet << uint8(AUTH_OK);
 #elif defined (MISTS)
         WorldPacket packet(SMSG_AUTH_RESPONSE, 1);
-        packet.WriteBit(false);     // no account data
-        packet.WriteBit(false);     // no queue
-#endif
+        packet.WriteBit(0);
+        packet.WriteBit(0);
         packet << uint8(AUTH_OK);
+        packet.FlushBits();
+#endif
         SendPacket(&packet);
     }
     else
@@ -891,13 +893,15 @@ void WorldSession::SendAuthWaitQue(uint32 position)
         packet.WriteBit(true);      // has queue
         packet.WriteBit(false);     // unk queue-related
         packet.WriteBit(false);     // has account info
+        packet << uint8(AUTH_WAIT_QUEUE);
 #elif defined (MISTS)
         WorldPacket packet(SMSG_AUTH_RESPONSE, 6);
-        packet.WriteBit(false);     // has account data
-        packet.WriteBit(true);      // has queue
-        packet.WriteBit(false);     // unk queue-related
-#endif
+        packet.WriteBit(0);
+        packet.WriteBit(1);
+        packet.WriteBit(0);
         packet << uint8(AUTH_WAIT_QUEUE);
+        packet.FlushBits();
+#endif
         packet << uint32(position);
         SendPacket(&packet);
     }
