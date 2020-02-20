@@ -105,7 +105,10 @@ SpellPowerEntry const* SpellEntry::GetSpellPower() const
 
 SpellReagentsEntry const* SpellEntry::GetSpellReagents() const
 {
+#if defined (CATA)
     return SpellReagentsId ? sSpellReagentsStore.LookupEntry(SpellReagentsId) : NULL;
+#endif
+    return 0; // TODO: remove this when the above is fixed
 }
 
 SpellScalingEntry const* SpellEntry::GetSpellScaling() const

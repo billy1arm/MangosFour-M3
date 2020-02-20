@@ -1819,6 +1819,7 @@ void WorldSession::HandleReforgeItemOpcode(WorldPacket& recvData)
         return;
     }
 
+#if defined (CATA)
     ItemReforgeEntry const* stats = sItemReforgeStore.LookupEntry(reforgeEntry);
     if (!stats)
     {
@@ -1832,6 +1833,7 @@ void WorldSession::HandleReforgeItemOpcode(WorldPacket& recvData)
         SendReforgeResult(false);
         return;
     }
+#endif
 
     if (player->GetMoney() < uint64(item->GetSpecialPrice()))   // cheating
     {

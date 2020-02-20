@@ -192,10 +192,12 @@ void VehicleInfo::Initialize()
     // Initialize power type based on DBC values (creatures only)
     if (pVehicle->GetTypeId() == TYPEID_UNIT)
     {
+#if defined (CATA)
         if (PowerDisplayEntry const* powerEntry = sPowerDisplayStore.LookupEntry(GetVehicleEntry()->m_powerDisplayID))
         {
             pVehicle->SetPowerType(Powers(powerEntry->power));
         }
+#endif
     }
 
     m_isInitialized = true;

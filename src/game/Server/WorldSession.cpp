@@ -996,7 +996,7 @@ void WorldSession::SendAuthResponse(uint8 code, bool queued, uint32 queuePos)
             packet.WriteBit(1);
         }
 
-#if defined (CATA_
+#if defined (CATA)
         packet.FlushBits();
 #endif
         if (queued)

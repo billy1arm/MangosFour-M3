@@ -14590,6 +14590,7 @@ void Player::ApplyReforgeEnchantment(Item* item, bool apply)
         return;
     }
 
+#if defined (CATA)
     ItemReforgeEntry const* reforge = sItemReforgeStore.LookupEntry(item->GetEnchantmentId(REFORGE_ENCHANTMENT_SLOT));
     if (!reforge)
     {
@@ -14818,6 +14819,7 @@ void Player::ApplyReforgeEnchantment(Item* item, bool apply)
             ApplyRatingMod(CR_MASTERY, int32(addValue), apply);
             break;
     }
+#endif
 }
 
 void Player::SendEnchantmentDurations()
@@ -28471,11 +28473,13 @@ float Player::GetCollisionHeight(bool mounted) const
             return GetCollisionHeight(false);
         }
 
+#if defined (CATA)
         CreatureModelDataEntry const* mountModelData = sCreatureModelDataStore.LookupEntry(mountDisplayInfo->ModelId);
         if (!mountModelData)
         {
             return GetCollisionHeight(false);
         }
+#endif
 
         CreatureDisplayInfoEntry const* displayInfo = sCreatureDisplayInfoStore.LookupEntry(GetNativeDisplayId());
         if (!displayInfo)
@@ -28484,6 +28488,7 @@ float Player::GetCollisionHeight(bool mounted) const
             return 0;
         }
 
+#if defined (CATA)
         CreatureModelDataEntry const* modelData = sCreatureModelDataStore.LookupEntry(displayInfo->ModelId);
         if (!modelData)
         {
@@ -28494,6 +28499,8 @@ float Player::GetCollisionHeight(bool mounted) const
         float scaleMod = GetObjectScale(); // 99% sure about this
 
         return scaleMod * mountModelData->MountHeight + modelData->CollisionHeight * 0.5f;
+#endif
+        return 0; // Added due to the above being removed
     }
     else
     {
@@ -28505,15 +28512,17 @@ float Player::GetCollisionHeight(bool mounted) const
             return 0;
         }
 
+#if defined (CATA)
         CreatureModelDataEntry const* modelData = sCreatureModelDataStore.LookupEntry(displayInfo->ModelId);
         if (!modelData)
         {
             sLog.outError("GetCollisionHeight::Unable to find CreatureModelDataEntry for %u", displayInfo->ModelId);
             return 0;
         }
-
         return modelData->CollisionHeight;
-    }
+#endif
+        return 0; // Added due to the aobve being removed
+}
 }
 
 // set data to accept next resurrect response and process it with required data

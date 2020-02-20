@@ -22,41 +22,42 @@
  * and lore are copyrighted by Blizzard Entertainment, Inc.
  */
 
+#if defined (MISTS)
+
 #ifndef MANGOS_DBCSFRM_H
 #define MANGOS_DBCSFRM_H
 
 const char Achievementfmt[]= "niiissiiiiisiix";                     // 5.3.0 Checked
-const char AchievementCriteriafmt[]= "niiiiiiiixsiiiiixxxxxxxx";    // 5.3.0 Checked
-const char AreaTableEntryfmt[]= "iiinixxxxxisiiiiixxxxxxxxx";
+const char AchievementCriteriafmt[]="niiiiiiiixsiiiiixxxxxxx";      // 5.4.8
+const char AreaTableEntryfmt[]="iiinixxxxxxxisiiiiixxxxxxxxxxx";    // 5.4.8
 const char AreaGroupEntryfmt[] = "niiiiiii";                        // 5.3.0 Checked
-const char AreaTriggerEntryfmt[]= "nifffxxxfffff";                  // TODO: 5.3.0 DIFFERENT
+const char AreaTriggerEntryfmt[]="nifffxxxfffffxxx";                // 5.4.8
 const char ArmorLocationfmt[]="nfffff";                             // 5.3.0 Checked
 const char AuctionHouseEntryfmt[]= "niiix";                         // 5.3.0 Checked
 const char BankBagSlotPricesEntryfmt[] = "ni";                      // 5.3.0 Checked
 const char BarberShopStyleEntryfmt[]= "nixxxiii";                   // TODO: 5.3.0 DIFFERENT
-const char BattlemasterListEntryfmt[]="niiiiiiiiixsiiiiiiii";       // TODO: 5.3.0 DIFFERENT
+const char BattlemasterListEntryfmt[]="niiiiiiiiiiiiiiiiixsiiiiiiiixx"; // 5.4.8
 const char CharStartOutfitEntryfmt[]= "diiiiiiiiiiiiiiiiiiiiiiiiixxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";    // TODO: 5.3.0 DIFFERENT
 const char CharTitlesEntryfmt[]="nxsxix";                           // 5.3.0 Checked
 const char ChatChannelsEntryfmt[]="iixsx";                          // 5.3.0 Checked
 // ChatChannelsEntryfmt, index not used (more compact store)
-const char ChrClassesEntryfmt[]= "nixsxxxixiiiii";                  // TODO: 5.3.0 DIFFERENT
-const char ChrRacesEntryfmt[]="nxixiixixxxxixsxxxxxixxx";           // TODO: 5.3.0 DIFFERENT
+const char ChrClassesEntryfmt[]="nixsxxxixiiiixxxxx";               // 5.4.8
+const char ChrRacesEntryfmt[]="nxixiixixxxxixsxxxxxixxxxxxxxxxxxxxx"; // 5.4.8
 const char ChrClassesXPowerTypesfmt[]="nii";                        // 5.3.0 Checked
 const char CinematicSequencesEntryfmt[] = "nxxxxxxxxx";             // 5.3.0 Checked
-const char CreatureDisplayInfofmt[]="nxxifxxxxxxxxxxxx";            // TODO: 5.3.0 DIFFERENT
+const char CreatureDisplayInfofmt[]="nxxifxxxxxxxxxxxxxxx";         // 5.4.8
 const char CreatureDisplayInfoExtrafmt[] = "nixxxxxxxxxxxxxxxxxxx"; // 5.3.0 Checked
 const char CreatureFamilyfmt[]="nfifiiiiixsx";                      // 5.3.0 Checked
-const char CreatureModelDatafmt[] = "nxxxxxxxxxxxxxxffxxxxxxxxxxxxxx";
 const char CreatureSpellDatafmt[] = "niiiixxxx";                    // 5.3.0 Checked
 const char CreatureTypefmt[]="nxx";                                 // 5.3.0 Checked
-const char CurrencyTypesfmt[]="nisxxxxiiix";                        // TODO: 5.3.0 DIFFERENT
+const char CurrencyTypesfmt[]="nisxxxxiiixx";                       // 5.4.8
 const char DestructibleModelDataFmt[] = "nixxxixxxxixxxxixxxxxxxx"; // 5.3.0 Checked
-const char DungeonEncounterfmt[]="niiiisxx";                        // 5.3.0 Checked
+const char DungeonEncounterfmt[]="niiiisxxx";                       // 5.4.8
 const char DurabilityCostsfmt[] = "niiiiiiiiiiiiiiiiiiiiiiiiiiiii"; // TODO: 5.3.0 DIFFERENT
 const char DurabilityQualityfmt[] = "nf";                           // TODO: 5.3.0 DIFFERENT
 const char EmotesEntryfmt[]="nxxiiixx";                             // 5.3.0 Checked
 const char EmotesTextEntryfmt[] = "nxixxxxxxxxxxxxxxxx";            // 5.3.0 Checked
-const char FactionEntryfmt[]="niiiiiiiiiiiiiiiiiiffixsxx";          // TODO: 5.3.0 DIFFERENT
+const char FactionEntryfmt[]="niiiiiiiiiiiiiiiiiiffixsxxxx";        // 5.4.8
 const char FactionTemplateEntryfmt[] = "niiiiiiiiiiiii";            // 5.3.0 Checked
 const char GameObjectDisplayInfofmt[]="nsxxxxxxxxxxffffffxxx";      // 5.3.0 Checked
 const char GemPropertiesEntryfmt[]="nixxix";                        // 5.3.0 Checked
@@ -82,22 +83,20 @@ const char ItemArmorQualityfmt[]="nfffffffi";                       // 5.3.0 Che
 const char ItemArmorShieldfmt[]="nifffffff";                        // 5.3.0 Checked
 const char ItemArmorTotalfmt[]="niffff";                            // 5.3.0 Checked
 const char ItemBagFamilyfmt[]="nx";                                 // 5.3.0 Checked
-const char ItemClassfmt[]="nixxfs";                                 // TODO: 5.3.0 DIFFERENT
+const char ItemClassfmt[]="nxfs";                                   // 5.4.8
 // const char ItemDisplayTemplateEntryfmt[]="nxxxxxxxxxxixxxxxxxxxxx";
 // const char ItemCondExtCostsEntryfmt[]="xiii";
 const char ItemDamagefmt[]="nfffffffi";
 const char ItemLimitCategoryEntryfmt[]="nxii";                      // 5.3.0 Checked
 const char ItemRandomPropertiesfmt[]="nxiiiiis";                    // 5.3.0 Checked
 const char ItemRandomSuffixfmt[]="nsxiiiiiiiiii";                   // 5.3.0 Checked
-const char ItemReforgefmt[]="nifif";
 const char ItemSetEntryfmt[]="dsxxxxxxxxxxxxxxxxxiiiiiiiiiiiiiiiiii"; // 5.3.0 Checked
-const char LfgDungeonsEntryfmt[] = "isiiiiifiiifsisisiiii";
 const char LiquidTypefmt[] = "nxxixixxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"; // 5.3.0 Checked
 const char LockEntryfmt[] = "niiiiiiiiiiiiiiiiiiiiiiiixxxxxxxx";    // 5.3.0 Checked
 const char MailTemplateEntryfmt[]="nxs";                            // 5.3.0 Checked
-const char MapEntryfmt[]="nsiiiisissififfiiiii";                    // TODO: 5.3.0 DIFFERENT
+const char MapEntryfmt[]="nsiiisissififfiiiii";                     // 5.4.8
 const char MapDifficultyEntryfmt[]="niisiis";                       // 5.3.0 Checked
-const char MovieEntryfmt[]="nxxx";
+const char MovieEntryfmt[]="nxxxx";                                 // 5.4.8
 const char MountCapabilityfmt[]="niiiiiii";
 const char MountTypefmt[]="niiiiiiiiiiiiiiiiiiiiiiii";
 const char NumTalentsAtLevelfmt[]="df";
@@ -106,60 +105,61 @@ const char QuestFactionRewardfmt[] = "niiiiiiiiii";
 const char QuestSortEntryfmt[]="nx";                                // 5.3.0 Checked
 const char QuestXPLevelfmt[] = "niiiiiiiiii";                       // 5.3.0 Checked
 const char Phasefmt[]="nii";                                        // 5.3.0 Checked
-const char PowerDisplayfmt[] = "nixxxx";
 const char PvPDifficultyfmt[] = "diiiii";
 const char RandomPropertiesPointsfmt[] = "niiiiiiiiiiiiiii";        // 5.3.0 Checked
 const char ScalingStatDistributionfmt[]="niiiiiiiiiiiiiiiiiiiixi";  // 5.3.0 Checked
-const char ScalingStatValuesfmt[]="iniiiiiiiiiiiiiiiiiiiixxxxxxxxxxxxxxxxxxxxxxxxx";
-const char SkillLinefmt[]="nisxixi";
-const char SkillLineAbilityfmt[] = "niiiixxiiiiiix";
-const char SkillRaceClassInfofmt[]="diiiiixxx";
-const char SoundEntriesfmt[]="nissssssssssssssssssssssxxxxxxxxxxx";
+const char ScalingStatValuesfmt[]="iniiiiiixiiiiiiiiiiiiiixxxxxxxxxxxxxxxxxxxxxxxxxx"; // 5.4.8
+const char SkillLinefmt[]="nisxixixx";                              // 5.4.8
+const char SkillLineAbilityfmt[]="niiiiiiiiixxx";                   // 5.4.8
+const char SkillRaceClassInfofmt[]="diiiiixx";                      // 5.4.8
+const char SoundEntriesfmt[]="nisxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"; // 5.4.8
 const char SpellCastTimefmt[]="niii";                               // 5.3.0 Checked
 const char SpellDurationfmt[] = "niii";                             // 5.3.0 Checked
 const char SpellDifficultyfmt[] = "niiii";
 //                          1        10        20        30        40        50        60        70        80        90        100       110       120       130       140       150       160
-const char SpellEntryfmt[]="niiiiiiiiiiiiiiifiiiissxxiixxixiiiiiiixiiiiiiiix";
-const char SpellAuraOptionsEntryfmt[]="diiii";
-const char SpellAuraRestrictionsEntryfmt[]="diiiiiiii";
+const char SpellEntryfmt[]="nssxxixxxiiiiiiiiiiiiiixi";             // 5.4.8
+const char SpellAuraOptionsEntryfmt[]="dxxiiiixx";                  // 5.4.8
+const char SpellAuraRestrictionsEntryfmt[]="dxxiiiiiiii";           // 5.4.8
 const char SpellCastingRequirementsEntryfmt[]="dixxixi";            // 5.3.0 Checked
-const char SpellCategoriesEntryfmt[]="diiiiii";
+const char SpellCategoriesEntryfmt[]="dxxiiiiiix";                  // 5.4.8
 const char SpellClassOptionsEntryfmt[]="dxiiiix";
-const char SpellCooldownsEntryfmt[]="diii";
+const char SpellCooldownsEntryfmt[]="dxxiii";                       // 5.4.8
 //                                1        10        20        30
-const char SpellEffectEntryfmt[]="difiiiffiiiiiifiifiiiiiiiix";
-const char SpellEquippedItemsEntryfmt[]="diii";
-const char SpellInterruptsEntryfmt[]="dixixi";
-const char SpellLevelsEntryfmt[]="diii";
-const char SpellPowerEntryfmt[]="diiiiixf";
-const char SpellReagentsEntryfmt[]="diiiiiiiiiiiiiiii";
+const char SpellEffectEntryfmt[]="diifiiixfiiiiiifiifiiiiixiiiix";  // 5.4.8
+const char SpellEquippedItemsEntryfmt[]="dxxiii";                   // 5.4.8
+const char SpellInterruptsEntryfmt[]="dxxixixi";                    // 5.4.8
+const char SpellLevelsEntryfmt[]="dxxiii";                          // 5.4.8
+const char SpellPowerEntryfmt[]="xnxiiiiixxxxx";                    // 5.4.8
 const char SpellScalingEntryfmt[]="diiiiffffffffffi";
 const char SpellShapeshiftEntryfmt[]="dixixx";                      // 5.3.0 Checked
-const char SpellTargetRestrictionsEntryfmt[]="dfiiii";
+const char SpellTargetRestrictionsEntryfmt[]="dxxfxiiii"; // 5.4.8
 const char SpellTotemsEntryfmt[]="diiii";                           // 5.3.0 Checked
 const char SpellFocusObjectfmt[]="nx";
-const char SpellItemEnchantmentfmt[]="nxiiiiiixxxiiisiiiiiiix";
+const char SpellItemEnchantmentfmt[]="nxiiiiiiiiisiiiixxixxxxxxx";  // 5.4.8
 const char SpellItemEnchantmentConditionfmt[] = "nbbbbbxxxxxbbbbbbbbbbiiiiiXXXXX"; // 5.3.0 Checked
-const char SpellRadiusfmt[]="nfff";
-const char SpellRangefmt[]="nffffixx";                              // 5.3.0 Checked
-const char SpellRuneCostfmt[] = "niiii";
+const char SpellMiscfmt[]="dxxiiiiiiiiiiiiiiiiifiiiii";             // 5.4.8
+const char SpellRadiusfmt[]="nfxxx";                                // 5.4.8
+const char SpellRangefmt[]="nffffxxx";                              // 5.4.8
+const char SpellRuneCostfmt[]="niiixi";                             // 5.4.8
 const char SpellShapeshiftFormfmt[]="nxxiixiiixxiiiiiiiixx";        // 5.3.0 Checked
 //const char StableSlotPricesfmt[] = "ni"; // removed
 const char SummonPropertiesfmt[] = "niiiii";                        // 5.3.0 Checked
 const char TalentEntryfmt[]="niiiiiiiiixxixxxxxx";
 const char TalentTabEntryfmt[]="nxxiiixxiii";
 const char TalentTreePrimarySpellsfmt[]="diix";
-const char TaxiNodesEntryfmt[]="nifffsiixxx";                       // 5.3.0 Checked
+const char TaxiNodesEntryfmt[]="nifffsiixxxx";
 const char TaxiPathEntryfmt[] = "niii";                             // 5.3.0 Checked
 const char TaxiPathNodeEntryfmt[] = "diiifffiiii";                  // 5.3.0 Checked
 const char TotemCategoryEntryfmt[]="nxii";                          // 5.3.0 Checked
 const char TransportAnimationEntryfmt[]="diixxxx";                  // 5.3.0 Checked
-const char VehicleEntryfmt[]="niffffiiiiiiiifffffffffffffffssssfifiixx";
+const char VehicleEntryfmt[]="nixffffiiiiiiiifffffffffffffffssssfifiixx"; // 16357
 const char VehicleSeatEntryfmt[]="niiffffffffffiiiiiifffffffiiifffiiiiiiiffiiiiixxxxxxxxxxxxxxxxxxxx"; // 5.3.0 Checked
 const char WMOAreaTableEntryfmt[]="niiixxxxxiixxxx";                // 5.3.0 Checked
 const char WorldMapAreaEntryfmt[]="xinxffffixxxxx";                 // 5.3.0 Checked
-const char WorldMapOverlayEntryfmt[]="nxiiiixxxxxxxxx";
-const char WorldSafeLocsEntryfmt[]="nifffx";
+const char WorldMapOverlayEntryfmt[]="nxiiiixxxxxxxxxx";            // 5.4.8
+const char WorldSafeLocsEntryfmt[]="nifffxx";                       // 5.4.8
 const char WorldPvPAreaEnrtyfmt[]="niiiiii";
+
+#endif
 
 #endif
