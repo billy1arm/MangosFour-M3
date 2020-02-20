@@ -950,7 +950,6 @@ void WorldSession::SendAuthResponse(uint8 code, bool queued, uint32 queuePos)
 {
     bool hasAccountData = true;
 
-#if defined (CATA)
     WorldPacket packet(SMSG_AUTH_RESPONSE, 1 /*bits*/ + 4 + 1 + 4 + 1 + 4 + 1 + 1 + (queued ? 4 : 0));
     packet << uint8(code);
     packet.WriteBit(queued);                            // IsInQueue
@@ -958,9 +957,6 @@ void WorldSession::SendAuthResponse(uint8 code, bool queued, uint32 queuePos)
     {
         packet.WriteBit(1);                             // unk
     }
-#elif defined (MISTS)
-    WorldPacket packet(SMSG_AUTH_RESPONSE, 80);
-#endif
 
     packet.WriteBit(hasAccountData);
 
@@ -988,21 +984,9 @@ void WorldSession::SendAuthResponse(uint8 code, bool queued, uint32 queuePos)
         packet.WriteBit(0);
         packet.WriteBits(MAX_PLAYABLE_RACES, 23);
         packet.WriteBit(0);
-
-        packet.WriteBit(queued);
-
-        if (queued)
-        {
-            packet.WriteBit(1);
-        }
-
+#endif
 #if defined (CATA)
         packet.FlushBits();
-#endif
-        if (queued)
-        {
-            packet << uint32(queuePos);
-        }
 #endif
 
         for (uint8 i = 0; i < MAX_PLAYABLE_RACES; ++i)
@@ -1036,14 +1020,10 @@ void WorldSession::SendAuthResponse(uint8 code, bool queued, uint32 queuePos)
 #endif
     }
 
-#if defined (CATA)
     if (queued)
     {
         packet << uint32(queuePos);
     }
-#elif defined (MISTS)
-    packet << uint8(code);
-#endif
 
     SendPacket(&packet);
 }
@@ -1158,14 +1138,15 @@ void WorldSession::SendAccountDataTimes(uint32 mask)
     }
 #elif defined (MISTS)
     WorldPacket data(SMSG_ACCOUNT_DATA_TIMES, 4 + 1 + 4 + NUM_ACCOUNT_DATA_TYPES * 4);
-    data << uint32(mask);                                   // type mask
-    data << uint32(time(NULL));                             // unix time of something
+
+    data.WriteBit(1);
 
     for (uint32 i = 0; i < NUM_ACCOUNT_DATA_TYPES; ++i)
     {
         data << uint32(GetAccountData(AccountDataType(i))->Time);// also unix time
     }
-    data.WriteBit(1);
+    data << uint32(mask);                                   // type mask
+    data << uint32(time(NULL));                             // unix time of something
 #endif
     SendPacket(&data);
 }
@@ -1299,6 +1280,7 @@ void WorldSession::ReadAddonsInfo(ByteBuffer &data)
     {
         uint32 addonsCount;
         addonInfo >> addonsCount;                         // addons count
+        DEBUG_LOG("Addon count: %u", addonsCount);
 
         for (uint32 i = 0; i < addonsCount; ++i)
         {

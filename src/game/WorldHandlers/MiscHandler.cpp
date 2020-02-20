@@ -493,23 +493,23 @@ void WorldSession::HandleSetSelectionOpcode(WorldPacket& recv_data)
 #if defined (CATA)
     recv_data >> guid;
 #elif defined (MISTS)
+    guid[7] = recv_data.ReadBit();
+    guid[6] = recv_data.ReadBit();
+    guid[5] = recv_data.ReadBit();
     guid[4] = recv_data.ReadBit();
     guid[3] = recv_data.ReadBit();
     guid[2] = recv_data.ReadBit();
-    guid[0] = recv_data.ReadBit();
-    guid[5] = recv_data.ReadBit();
-    guid[7] = recv_data.ReadBit();
-    guid[6] = recv_data.ReadBit();
     guid[1] = recv_data.ReadBit();
+    guid[0] = recv_data.ReadBit();
 
-    recv_data.ReadByteSeq(guid[1]);
-    recv_data.ReadByteSeq(guid[2]);
-    recv_data.ReadByteSeq(guid[3]);
     recv_data.ReadByteSeq(guid[0]);
     recv_data.ReadByteSeq(guid[7]);
+    recv_data.ReadByteSeq(guid[3]);
     recv_data.ReadByteSeq(guid[5]);
+    recv_data.ReadByteSeq(guid[1]);
     recv_data.ReadByteSeq(guid[4]);
     recv_data.ReadByteSeq(guid[6]);
+    recv_data.ReadByteSeq(guid[2]);
 #endif
     _player->SetSelectionGuid(guid);
 
@@ -1891,23 +1891,23 @@ void WorldSession::HandleObjectUpdateFailedOpcode(WorldPacket& recvPacket)
     recvPacket.ReadGuidMask<6, 7, 4, 0, 1, 5, 3, 2>(guid);
     recvPacket.ReadGuidBytes<6, 7, 2, 3, 1, 4, 0, 5>(guid);
 #elif defined (MISTS)
-    guid[4] = recvPacket.ReadBit();
-    guid[6] = recvPacket.ReadBit();
     guid[3] = recvPacket.ReadBit();
-    guid[0] = recvPacket.ReadBit();
-    guid[7] = recvPacket.ReadBit();
     guid[5] = recvPacket.ReadBit();
+    guid[6] = recvPacket.ReadBit();
+    guid[0] = recvPacket.ReadBit();
     guid[1] = recvPacket.ReadBit();
     guid[2] = recvPacket.ReadBit();
+    guid[7] = recvPacket.ReadBit();
+    guid[4] = recvPacket.ReadBit();
 
-    recvPacket.ReadByteSeq(guid[4]);
-    recvPacket.ReadByteSeq(guid[7]);
     recvPacket.ReadByteSeq(guid[0]);
     recvPacket.ReadByteSeq(guid[6]);
     recvPacket.ReadByteSeq(guid[5]);
+    recvPacket.ReadByteSeq(guid[7]);
     recvPacket.ReadByteSeq(guid[2]);
     recvPacket.ReadByteSeq(guid[1]);
     recvPacket.ReadByteSeq(guid[3]);
+    recvPacket.ReadByteSeq(guid[4]);
 #endif
 
     DEBUG_LOG("WORLD: Received CMSG_OBJECT_UPDATE_FAILED from %s (%u) guid: %s", GetPlayerName(), GetAccountId(), guid.GetString().c_str());

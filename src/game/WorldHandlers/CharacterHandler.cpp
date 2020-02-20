@@ -159,10 +159,13 @@ void WorldSession::HandleCharEnum(QueryResult* result)
 
     ByteBuffer buffer;
 
+#if defined (CATA)
     data.WriteBits(0, 23);
     data.WriteBit(1);
     data.WriteBits(result ? result->GetRowCount() : 0, 17);
-
+#elif defined (MISTS)
+    data.WriteBits(result ? result->GetRowCount() : 0, 16);
+#endif
     if (result)
     {
         do
@@ -176,9 +179,19 @@ void WorldSession::HandleCharEnum(QueryResult* result)
             }
         }
         while (result->NextRow());
-
+#if defined (CATA)
         data.FlushBits();
         data.append(buffer);
+#elif defined (MISTS)
+        data.WriteBits(0, 21);
+        data.WriteBit(1);
+
+        if (!buffer.empty())
+        {
+            data.FlushBits();
+            data.append(buffer);
+        }
+#endif
     }
 
     SendPacket(&data);
@@ -785,11 +798,19 @@ void WorldSession::HandlePlayerLogin(LoginQueryHolder* holder)
     pCurrChar->SendDungeonDifficulty(false);
 
     WorldPacket data(SMSG_LOGIN_VERIFY_WORLD, 20);
+#if defined (CATA)
     data << pCurrChar->GetMapId();
     data << pCurrChar->GetPositionX();
     data << pCurrChar->GetPositionY();
     data << pCurrChar->GetPositionZ();
     data << pCurrChar->GetOrientation();
+#elif defined (MISTS)
+    data << pCurrChar->GetPositionX();
+    data << pCurrChar->GetOrientation();
+    data << pCurrChar->GetPositionY();
+    data << pCurrChar->GetMapId();
+    data << pCurrChar->GetPositionZ();
+#endif
     SendPacket(&data);
 
     // load player specific part before send times
@@ -1200,10 +1221,35 @@ void WorldSession::HandleShowingCloakOpcode(WorldPacket & /*recv_data*/)
 void WorldSession::HandleCharRenameOpcode(WorldPacket& recv_data)
 {
     ObjectGuid guid;
+#if defined (CATA)
     std::string newname;
 
     recv_data >> guid;
     recv_data >> newname;
+#elif defined (MISTS)
+    std::string unk;
+    std::string newname;
+
+    guid[6] = recv_data.ReadBit();
+    guid[3] = recv_data.ReadBit();
+    guid[0] = recv_data.ReadBit();
+    recv_data >> newname;
+    guid[1] = recv_data.ReadBit();
+    guid[5] = recv_data.ReadBit();
+    guid[7] = recv_data.ReadBit();
+    guid[2] = recv_data.ReadBit();
+    guid[4] = recv_data.ReadBit();
+
+    recv_data.ReadByteSeq(guid[1]);
+    recv_data.ReadByteSeq(guid[6]);
+    recv_data.ReadByteSeq(guid[5]);
+    recv_data >> unk;
+    recv_data.ReadByteSeq(guid[2]);
+    recv_data.ReadByteSeq(guid[4]);
+    recv_data.ReadByteSeq(guid[3]);
+    recv_data.ReadByteSeq(guid[7]);
+    recv_data.ReadByteSeq(guid[0]);
+#endif
 
     // prevent character rename to invalid name
     if (!normalizePlayerName(newname))
@@ -1459,11 +1505,38 @@ void WorldSession::HandleCharCustomizeOpcode(WorldPacket& recv_data)
     ObjectGuid guid;
     std::string newname;
 
+#if defined (CATA)
     recv_data >> guid;
     recv_data >> newname;
 
     uint8 gender, skin, face, hairStyle, hairColor, facialHair;
     recv_data >> gender >> skin >> hairColor >> hairStyle >> facialHair >> face;
+#elif defined (MISTS)
+    std::string unk;
+    uint8 gender, skin, face, hairStyle, hairColor, facialHair;
+
+    recv_data >> hairStyle >> gender >> skin >> face >> hairColor >> facialHair;
+
+    guid[2] = recv_data.ReadBit();
+    guid[6] = recv_data.ReadBit();
+    guid[1] = recv_data.ReadBit();
+    guid[0] = recv_data.ReadBit();
+    guid[7] = recv_data.ReadBit();
+    guid[5] = recv_data.ReadBit();
+    recv_data >> newname;
+    guid[4] = recv_data.ReadBit();
+    guid[3] = recv_data.ReadBit();
+
+    recv_data.ReadByteSeq(guid[4]);
+    recv_data >> unk;
+    recv_data.ReadByteSeq(guid[0]);
+    recv_data.ReadByteSeq(guid[2]);
+    recv_data.ReadByteSeq(guid[6]);
+    recv_data.ReadByteSeq(guid[5]);
+    recv_data.ReadByteSeq(guid[3]);
+    recv_data.ReadByteSeq(guid[1]);
+    recv_data.ReadByteSeq(guid[7]);
+#endif
 
     QueryResult* result = CharacterDatabase.PQuery("SELECT `at_login` FROM `characters` WHERE `guid` = '%u'", guid.GetCounter());
     if (!result)
@@ -1532,6 +1605,7 @@ void WorldSession::HandleCharCustomizeOpcode(WorldPacket& recv_data)
     sLog.outChar("Account: %d (IP: %s), Character %s customized to: %s", GetAccountId(), IP_str.c_str(), guid.GetString().c_str(), newname.c_str());
 
     WorldPacket data(SMSG_CHAR_CUSTOMIZE, 1 + 8 + (newname.size() + 1) + 6);
+#if defined (CATA)
     data << uint8(RESPONSE_SUCCESS);
     data << ObjectGuid(guid);
     data << newname;
@@ -1541,9 +1615,44 @@ void WorldSession::HandleCharCustomizeOpcode(WorldPacket& recv_data)
     data << uint8(hairStyle);
     data << uint8(hairColor);
     data << uint8(facialHair);
-    SendPacket(&data);
+#elif defined (MISTS)
+    data.WriteBit(guid[0]);
+    data.WriteBit(guid[7]);
+    data.WriteBit(guid[3]);
+    data.WriteBit(guid[2]);
+    data.WriteBit(guid[6]);
+    data.WriteBit(guid[5]);
+    data.WriteBit(guid[1]);
+    data.WriteBit(guid[4]);
 
+    data.WriteByteSeq(guid[1]);
+
+    data << uint8(RESPONSE_SUCCESS);
+    data << uint8(facialHair);
+    data << uint8(skin);
+    data << uint8(gender);
+    data << uint8(hairStyle);
+    data << uint8(face);
+    data << uint8(hairColor);
+    data.WriteByteSeq(guid[7]);
+    data.WriteByteSeq(guid[3]);
+    data.WriteByteSeq(guid[5]);
+    data.WriteByteSeq(guid[2]);
+    data.WriteByteSeq(guid[6]);
+    data.WriteByteSeq(guid[0]);
+    data.WriteByteSeq(guid[4]);
+
+    data << newname;
+
+    if (!RESPONSE_SUCCESS)
+    {
+        data << newname;
+    }
+#endif
+    SendPacket(&data);
+#if defined (CATA)
     sWorld.InvalidatePlayerDataToAllClient(guid);
+#endif
 }
 
 void WorldSession::HandleEquipmentSetSaveOpcode(WorldPacket& recv_data)

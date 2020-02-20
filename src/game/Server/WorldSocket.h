@@ -183,6 +183,9 @@ class WorldSocket : protected WorldHandler
         int HandlePing(WorldPacket& recvPacket);
 
     private:
+#if defined (MISTS)
+        void SendAuthResponseError(uint8);
+#endif
         /// Time in which the last ping was received
         ACE_Time_Value m_LastPingTime;
 
