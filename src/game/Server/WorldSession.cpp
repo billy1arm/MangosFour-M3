@@ -879,10 +879,9 @@ void WorldSession::SendAuthWaitQue(uint32 position)
         packet << uint8(AUTH_OK);
 #elif defined (MISTS)
         WorldPacket packet(SMSG_AUTH_RESPONSE, 1);
-        packet.WriteBit(0);
-        packet.WriteBit(0);
+        packet.WriteBit(false);
+        packet.WriteBit(false);
         packet << uint8(AUTH_OK);
-        packet.FlushBits();
 #endif
         SendPacket(&packet);
     }
@@ -896,11 +895,10 @@ void WorldSession::SendAuthWaitQue(uint32 position)
         packet << uint8(AUTH_WAIT_QUEUE);
 #elif defined (MISTS)
         WorldPacket packet(SMSG_AUTH_RESPONSE, 6);
-        packet.WriteBit(0);
-        packet.WriteBit(1);
-        packet.WriteBit(0);
+        packet.WriteBit(false);
+        packet.WriteBit(true);
+        packet.WriteBit(false);
         packet << uint8(AUTH_WAIT_QUEUE);
-        packet.FlushBits();
 #endif
         packet << uint32(position);
         SendPacket(&packet);
@@ -998,8 +996,9 @@ void WorldSession::SendAuthResponse(uint8 code, bool queued, uint32 queuePos)
             packet.WriteBit(1);
         }
 
+#if defined (CATA_
         packet.FlushBits();
-
+#endif
         if (queued)
         {
             packet << uint32(queuePos);
