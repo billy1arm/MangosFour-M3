@@ -92,7 +92,9 @@ DBCStorage <CreatureModelDataEntry> sCreatureModelDataStore(CreatureModelDatafmt
 DBCStorage <CreatureSpellDataEntry> sCreatureSpellDataStore(CreatureSpellDatafmt); // sCreatureModelDataStore
 DBCStorage <CreatureTypeEntry> sCreatureTypeStore(CreatureTypefmt);
 DBCStorage <CurrencyTypesEntry> sCurrencyTypesStore(CurrencyTypesfmt);
-
+#if defined (MISTS)
+uint32 PowersByClass[MAX_CLASSES][MAX_POWERS];
+#endif
 DBCStorage <DestructibleModelDataEntry> sDestructibleModelDataStore(DestructibleModelDataFmt);
 DBCStorage <DungeonEncounterEntry> sDungeonEncounterStore(DungeonEncounterfmt);
 DBCStorage <DurabilityQualityEntry> sDurabilityQualityStore(DurabilityQualityfmt);
@@ -494,7 +496,7 @@ void LoadDBCStores(const std::string& dataPath)
             sAreaFlagByAreaID.insert(AreaFlagByAreaID::value_type(uint16(area->ID), area->exploreFlag));
 
             // fill MapId->DBC records ( skip sub zones and continents )
-            if (area->zone == 0 && area->mapid != 0 && area->mapid != 1 && area->mapid != 530 && area->mapid != 571)
+            if (area->zone == 0 && area->mapid != 0 && area->mapid != 1 && area->mapid != 530 && area->mapid != 571 && area->mapid != 860 && area->mapid != 870)
             {
                 sAreaFlagByMapID.insert(AreaFlagByMapID::value_type(area->mapid, area->exploreFlag));
             }
@@ -519,12 +521,18 @@ void LoadDBCStores(const std::string& dataPath)
     {
         for (uint32 j = 0; j < MAX_POWERS; ++j)
         {
+#if defined (CATA)
             sChrClassXPowerTypesStore[i][j] = INVALID_POWER_INDEX;
+#elif defined (MISTS)
+            PowersByClass[i][j] = MAX_POWERS;
+#endif
         }
+#if defined (CATA)
         for (uint32 j = 0; j < MAX_STORED_POWERS; ++j)
         {
             sChrClassXPowerIndexStore[i][j] = INVALID_POWER;
         }
+#endif
     }
     for (uint32 i = 0; i < sChrPowerTypesStore.GetNumRows(); ++i)
     {
@@ -547,10 +555,12 @@ void LoadDBCStores(const std::string& dataPath)
             }
         }
 
+#if defined (CATA)
         MANGOS_ASSERT(index < MAX_STORED_POWERS && "MAX_STORED_POWERS not updated");
 
         sChrClassXPowerTypesStore[entry->classId][entry->power] = index;
         sChrClassXPowerIndexStore[entry->classId][index] = entry->power;
+#endif
     }
     LoadDBC(availableDbcLocales,bar,bad_dbc_files,sChrRacesStore,            dbcPath,"ChrRaces.dbc");
     LoadDBC(availableDbcLocales,bar,bad_dbc_files,sCinematicSequencesStore,  dbcPath,"CinematicSequences.dbc");
@@ -676,7 +686,9 @@ void LoadDBCStores(const std::string& dataPath)
     LoadDBC(availableDbcLocales,bar,bad_dbc_files,sSpellCategoriesStore,     dbcPath,"SpellCategories.dbc");
     LoadDBC(availableDbcLocales,bar,bad_dbc_files,sSpellClassOptionsStore,   dbcPath,"SpellClassOptions.dbc");
     LoadDBC(availableDbcLocales,bar,bad_dbc_files,sSpellCooldownsStore,      dbcPath,"SpellCooldowns.dbc");
+#if defined (CATA)
     LoadDBC(availableDbcLocales,bar,bad_dbc_files,sSpellEffectStore,         dbcPath,"SpellEffect.dbc");
+#endif
 
     for (uint32 i = 1; i < sSpellStore.GetNumRows(); ++i)
     {
@@ -1357,6 +1369,13 @@ uint32 const* GetTalentTabPages(uint32 cls)
 {
     return sTalentTabPages[cls];
 }
+
+#if defined (MISTS)
+uint32 GetPowerIndexByClass(uint32 powerType, uint32 classId)
+{
+    return PowersByClass[classId][powerType];
+}
+#endif
 
 std::vector<uint32> const* GetTalentTreeMasterySpells(uint32 talentTree)
 {
