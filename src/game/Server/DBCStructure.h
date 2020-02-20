@@ -23,7 +23,7 @@
  */
 
 #if defined (CATA)
-#include "DBCStructure_cata.h";
+#include "DBCStructure_cata.h"
 #elif defined (MISTS)
-#include "DBCStructure_mop.h";
+#include "DBCStructure_mop.h"
 #endif

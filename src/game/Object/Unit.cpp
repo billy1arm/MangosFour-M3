@@ -88,10 +88,6 @@ void MovementInfo::Read(ByteBuffer& data, uint16 opcode)
     bool hasTransportData = false;
     bool hasMovementFlags = false;
     bool hasMovementFlags2 = false;
-#if defined (MISTS)
-    bool hasUnkTime = false;
-    uint32 counterCount = 0;
-#endif
 
     MovementStatusElements* sequence = GetMovementStatusElementsSequence(opcode);
     if(!sequence)
@@ -174,9 +170,16 @@ void MovementInfo::Read(ByteBuffer& data, uint16 opcode)
                     moveFlags2 = data.ReadBits(12);
                 }
                 break;
+#if defined (CATA)
             case MSEHasUnknownBit:
                 data.ReadBit();
                 break;
+#endif
+#if defined (MISTS)
+            case MSEUnknownBit:
+                data.ReadBit();
+                break;
+#endif
             case MSETimestamp:
                 if (si.hasTimeStamp)
                 {
@@ -342,22 +345,23 @@ void MovementInfo::Read(ByteBuffer& data, uint16 opcode)
                  break;
 #endif
 #if defined (MISTS)
-            case MSECounterCount:
-                counterCount = data.ReadBits(22);
-                break;
             case MSEMovementCounter:
-                for (int i = 0; i < counterCount; i++)
+                //for (int i = 0; i < counterCount; i++)
                     data.read_skip<uint32>();
                 break;
-            case MSEHasUnkTime:
-                hasUnkTime = !data.ReadBit();
-                break;
-            case MSEUnkTime:
-                if (hasUnkTime)
-                    data.read_skip<uint32>();
-                  break;
-#endif
+            //case MSEUnknownCount:
+            //    unkArray.resize(data.ReadBits(24));
+            //    break;
+            //case MSEUnknownArray:
+            //    for (std::list<uint32>::iterator itr = unkArray.begin(); itr != unkArray.end(); ++itr)
+            //        data >> *itr;
+            //    break;
+            //case MSEUnkInt32:
+            //    if (si.hasUnkInt32)
+            //        data >> unkInt32;
+            //    break;
             default:
+#endif
                 MANGOS_ASSERT(false && "Wrong movement status element");
                 break;
         }
@@ -449,9 +453,16 @@ void MovementInfo::Write(ByteBuffer& data, uint16 opcode) const
             case MSEHasTimestamp:
                 data.WriteBit(!si.hasTimeStamp);
                 break;
+#if defined (CATA)
             case MSEHasUnknownBit:
                 data.WriteBit(false);
                 break;
+#endif
+#if defined (MISTS)
+            case MSEUnknownBit:
+                data.WriteBit(false);
+                break;
+#endif
             case MSEHasFallData:
                 data.WriteBit(si.hasFallData);
                 break;
@@ -594,8 +605,9 @@ void MovementInfo::Write(ByteBuffer& data, uint16 opcode) const
                 data << uint32(0);
                 break;
 #if defined (MISTS)
-            case MSECounterCount:
-                data.WriteBits(0, 22);
+            case MSEUnknownArray:
+                for (std::list<uint32>::const_iterator itr = unkArray.begin(); itr != unkArray.end(); ++itr)
+                    data << uint32(*itr);
                 break;
             case MSEUintCount:
                 data << uint32(0);
