@@ -291,7 +291,27 @@ void WorldSession::HandleGameObjectUseOpcode(WorldPacket& recv_data)
 {
     ObjectGuid guid;
 
+#if defined (CATA)
     recv_data >> guid;
+#elif defined (MISTS)
+    guid[6] = recv_data.ReadBit();
+    guid[1] = recv_data.ReadBit();
+    guid[3] = recv_data.ReadBit();
+    guid[4] = recv_data.ReadBit();
+    guid[0] = recv_data.ReadBit();
+    guid[5] = recv_data.ReadBit();
+    guid[7] = recv_data.ReadBit();
+    guid[2] = recv_data.ReadBit();
+
+    recv_data.ReadByteSeq(guid[0]);
+    recv_data.ReadByteSeq(guid[1]);
+    recv_data.ReadByteSeq(guid[6]);
+    recv_data.ReadByteSeq(guid[2]);
+    recv_data.ReadByteSeq(guid[3]);
+    recv_data.ReadByteSeq(guid[4]);
+    recv_data.ReadByteSeq(guid[5]);
+    recv_data.ReadByteSeq(guid[7]);
+#endif
 
     DEBUG_LOG("WORLD: Received opcode CMSG_GAMEOBJ_USE guid: %s", guid.GetString().c_str());
 
@@ -339,7 +359,28 @@ void WorldSession::HandleGameObjectUseOpcode(WorldPacket& recv_data)
 void WorldSession::HandleGameobjectReportUse(WorldPacket& recvPacket)
 {
     ObjectGuid guid;
+
+#if defined (CATA)
     recvPacket >> guid;
+#elif defined (MISTS)
+    guid[4] = recvPacket.ReadBit();
+    guid[7] = recvPacket.ReadBit();
+    guid[5] = recvPacket.ReadBit();
+    guid[3] = recvPacket.ReadBit();
+    guid[6] = recvPacket.ReadBit();
+    guid[1] = recvPacket.ReadBit();
+    guid[2] = recvPacket.ReadBit();
+    guid[0] = recvPacket.ReadBit();
+
+    recvPacket.ReadByteSeq(guid[7]);
+    recvPacket.ReadByteSeq(guid[1]);
+    recvPacket.ReadByteSeq(guid[6]);
+    recvPacket.ReadByteSeq(guid[5]);
+    recvPacket.ReadByteSeq(guid[0]);
+    recvPacket.ReadByteSeq(guid[3]);
+    recvPacket.ReadByteSeq(guid[2]);
+    recvPacket.ReadByteSeq(guid[4]);
+#endif
 
     DEBUG_LOG("WORLD: Received opcode CMSG_GAMEOBJ_REPORT_USE guid: %s", guid.GetString().c_str());
 
@@ -720,9 +761,32 @@ void WorldSession::HandleSelfResOpcode(WorldPacket& /*recv_data*/)
 void WorldSession::HandleSpellClick(WorldPacket& recv_data)
 {
     ObjectGuid guid;
-    recv_data >> guid;
 
-    // client prevent click and set different icon at combat state; however combat state is allowed for dungeons
+#if defined (CATA)
+    recv_data >> guid;
+#elif defined (MISTS)
+    guid[7] = recv_data.ReadBit();
+    guid[4] = recv_data.ReadBit();
+    guid[0] = recv_data.ReadBit();
+    guid[3] = recv_data.ReadBit();
+    guid[6] = recv_data.ReadBit();
+    guid[5] = recv_data.ReadBit();
+
+    uint8 unk = recv_data.ReadBit();
+
+    guid[1] = recv_data.ReadBit();
+    guid[2] = recv_data.ReadBit();
+
+    recv_data.ReadByteSeq(guid[6]);
+    recv_data.ReadByteSeq(guid[1]);
+    recv_data.ReadByteSeq(guid[5]);
+    recv_data.ReadByteSeq(guid[4]);
+    recv_data.ReadByteSeq(guid[7]);
+    recv_data.ReadByteSeq(guid[2]);
+    recv_data.ReadByteSeq(guid[3]);
+    recv_data.ReadByteSeq(guid[0]);
+#endif
+
     if (_player->IsInCombat() && !_player->GetMap()->IsDungeon())
     {
         return;
