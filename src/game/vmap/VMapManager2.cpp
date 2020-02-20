@@ -73,7 +73,11 @@ namespace VMAP
     std::string VMapManager2::getMapFileName(unsigned int pMapId)
     {
         std::stringstream fname;
+#if defined (CATA)
         fname.width(3);
+#elif defined (MISTS)
+        fname.width(4);
+#endif
         fname << std::setfill('0') << pMapId << std::string(MAP_FILENAME_EXTENSION2);
         return fname.str();
     }

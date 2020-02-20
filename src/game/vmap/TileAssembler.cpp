@@ -63,6 +63,9 @@ namespace VMAP
     //=================================================================
 
     TileAssembler::TileAssembler(const std::string& pSrcDirName, const std::string& pDestDirName)
+#if defined (MISTS)
+                    :iDestDir(pDestDirName), iSrcDir(pSrcDirName), iFilterMethod(NULL), iCurrentUniqueNameId(0)
+#endif
     {
         iCurrentUniqueNameId = 0;
         iFilterMethod = NULL;
@@ -113,9 +116,17 @@ namespace VMAP
                 spawnedModelFiles.insert(entry->second.name);
             }
 
-            std::cout << "Creating map tree..." << std::endl;
+            printf("Creating map tree for map %u...\n", map_iter->first);
             BIH pTree;
-            pTree.build(mapSpawns, BoundsTrait<ModelSpawn*>::getBounds);
+            try
+            {
+                pTree.build(mapSpawns, BoundsTrait<ModelSpawn*>::getBounds);
+            }
+            catch (std::exception& e)
+            {
+                printf("Exception ""%s"" when calling pTree.build", e.what());
+                return false;
+            }
 
             // ===> possibly move this code to StaticMapTree class
             std::map<uint32, uint32> modelNodeIdx;
@@ -126,7 +137,11 @@ namespace VMAP
 
             // write map tree file
             std::stringstream mapfilename;
+#if defined (CATA)
             mapfilename << iDestDir << "/" << std::setfill('0') << std::setw(3) << map_iter->first << ".vmtree";
+#elif defined (MISTS)
+            mapfilename << iDestDir << "/" << std::setfill('0') << std::setw(4) << map_iter->first << ".vmtree";
+#endif
             FILE* mapfile = fopen(mapfilename.str().c_str(), "wb");
             if (!mapfile)
             {
@@ -184,7 +199,11 @@ namespace VMAP
                 uint32 nSpawns = tileEntries.count(tile->first);
                 std::stringstream tilefilename;
                 tilefilename.fill('0');
+#if defined (CATA)
                 tilefilename << iDestDir << "/" << std::setw(3) << map_iter->first << "_";
+#elif defined (MISTS)
+                tilefilename << iDestDir << "/" << std::setw(4) << map_iter->first << "_";
+#endif
                 uint32 x, y;
                 StaticMapTree::unpackTileID(tile->first, x, y);
                 tilefilename << std::setw(2) << x << "_" << std::setw(2) << y << ".vmtile";
@@ -295,6 +314,8 @@ namespace VMAP
     bool TileAssembler::calculateTransformedBound(ModelSpawn& spawn)
     {
         std::string modelFilename = iSrcDir + "/" + spawn.name;
+        modelFilename.push_back('/');
+        modelFilename.append(spawn.name);
         ModelPosition modelPosition;
         modelPosition.iDir = spawn.iRot;
         modelPosition.iScale = spawn.iScale;
@@ -410,33 +431,24 @@ namespace VMAP
 
         uint32 name_length, displayId;
         char buff[500];
-        while (!feof(model_list))
+        while (true)
         {
-            if (fread(&displayId, sizeof(uint32), 1, model_list) <= 0)
+            if (fread(&displayId, sizeof(uint32), 1, model_list) != 1)
             {
-                if (!feof(model_list))
+                if (feof(model_list))   // EOF flag is only set after failed reading attempt
                 {
-                    std::cout << std::endl << "File '" << GAMEOBJECT_MODELS << "' seems to be corrupted" << std::endl;
+                    break;
                 }
-                break;
             }
-            if (fread(&name_length, sizeof(uint32), 1, model_list) <= 0)
+            if (fread(&name_length, sizeof(uint32), 1, model_list) != 1
+                || name_length >= sizeof(buff)
+                || fread(&buff, sizeof(char), name_length, model_list) != name_length)
             {
-                std::cout << std::endl << "File '" << GAMEOBJECT_MODELS << "' seems to be corrupted" << std::endl;
+                std::cout << "\nFile 'temp_gameobject_models' seems to be corrupted" << std::endl;
                 break;
             }
 
-            if (name_length >= sizeof(buff))
-            {
-                std::cout << std::endl << "File '" << GAMEOBJECT_MODELS << "' seems to be corrupted" << std::endl;
-                break;
-            }
-
-            if (fread(&buff, sizeof(char), name_length, model_list) <= 0)
-            {
-                std::cout << std::endl << "File '" << GAMEOBJECT_MODELS << "' seems to be corrupted" << std::endl;
-                break;
-            }
+            fread(&buff, sizeof(char), name_length, model_list);
             std::string model_name(buff, name_length);
 
             WorldModel_Raw raw_model;
@@ -491,7 +503,11 @@ namespace VMAP
             std::cout << "cmpfail, " << (V) << "!=" << (S) << std::endl;\
             return(false);\
         }
-
+#define READ_OR_RETURN_WITH_DELETE(V, S)\
+         if (fread((V), (S), 1, rf) != 1) { \
+             fclose(rf); printf("readfail, op = %i\n", readOperation);\
+             delete[] V; return(false);\
+         };
     bool GroupModel_Raw::Read(FILE* rf)
     {
         char blockId[5];
@@ -531,6 +547,7 @@ namespace VMAP
         if (nindexes > 0)
         {
             uint16* indexarray = new uint16[nindexes];
+            READ_OR_RETURN_WITH_DELETE(indexarray, nindexes*sizeof(uint16));
             if (fread(indexarray, nindexes * sizeof(uint16), 1, rf) != 1)
             {
                 fclose(rf);
@@ -556,6 +573,12 @@ namespace VMAP
         if (nvectors > 0)
         {
             float* vectorarray = new float[nvectors * 3];
+            READ_OR_RETURN_WITH_DELETE(vectorarray, nvectors*sizeof(float) * 3);
+            for (uint32 i = 0; i < nvectors; ++i)
+            {
+                vertexArray.push_back( Vector3(vectorarray + 3 * i) );
+            }
+            delete[] vectorarray;
             if (fread(vectorarray, nvectors * sizeof(float) * 3, 1, rf) != 1)
             {
                 fclose(rf);

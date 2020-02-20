@@ -100,7 +100,12 @@ namespace VMAP
     {
         std::stringstream tilefilename;
         tilefilename.fill('0');
+#if defined (CATA)
         tilefilename << std::setw(3) << mapID << "_";
+#elif defined (MISTS)
+        tilefilename << std::setw(4) << mapID << "_";
+#endif
+
         // tilefilename << std::setw(2) << tileX << "_" << std::setw(2) << tileY << ".vmtile";
         tilefilename << std::setw(2) << tileY << "_" << std::setw(2) << tileX << ".vmtile";
         return tilefilename.str();
