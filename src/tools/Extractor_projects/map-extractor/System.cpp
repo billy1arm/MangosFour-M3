@@ -88,10 +88,13 @@ char output_path[128] = ".";        /**< TODO */
 char input_path[128] = ".";         /**< TODO */
 uint32 maxAreaId = 0;               /**< TODO */
 uint32 CONF_max_build = 0;
-/**
- * @brief Data types which can be extracted
- *
- */
+#if defined (MISTS)
+int iCoreNumber = 0;
+#endif
+
+//**************************************************
+// Extractor options
+//**************************************************
 enum Extract
 {
     EXTRACT_MAP = 1,
@@ -111,7 +114,7 @@ float CONF_flat_liquid_delta_limit = 0.001f;    /**< If max - min less this valu
 #if defined (CATA)
 #define MIN_SUPPORTED_BUILD 16357                           // code expect mpq files and mpq content files structure for this build or later
 #else   //if defined (MISTS)
-#define MIN_SUPPORTED_BUILD 18414                           // code expect mpq files and mpq content files structure for this build or later
+#define MIN_SUPPORTED_BUILD 18273                           // code expect mpq files and mpq content files structure for this build or later
 #endif
 #define EXPANSION_COUNT 4
 #define WORLD_COUNT 1
@@ -1467,6 +1470,7 @@ void LoadLocaleMPQFiles(int const locale)
     // now update to newer view, root
     AppendPatchMPQFilesToList(NULL, NULL, Locales[locale], updates);
 
+#if defined (CATA)
     // ./Data wow-update-base files
     for (int i = 0; Builds[i] && Builds[i] <= CONF_TargetBuild; ++i)
     {
@@ -1480,6 +1484,7 @@ void LoadLocaleMPQFiles(int const locale)
             printf("Error open patch archive: %s\n\n", filename);
         }
     }
+#endif
 
     for (Updates::const_iterator itr = updates.begin(); itr != updates.end(); ++itr)
     {
@@ -1492,7 +1497,9 @@ void LoadLocaleMPQFiles(int const locale)
             sprintf(filename, "%s/Data/%s", input_path, itr->second.first.c_str());
         }
 
+#if defined (CATA)
         printf("\nPatching : %s\n", filename);
+#endif
 
         //if (!OpenArchive(filename))
         if (!SFileOpenPatchArchive(localeMpqHandle, filename, itr->second.second ? itr->second.second : "", 0))
@@ -1501,6 +1508,7 @@ void LoadLocaleMPQFiles(int const locale)
         }
     }
 
+#if defined (CATA)
     // ./Data/Cache patch-base files
     for (int i = 0; Builds[i] && Builds[i] <= CONF_TargetBuild; ++i)
     {
@@ -1528,6 +1536,7 @@ void LoadLocaleMPQFiles(int const locale)
             printf("Error open patch archive: %s\n\n", filename);
         }
     }
+#endif
 }
 
 void LoadBaseMPQFiles()
@@ -1593,6 +1602,7 @@ void LoadBaseMPQFiles()
         }
     }
 
+#if defined (CATA)
     // ./Data/Cache patch-base files
     for (int i = 0; Builds[i] && Builds[i] <= CONF_TargetBuild; ++i)
     {
@@ -1606,6 +1616,7 @@ void LoadBaseMPQFiles()
             printf("Error open patch archive: %s\n\n", filename);
         }
     }
+#endif
 }
 
 /**
@@ -1617,8 +1628,14 @@ void LoadBaseMPQFiles()
  */
 int main(int argc, char* arg[])
 {
+#if defined (CATA)
     printf("Map & DBC Extractor\n");
     printf("===================\n\n");
+#elif defined (MISTS)
+    int thisBuild = getBuildNumber();
+    iCoreNumber = getCoreNumberFromBuild(thisBuild);
+    showBanner("DBC Extractor & Map Generator", iCoreNumber, thisBuild);
+#endif
 
     HandleArgs(argc, arg);
 
