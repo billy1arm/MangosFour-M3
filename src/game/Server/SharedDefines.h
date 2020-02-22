@@ -4265,7 +4265,7 @@ enum BattleGroundTypeId
     BATTLEGROUND_CTF               = 706,                       // 5.x CTF3
     BATTLEGROUND_SM                = 708,                       // 5.x Silvershard Mines
     BATTLEGROUND_TA                = 719,                       // 5.x Tol'Vir Arena
-	BATTLEGROUND_DG                = 754,                       // 5.x Deepwind Gorge
+    BATTLEGROUND_DG                = 754,                       // 5.x Deepwind Gorge
     BATTLEGROUND_TTP               = 757,                       // 5.x The Tiger's Peak
 #endif
 };
@@ -4439,13 +4439,13 @@ enum TrackedAuraType
 
 // we need to stick to 1 version or half of the stuff will work for someone
 // others will not and opposite
-// will only support WoW:MOP 5.4.8 client build 18414...
+// will only support WoW:MOP 5.4.8 client build 18414...however DBC Diles are marked version 18273
 
 #if defined(CATA)
 #define EXPECTED_MANGOSD_CLIENT_BUILD        {15595, 0}
 #define EXPECTED_MANGOSD_CLIENT_VERSION      "4.3.4"
 #elif defined(MISTS)
-#define EXPECTED_MANGOSD_CLIENT_BUILD        {18414, 0}
+#define EXPECTED_MANGOSD_CLIENT_BUILD        {18273, 18414, 0}
 #define EXPECTED_MANGOSD_CLIENT_VERSION      "5.4.8"
 #endif
 
