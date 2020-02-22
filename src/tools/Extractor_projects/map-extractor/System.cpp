@@ -117,8 +117,11 @@ float CONF_flat_liquid_delta_limit = 0.001f;    /**< If max - min less this valu
 #define MIN_SUPPORTED_BUILD 18273                           // code expect mpq files and mpq content files structure for this build or later
 #endif
 #define EXPANSION_COUNT 4
+#if defined (CATA)
 #define WORLD_COUNT 1
-
+#else
+#define WORLD_COUNT 2
+#endif
 
 bool FileExists(const char* FileName)
 {
@@ -1278,15 +1281,17 @@ void ExtractMapsFromMpq(uint32 build, const int locale)
     printf("\n Converting map files\n");
     for (uint32 z = 0; z < map_count; ++z)
     {
-        printf(" Extract %s (%d/%d)                      \n", map_ids[z].name, z + 1, map_count);
+        printf(" Extract MapId: %04u Name: %s (%d/%d)                 \n", map_ids[z].id, map_ids[z].name, z + 1, map_count);
         // Loadup map grid data
         sprintf(mpq_map_name, "World\\Maps\\%s\\%s.wdt", map_ids[z].name, map_ids[z].name);
+        //printf("World\\Maps\\%s\\%s.wdt from %s\n", map_ids[z].name, map_ids[z].name,mpq_filename);
         WDT_file wdt;
         if (!wdt.loadFile(mpq_map_name, false))
         {
             continue;
         }
 
+        //printf("Building Map: %s (%04u) ", map_ids[z].name, map_ids[z].id);
         for (uint32 y = 0; y < WDT_MAP_SIZE; ++y)
         {
             for (uint32 x = 0; x < WDT_MAP_SIZE; ++x)
@@ -1296,12 +1301,14 @@ void ExtractMapsFromMpq(uint32 build, const int locale)
                     continue;
                 }
                 sprintf(mpq_filename, "World\\Maps\\%s\\%s_%u_%u.adt", map_ids[z].name, map_ids[z].name, x, y);
+                //printf("World\\Maps\\%s\\%s_%u_%u.adt from %s\n", map_ids[z].name, map_ids[z].name, x, y,mpq_filename);
                 sprintf(output_filename, "%s/maps/%04u%02u%02u.map", output_path, map_ids[z].id, y, x);
                 ConvertADT(mpq_filename, output_filename, y, x, build);
             }
             // draw progress bar
             printf(" Processing........................%d%%\r", (100 * (y + 1)) / WDT_MAP_SIZE);
         }
+        //printf(".... Finished\n");
     }
     delete [] areas;
     delete [] map_ids;
@@ -1547,7 +1554,11 @@ void LoadBaseMPQFiles()
     printf("Loaded MPQ files for map extraction:\n");
     for (int i = 1; i <= WORLD_COUNT; i++)
     {
+#if defined (CATA)
         sprintf(filename, "%s/Data/World%s.MPQ", input_path, (i == 2 ? "2" : ""));
+#else
+        sprintf(filename, "%s/Data/World.MPQ", input_path);
+#endif
         printf("%s\n", filename);
 
         if (!OpenArchive(filename, &worldMpqHandle))
@@ -1663,7 +1674,7 @@ int main(int argc, char* arg[])
                     build = 18273;
                 }
 #endif
-                printf("Detected client build: %u\n", build);
+                printf("    Detected client build: %u\n", build);
                 break;
             }
 
@@ -1678,7 +1689,7 @@ int main(int argc, char* arg[])
                     build = 18273;
                 }
 #endif
-                printf("Detected client build: %u\n", build);
+                printf("    Detected client build: %u\n", build);
                 ExtractDBCFiles(i, true);
             }
             else
@@ -1699,7 +1710,7 @@ int main(int argc, char* arg[])
 
     if (CONF_extract & EXTRACT_MAP)
     {
-        printf("Using locale: %s\n", Locales[FirstLocale]);
+        printf("    Using locale: %s\n", Locales[FirstLocale]);
 
         // Open MPQs
         LoadBaseMPQFiles();
