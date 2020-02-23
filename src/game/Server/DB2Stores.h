@@ -35,6 +35,7 @@ extern DB2Storage <ItemEntry>                    sItemStore;
 extern DB2Storage <ItemCurrencyCostEntry>        sItemCurrencyCostStore;
 extern DB2Storage <ItemExtendedCostEntry>        sItemExtendedCostStore;
 #if defined (MISTS)
+extern DB2Storage <SpellReagentsEntry>           sSpellReagentsStore;
 extern DB2Storage <SceneScriptEntry>             sSceneScriptStore;
 #endif
 

@@ -178,7 +178,7 @@ void Guild::CreateDefaultGuildRanks(int locale_idx)
     CreateRank(sObjectMgr.GetMangosString(LANG_GUILD_MEMBER, locale_idx),   GR_RIGHT_GCHATLISTEN | GR_RIGHT_GCHATSPEAK);
     CreateRank(sObjectMgr.GetMangosString(LANG_GUILD_INITIATE, locale_idx), GR_RIGHT_GCHATLISTEN | GR_RIGHT_GCHATSPEAK);
 
-    SetBankMoneyPerDay((uint32)GR_GUILDMASTER, (uint32)WITHDRAW_MONEY_UNLIMITED);
+    SetBankMoneyPerDay((uint32)GR_GUILDMASTER, (uint64)WITHDRAW_MONEY_UNLIMITED);
 }
 
 bool Guild::AddMember(ObjectGuid plGuid, uint32 plRank)
@@ -1811,7 +1811,7 @@ void Guild::SetBankMoneyPerDay(uint32 rankId, uint32 money)
 
     if (rankId == GR_GUILDMASTER)
     {
-        money = (uint32)WITHDRAW_MONEY_UNLIMITED;
+        money = (uint64)WITHDRAW_MONEY_UNLIMITED;
     }
 
     m_Ranks[rankId].BankMoneyPerDay = money;

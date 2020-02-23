@@ -686,7 +686,7 @@ bool processArgv(int argc, char** argv)
 {
     bool result = true;
     bool hasInputPathParam = false;
-    bool preciseVectorData = true;
+    preciseVectorData = true;
 
     for (int i = 1; i < argc; ++i)
     {

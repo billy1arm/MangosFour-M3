@@ -38,6 +38,7 @@ DB2Storage <ItemEntry>                    sItemStore(Itemfmt);
 DB2Storage <ItemCurrencyCostEntry>        sItemCurrencyCostStore(ItemCurrencyCostfmt);
 DB2Storage <ItemExtendedCostEntry>        sItemExtendedCostStore(ItemExtendedCostEntryfmt);
 #if defined (MISTS)
+DB2Storage <SpellReagentsEntry>           sSpellReagentsStore(SpellReagentsEntryfmt);
 DB2Storage <SceneScriptEntry>             sSceneScriptStore(SceneScriptfmt);
 #endif
 
@@ -120,6 +121,7 @@ void LoadDB2Stores(const std::string& dataPath)
     LoadDB2(availableDb2Locales,bad_db2_files,sItemCurrencyCostStore,    db2Path,"ItemCurrencyCost.db2");
     LoadDB2(availableDb2Locales,bad_db2_files,sItemExtendedCostStore,    db2Path,"ItemExtendedCost.db2");
 #if defined (MISTS)
+    LoadDB2(availableDb2Locales,bad_db2_files,sSpellReagentsStore,       db2Path,"SpellReagents.db2");
     LoadDB2(availableDb2Locales,bad_db2_files,sSceneScriptStore,         db2Path, "SceneScript.db2");
 #endif
 

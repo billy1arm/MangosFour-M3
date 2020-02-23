@@ -487,6 +487,7 @@ inline bool IsAreaOfEffectSpell(SpellEntry const* spellInfo)
     {
         return true;
     }
+
     return false;
 }
 
@@ -615,7 +616,11 @@ inline bool IsNeedCastSpellAtFormApply(SpellEntry const* spellInfo, ShapeshiftFo
     }
 
     // passive spells with SPELL_ATTR_EX2_NOT_NEED_SHAPESHIFT are already active without shapeshift, do no recast!
+#if defined (CATA)
     return (shapeShift->Stances & (1<<(form-1)) && !(spellInfo->AttributesEx2 & SPELL_ATTR_EX2_NOT_NEED_SHAPESHIFT));
+#elif defined (MISTS)
+    return (shapeShift->Stances & (1<<(form-1)) && !spellInfo->HasAttribute(SPELL_ATTR_EX2_NOT_NEED_SHAPESHIFT));
+#endif
 }
 
 inline bool IsNeedCastSpellAtOutdoor(SpellEntry const* spellInfo)
@@ -630,12 +635,17 @@ inline bool NeedsComboPoints(SpellEntry const* spellInfo)
 
 inline SpellSchoolMask GetSpellSchoolMask(SpellEntry const* spellInfo)
 {
+#if defined (CATA)
     return SpellSchoolMask(spellInfo->SchoolMask);
+#elif defined (MISTS)
+    return SpellSchoolMask(spellInfo->GetSchoolMask());
+#endif
 }
 
 inline uint32 GetSpellMechanicMask(SpellEntry const* spellInfo, uint32 effectMask)
 {
     uint32 mask = 0;
+
     if (uint32 mech = spellInfo->GetMechanic())
     {
         mask |= 1 << (mech - 1);

@@ -24681,8 +24681,16 @@ uint32 Player::GetResurrectionSpellId()
     AuraList const& dummyAuras = GetAurasByType(SPELL_AURA_DUMMY);
     for (AuraList::const_iterator itr = dummyAuras.begin(); itr != dummyAuras.end(); ++itr)
     {
+#if defined (CATA)
+        uint32 itrSpellProtoIcon = (*itr)->GetSpellProto()->SpellIconID;
+        uint32 itrSpellVisual = (*itr)->GetSpellProto()->SpellVisual[0];
+#elif defined (MISTS)
+        uint32 itrSpellProtoIcon = (*itr)->GetSpellProto()->GetSpellIconID();
+        uint32 itrSpellVisual = (*itr)->GetSpellProto()->GetSpellVisual(0);
+#endif
+
         // Soulstone Resurrection                           // prio: 3 (max, non death persistent)
-        if (prio < 2 && (*itr)->GetSpellProto()->SpellVisual[0] == 99 && (*itr)->GetSpellProto()->SpellIconID == 92)
+        if (prio < 2 && itrSpellVisual == 99 && itrSpellProtoIcon == 92)
         {
             switch ((*itr)->GetId())
             {

@@ -215,7 +215,12 @@ void Totem::SetTypeBySummonSpell(SpellEntry const* spellProto)
             m_type = TOTEM_ACTIVE;
         }
     }
-    if (spellProto->SpellIconID == 2056)
+#if defined (CATA)
+    uint32 spellIcon = spellProto->SpellIconID;
+#elif defined (MISTS)
+    uint32 spellIcon = spellProto->GetSpellIconID();
+#endif
+    if (spellIcon == 2056)
     {
         m_type = TOTEM_STATUE;                               // Jewelery statue
     }

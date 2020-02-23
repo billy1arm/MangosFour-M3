@@ -29,6 +29,7 @@ const char Itemfmt[]="niiiiiii";
 const char ItemCurrencyCostfmt[]="di";
 const char ItemExtendedCostEntryfmt[]="nxxiiiiiiiiiiiixiiiiiiiiiixxixx";
 #if defined (MISTS)
+const char SpellReagentsEntryfmt[]="diiiiiiiiiiiiiiiixx";
 char const SceneScriptfmt[] = "nxxii";
 #endif
 #endif

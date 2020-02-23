@@ -97,7 +97,13 @@ bool DynamicObject::Create(uint32 guidlow, Unit* caster, uint32 spellId, SpellEf
     */
     SpellEntry const* spellProto = sSpellStore.LookupEntry(spellId);
 
-    SetUInt32Value(DYNAMICOBJECT_BYTES, spellProto->SpellVisual[0] | (type << 28));
+#if defined (CATA)
+    uint32 spellProtoVisual = spellProto->SpellVisual[0];
+#elif defined (MISTS)
+    uint32 spellProtoVisual = spellProto->GetSpellVisual(0);
+#endif
+
+    SetUInt32Value(DYNAMICOBJECT_BYTES, spellProtoVisual | (type << 28));
     SetUInt32Value(DYNAMICOBJECT_SPELLID, spellId);
     SetFloatValue(DYNAMICOBJECT_RADIUS, radius);
     SetUInt32Value(DYNAMICOBJECT_CASTTIME, GameTime::GetGameTimeMS());    // new 2.4.0

@@ -65,9 +65,14 @@ CanCastResult CreatureAI::CanCastSpell(Unit* pTarget, const SpellEntry* pSpell, 
         {
             return CAST_FAIL_STATE;
         }
+#if defined (CATA)
+    uint32 powerType = pSpell->powerType;
+#elif defined (MISTS)
+    uint32 powerType = pSpell->GetPowerType();
+#endif
 
         // Check for power (also done by Spell::CheckCast())
-        if (m_creature->GetPower((Powers)pSpell->powerType) < Spell::CalculatePowerCost(pSpell, m_creature))
+        if (m_creature->GetPower((Powers)powerType) < Spell::CalculatePowerCost(pSpell, m_creature))
         {
             return CAST_FAIL_POWER;
         }
@@ -78,12 +83,18 @@ CanCastResult CreatureAI::CanCastSpell(Unit* pTarget, const SpellEntry* pSpell, 
         }
     }
 
-    if (const SpellRangeEntry* pSpellRange = sSpellRangeStore.LookupEntry(pSpell->rangeIndex))
+#if defined (CATA)
+        uint32 rangeIndex = pSpell->rangeIndex;
+#elif defined (MISTS)
+        uint32 rangeIndex = pSpell->GetRangeIndex();
+#endif
+
+    if (const SpellRangeEntry* pSpellRange = sSpellRangeStore.LookupEntry(rangeIndex))
     {
         if (pTarget != m_creature)
         {
             // pTarget is out of range of this spell (also done by Spell::CheckCast())
-            float fDistance = m_creature->GetCombatDistance(pTarget, pSpell->rangeIndex == SPELL_RANGE_IDX_COMBAT);
+            float fDistance = m_creature->GetCombatDistance(pTarget, rangeIndex == SPELL_RANGE_IDX_COMBAT);
 
             if (fDistance > (m_creature->IsHostileTo(pTarget) ? pSpellRange->maxRange : pSpellRange->maxRangeFriendly))
             {

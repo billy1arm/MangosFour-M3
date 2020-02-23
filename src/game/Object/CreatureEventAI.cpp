@@ -810,9 +810,15 @@ void CreatureEventAI::ProcessAction(CreatureEventAI_Action const& action, uint32
                     {
                         SpellEntry const* spellInfo = sSpellStore.LookupEntry(spellId);
 
-                        if (spellInfo && !(spellInfo->rangeIndex == SPELL_RANGE_IDX_COMBAT || spellInfo->rangeIndex == SPELL_RANGE_IDX_SELF_ONLY) && target != m_creature)
+#if defined (CATA)
+                       uint32 rangeIndex = spellInfo->rangeIndex;
+#elif defined (MISTS)
+                        uint32 rangeIndex = spellInfo->GetRangeIndex();
+#endif
+
+                        if (spellInfo && !(rangeIndex == SPELL_RANGE_IDX_COMBAT || rangeIndex == SPELL_RANGE_IDX_SELF_ONLY) && target != m_creature)
                         {
-                            SpellRangeEntry const* spellRange = sSpellRangeStore.LookupEntry(spellInfo->rangeIndex);
+                            SpellRangeEntry const* spellRange = sSpellRangeStore.LookupEntry(rangeIndex);
                             if (spellRange)
                             {
                                 m_LastSpellMaxRange = spellRange->maxRange;
@@ -1593,14 +1599,26 @@ void CreatureEventAI::MoveInLineOfSight(Unit* who)
 
 void CreatureEventAI::SpellHit(Unit* pUnit, const SpellEntry* pSpell)
 {
+#if defined (CATA)
+    uint32 pSpellSchoolMask = pSpell->SchoolMask;
+#elif defined (MISTS)
+    uint32 pSpellSchoolMask = pSpell->GetSchoolMask();
+#endif
+
     for (CreatureEventAIList::iterator i = m_CreatureEventAIList.begin(); i != m_CreatureEventAIList.end(); ++i)
+    {
         if (i->Event.event_type == EVENT_T_SPELLHIT)
+        {
             // If spell id matches (or no spell id) & if spell school matches (or no spell school)
             if (!i->Event.spell_hit.spellId || pSpell->Id == i->Event.spell_hit.spellId)
-                if (pSpell->SchoolMask & i->Event.spell_hit.schoolMask)
+            {
+                if (pSpellSchoolMask & i->Event.spell_hit.schoolMask)
                 {
                     ProcessEvent(*i, pUnit);
                 }
+            }
+        }
+    }
 }
 
 void CreatureEventAI::UpdateAI(const uint32 diff)

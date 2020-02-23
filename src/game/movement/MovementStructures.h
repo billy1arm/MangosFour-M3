@@ -20,7 +20,7 @@
  */
 
 #if defined (CATA)
-#include "MovementStructures_cata.h";
+#include "MovementStructures_cata.h"
 #elif defined (MISTS)
-#include "MovementStructures_mop.h";
+#include "MovementStructures_mop.h"
 #endif

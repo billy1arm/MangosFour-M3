@@ -2293,11 +2293,16 @@ SpellEntry const* Creature::ReachWithSpellAttack(Unit* pVictim)
         {
             continue;
         }
-        SpellRangeEntry const* srange = sSpellRangeStore.LookupEntry(spellInfo->rangeIndex);
+#if defined (CATA)
+        uint32 rangeIndex = spellInfo->rangeIndex;
+#elif defined (MISTS)
+        uint32 rangeIndex = spellInfo->GetRangeIndex();
+#endif
+        SpellRangeEntry const* srange = sSpellRangeStore.LookupEntry(rangeIndex);
         float range = GetSpellMaxRange(srange);
         float minrange = GetSpellMinRange(srange);
 
-        float dist = GetCombatDistance(pVictim, spellInfo->rangeIndex == SPELL_RANGE_IDX_COMBAT);
+        float dist = GetCombatDistance(pVictim, rangeIndex == SPELL_RANGE_IDX_COMBAT);
 
         // if(!IsInFront( pVictim, range ) && spellInfo->AttributesEx )
         //    continue;
@@ -2357,11 +2362,17 @@ SpellEntry const* Creature::ReachWithSpellCure(Unit* pVictim)
         {
             continue;
         }
-        SpellRangeEntry const* srange = sSpellRangeStore.LookupEntry(spellInfo->rangeIndex);
+
+#if defined (CATA)
+        uint32 rangeIndex = spellInfo->rangeIndex;
+#elif defined (MISTS)
+        uint32 rangeIndex = spellInfo->GetRangeIndex();
+#endif
+        SpellRangeEntry const* srange = sSpellRangeStore.LookupEntry(rangeIndex);
         float range = GetSpellMaxRange(srange);
         float minrange = GetSpellMinRange(srange);
 
-        float dist = GetCombatDistance(pVictim, spellInfo->rangeIndex == SPELL_RANGE_IDX_COMBAT);
+        float dist = GetCombatDistance(pVictim, rangeIndex == SPELL_RANGE_IDX_COMBAT);
 
         // if(!IsInFront( pVictim, range ) && spellInfo->AttributesEx )
         //    continue;
@@ -2724,12 +2735,16 @@ bool Creature::LoadCreatureAddon(bool reload)
             SpellEntry const* spellInfo = sSpellStore.LookupEntry(*cAura);  // Already checked on load
 
             // Get Difficulty mode for initial case (npc not yet added to world)
+// TODO: Fix for MOP
+#if defined (CATA)
             if (spellInfo->SpellDifficultyId && !reload && GetMap()->IsDungeon())
+            {
                 if (SpellEntry const* spellEntry = GetSpellEntryByDifficulty(spellInfo->SpellDifficultyId, GetMap()->GetDifficulty(), GetMap()->IsRaid()))
                 {
                     spellInfo = spellEntry;
                 }
-
+            }
+#endif
             CastSpell(this, spellInfo, true);
         }
     }
@@ -2823,14 +2838,19 @@ bool Creature::MeetsSelectAttackingRequirement(Unit* pTarget, SpellEntry const* 
 
     if (pSpellInfo)
     {
-        switch (pSpellInfo->rangeIndex)
+#if defined (CATA)
+        uint32 rangeIndex = pSpellInfo->rangeIndex;
+#elif defined (MISTS)
+        uint32 rangeIndex = pSpellInfo->GetRangeIndex();
+#endif
+        switch (rangeIndex)
         {
             case SPELL_RANGE_IDX_SELF_ONLY: return false;
             case SPELL_RANGE_IDX_ANYWHERE:  return true;
             case SPELL_RANGE_IDX_COMBAT:    return CanReachWithMeleeAttack(pTarget);
         }
 
-        SpellRangeEntry const* srange = sSpellRangeStore.LookupEntry(pSpellInfo->rangeIndex);
+        SpellRangeEntry const* srange = sSpellRangeStore.LookupEntry(rangeIndex);
         float max_range = GetSpellMaxRange(srange);
         float min_range = GetSpellMinRange(srange);
         float dist = GetCombatDistance(pTarget, false);

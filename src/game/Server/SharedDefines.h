@@ -4380,7 +4380,7 @@ enum TradeStatus
     TRADE_STATUS_ONLY_CONJURED              = 26,   // You can only trade conjured items to players from other realms
     TRADE_STATUS_YOU_STUNNED                = 27,
     TRADE_STATUS_TARGET_STUNNED             = 29,
-    // item related                         = 31    // closes trade
+    TRADE_STATUS_INVALID_ITEM               = 31    // item related, closes trade
 };
 
 enum EncounterCreditType

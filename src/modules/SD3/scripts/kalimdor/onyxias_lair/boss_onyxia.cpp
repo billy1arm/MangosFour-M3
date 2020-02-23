@@ -666,8 +666,13 @@ struct boss_onyxia : public CreatureScript
             return;
         }
 
+#if defined (CATA)
+        uint32 spellVisual = pSpell->SpellVisual[0];
+#elif defined (MISTS)
+        uint32 spellVisual = pSpell->GetSpellVisual(0);
+#endif
         // All and only the Onyxia Deep Breath Spells have these visuals
-        if (pSpell->SpellVisual[0] == SPELL_VISUAL_BREATH_A || pSpell->SpellVisual[0] == SPELL_VISUAL_BREATH_B)
+        if (spellVisual == SPELL_VISUAL_BREATH_A || spellVisual == SPELL_VISUAL_BREATH_B)
         {
             m_pInstance->SetData(TYPE_ONYXIA, DATA_PLAYER_TOASTED);
         }

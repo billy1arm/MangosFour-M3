@@ -214,8 +214,12 @@ struct boss_alythess : public CreatureScript
             {
                 return;
             }
-
-            if (pSpell->SchoolMask == SPELL_SCHOOL_MASK_FIRE)
+#if defined (CATA)
+            uint32 pSpellSchoolMask = pSpell->SchoolMask;
+#elif defined (MISTS)
+            uint32 pSpellSchoolMask = pSpell->GetSchoolMask();
+#endif
+            if (pSpellSchoolMask == SPELL_SCHOOL_MASK_FIRE)
             {
                 if (pTarget->HasAura(SPELL_DARK_TOUCHED))
                 {
@@ -227,7 +231,7 @@ struct boss_alythess : public CreatureScript
                     pTarget->CastSpell(pTarget, SPELL_FLAME_TOUCHED, true);
                 }
             }
-            else if (pSpell->SchoolMask == SPELL_SCHOOL_MASK_SHADOW)
+            else if (pSpellSchoolMask == SPELL_SCHOOL_MASK_SHADOW)
             {
                 if (pTarget->HasAura(SPELL_FLAME_TOUCHED))
                 {
@@ -438,7 +442,12 @@ struct boss_sacrolash : public CreatureScript
                 return;
             }
 
-            if (pSpell->SchoolMask == SPELL_SCHOOL_MASK_FIRE)
+#if defined (CATA)
+            uint32 pSpellSchoolMask = pSpell->SchoolMask;
+#elif defined (MISTS)
+            uint32 pSpellSchoolMask = pSpell->GetSchoolMask();
+#endif
+            if (pSpellSchoolMask == SPELL_SCHOOL_MASK_FIRE)
             {
                 if (pTarget->HasAura(SPELL_DARK_TOUCHED))
                 {
@@ -450,7 +459,7 @@ struct boss_sacrolash : public CreatureScript
                     pTarget->CastSpell(pTarget, SPELL_FLAME_TOUCHED, true);
                 }
             }
-            else if (pSpell->SchoolMask == SPELL_SCHOOL_MASK_SHADOW)
+            else if (pSpellSchoolMask == SPELL_SCHOOL_MASK_SHADOW)
             {
                 if (pTarget->HasAura(SPELL_FLAME_TOUCHED))
                 {

@@ -317,8 +317,13 @@ struct boss_viscidus : public CreatureScript
                 return;
             }
 
+#if defined (CATA)
+    uint32 pSpellSchoolMask = pSpell->SchoolMask;
+#elif defined (MISTS)
+    uint32 pSpellSchoolMask = pSpell->GetSchoolMask();
+#endif
             // only count frost damage
-            if (pSpell->SchoolMask == SPELL_SCHOOL_MASK_FROST)
+            if (pSpellSchoolMask == SPELL_SCHOOL_MASK_FROST)
             {
                 ++m_uiHitCount;
 
