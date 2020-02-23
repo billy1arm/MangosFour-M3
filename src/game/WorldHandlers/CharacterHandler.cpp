@@ -294,6 +294,8 @@ void WorldSession::HandleCharCreateOpcode(WorldPacket& recvData)
         return;
     }
 
+// Fix for MOP
+#if defined (CATA)
     // prevent character creating Expansion race without Expansion account
     if (raceEntry->expansion > Expansion())
     {
@@ -311,7 +313,7 @@ void WorldSession::HandleCharCreateOpcode(WorldPacket& recvData)
         SendPacket(&data);
         return;
     }
-
+#endif
     // prevent character creating with invalid name
     if (!normalizePlayerName(name))
     {

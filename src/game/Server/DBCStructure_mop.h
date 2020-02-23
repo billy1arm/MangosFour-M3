@@ -713,7 +713,6 @@ struct ChrClassesEntry
     uint32  spellfamily;                                    // 7        m_spellClassSet
     //uint32 flags2;                                        // 8        m_flags (0x08 HasRelicSlot)
     uint32  CinematicSequence;                              // 9        m_cinematicSequenceID
-    uint32  expansion;                                      // 10       m_required_expansion
     uint32  apPerStr;                                       // 10       attack power per strength
     uint32  apPerAgi;                                       // 11       attack power per agility
     uint32  rapPerAgi;                                      // 12       ranged attack power per agility
