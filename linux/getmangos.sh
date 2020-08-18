@@ -1315,12 +1315,12 @@ function ExtractResources
         cp -R "$GAMEPATH/maps" "$INSTPATH/bin"
       fi
     else
-    rm -rf "$GAMEPATH/map-extractor"
-    cp "$INSTPATH/bin/tools/map-extractor" "$GAMEPATH"
+	rm -rf "$GAMEPATH/map-extractor"
+	cp "$INSTPATH/bin/tools/map-extractor" "$GAMEPATH"
 
-    Log "Extracting DBC and Maps" 0
-    cd "$GAMEPATH"
-    ./map-extractor
+	Log "Extracting DBC and Maps" 0
+	cd "$GAMEPATH"
+	./map-extractor
 
     if [ $? -eq 0 ]; then
       Log "DBC and Maps are extracted" 0
