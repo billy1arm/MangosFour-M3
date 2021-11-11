@@ -1630,7 +1630,7 @@ void World::SetInitialWorldSettings()
 #endif
 
 #ifdef ENABLE_PLAYERBOTS
-    sPlayerbotAIConfig.Initialize();
+    //sPlayerbotAIConfig.Initialize();
 #endif
 
     showFooter();
