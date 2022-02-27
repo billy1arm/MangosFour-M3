@@ -2,18 +2,18 @@
 [<img src='https://www.getmangos.eu/!assets_mangos/logo2.png' border=0>][3]
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<B>Build Status:</b>
- Linux/MAC: [<img src='https://github.com/mangosthree/server/actions/workflows/core_build.yml/badge.svg' border=0 valign="middle">][10]
- Windows: [<img src='https://ci.appveyor.com/api/projects/status/github/mangosthree/server?branch=master&svg=true' border=0 valign="middle">][11]
+ Linux/MAC: [<img src='https://github.com/mangosfour/server/actions/workflows/core_build.yml/badge.svg' border=0 valign="middle">][10]
+ Windows: [<img src='https://ci.appveyor.com/api/projects/status/github/mangosfour/server?branch=master&svg=true' border=0 valign="middle">][11]
  <br><b>Repository Status:</b>
 [<img src='https://api.codacy.com/project/badge/Grade/58227f14b9024384a22e4e12e3cf7a89' border=0 valign="middle"/>][12]
-[<img src='https://www.codefactor.io/repository/github/mangosthree/server/badge' border=0 valign="middle"/>][13]
+[<img src='https://www.codefactor.io/repository/github/mangosfour/server/badge' border=0 valign="middle"/>][13]
 [<img src='https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat' border=0 valign="middle"/>][14]
 [<img src='https://img.shields.io/discord/286167585270005763.svg' border=0 valign="middle"/>][9]
 
 ---
 
-[<img src="https://www.getmangos.eu/!assets_mangos/Mangos3.png" width="48" valign="middle"/>][8]
- **MangosThree - Cataclysm WoW server**
+[<img src="https://www.getmangos.eu/!assets_mangos/Mangos4.png" width="48" valign="middle"/>][8]
+ **MangosFour - Mists of Pandaria WoW server**
 ===
 
 **Mangos** is an open source project written in [C++][7]. It's fast, runs on multiple
@@ -167,17 +167,17 @@ World of Warcraft, and all related art, images, and lore are copyright [Blizzard
 [1]: http://blizzard.com/ "Blizzard Entertainment Inc. - We love you!"
 [2]: https://worldofwarcraft.com/ "World of Warcraft"
 [3]: https://www.getmangos.eu "Main MaNGOS Website"
-[4]: http://www.wowpedia.org/Patch_4.3.4 "Cataclysm - Patch 4.3.4 release notes"
+[4]: http://www.wowpedia.org/Patch_5.2.0 "Mists of Pandaria - Patch 5.2.0 release notes"
 [7]: http://www.cppreference.com/ "C / C++ reference"
 [8]: https://github.com/mangos/MaNGOS/blob/master/mangosFamily.md "The MaNGOS family of Icons"
 [9]: https://discord.gg/fPxMjHS8xs "Our community hub on Discord"
-[10]: https://github.com/mangosthree/server/actions/workflows/core_build.yml "Github Actions - Linux/MAC build status"
-[11]: https://ci.appveyor.com/project/MaNGOS/server-wtbhv/history "AppVeyor Scan - Windows build status"
-[12]: https://app.codacy.com/gh/mangosthree/server/dashboard "Codacy Code Status"
-[13]: https://www.codefactor.io/repository/github/mangosthree/server "Codefactor Code Status"
+[10]: https://github.com/mangosfour/server/actions/workflows/core_build.yml "Github Actions - Linux/MAC build status"
+[11]: https://ci.appveyor.com/project/MaNGOS/server/history "AppVeyor Scan - Windows build status"
+[12]: https://app.codacy.com/gh/mangosfour/server/dashboard "Codacy Code Status"
+[13]: https://www.codefactor.io/repository/github/mangosfour/server "Codefactor Code Status"
 [14]: http://makeapullrequest.com "Show PR's Welcome Icon"
 [15]: http://getmangos.eu/wiki "Mangos Wiki"
-[16]: https://www.getmangos.eu/bug-tracker/mangos-three/ "Mangos Online tracker"
+[16]: https://www.getmangos.eu/bug-tracker/mangos-four/ "Mangos Online tracker"
 [17]: https://www.getmangos.eu/wiki/documentation/installation-guides/ "Installation Guides"
 [19]: http://www.cmake.org/ "CMake - Cross Platform Make"
 [20]: http://windows.microsoft.com/ "Microsoft Windows"

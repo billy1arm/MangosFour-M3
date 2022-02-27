@@ -318,11 +318,7 @@ struct boss_viscidus : public CreatureScript
             }
 
             // only count frost damage
-#if defined(MISTS)
-            if (pSpell->GetSchoolMask() == SPELL_SCHOOL_MASK_FROST)
-#else
             if (pSpell->SchoolMask == SPELL_SCHOOL_MASK_FROST)
-#endif
             {
                 ++m_uiHitCount;
 

@@ -75,14 +75,14 @@ ScriptMgr::~ScriptMgr()
 // returns priority (0 == can not start script)
 uint8 GetSpellStartDBScriptPriority(SpellEntry const* spellinfo, SpellEffectIndex effIdx)
 {
-#if defined (CATA)
+#if defined (CATA) || defined(MISTS)
     SpellEffectEntry const* spellEffect = spellinfo->GetSpellEffect(effIdx);
     if (!spellEffect)
     {
         return 0;
     }
 #endif
-#if defined (CATA)
+#if defined (CATA) || defined(MISTS)
     if (spellEffect->Effect == SPELL_EFFECT_SCRIPT_EFFECT)
 #else
     if (spellinfo->Effect[effIdx] == SPELL_EFFECT_SCRIPT_EFFECT)
@@ -91,7 +91,7 @@ uint8 GetSpellStartDBScriptPriority(SpellEntry const* spellinfo, SpellEffectInde
         return 10;
     }
 
-#if defined (CATA)
+#if defined (CATA) || defined(MISTS)
     if (spellEffect->Effect == SPELL_EFFECT_DUMMY)
 #else
     if (spellinfo->Effect[effIdx] == SPELL_EFFECT_DUMMY)
@@ -101,7 +101,7 @@ uint8 GetSpellStartDBScriptPriority(SpellEntry const* spellinfo, SpellEffectInde
     }
 
     // NonExisting triggered spells can also start DB-Spell-Scripts
-#if defined (CATA)
+#if defined (CATA) || defined(MISTS)
     if (spellEffect->Effect == SPELL_EFFECT_TRIGGER_SPELL && !sSpellStore.LookupEntry(spellEffect->EffectTriggerSpell))
 #else
     if (spellinfo->Effect[effIdx] == SPELL_EFFECT_TRIGGER_SPELL && !sSpellStore.LookupEntry(spellinfo->EffectTriggerSpell[effIdx]))
@@ -111,7 +111,7 @@ uint8 GetSpellStartDBScriptPriority(SpellEntry const* spellinfo, SpellEffectInde
     }
 
     // NonExisting trigger missile spells can also start DB-Spell-Scripts
-#if defined (CATA)
+#if defined (CATA) || defined(MISTS)
     if (spellEffect->Effect == SPELL_EFFECT_TRIGGER_MISSILE && !sSpellStore.LookupEntry(spellEffect->EffectTriggerSpell))
 #else
     if (spellinfo->Effect[effIdx] == SPELL_EFFECT_TRIGGER_MISSILE && !sSpellStore.LookupEntry(spellinfo->EffectTriggerSpell[effIdx]))
@@ -673,7 +673,7 @@ void ScriptMgr::LoadScripts(DBScriptType type)
                         if (SpellEntry const* spell = sSpellStore.LookupEntry(i))
                             for (int j = 0; j < MAX_EFFECT_INDEX; ++j)
                             {
-#if defined (CATA)
+#if defined (CATA) || defined(MISTS)
                                 SpellEffectEntry const* spellEffect = spell->GetSpellEffect(SpellEffectIndex(j));
                                 if (!spellEffect)
                                 {
@@ -3079,7 +3079,7 @@ void ScriptMgr::CollectPossibleEventIds(std::set<uint32>& eventIds)
         {
             for (int j = 0; j < MAX_EFFECT_INDEX; ++j)
             {
-#if defined (CATA)
+#if defined (CATA) || defined(MISTS)
                 SpellEffectEntry const* spellEffect = spell->GetSpellEffect(SpellEffectIndex(j));
                 if (!spellEffect)
                 {

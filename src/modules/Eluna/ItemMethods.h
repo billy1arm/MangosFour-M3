@@ -195,7 +195,7 @@ namespace LuaItem
         return 1;
     }
 
-#ifndef CATA
+#if !defined(CATA) && !defined(MISTS)
     /**
      * Returns 'true' if the [Item] is a weapon vellum, 'false' otherwise
      *
@@ -268,10 +268,10 @@ namespace LuaItem
         if (ItemLocale const* il = eObjectMgr->GetItemLocale(temp->ItemId))
             ObjectMgr::GetLocaleString(il->Name, static_cast<LocaleConstant>(locale), name);
 
-#ifndef CLASSIC
+#if !defined(CLASSIC)
         if (int32 itemRandPropId = item->GetItemRandomPropertyId())
         {
-#ifdef CATA
+#if defined(CATA) || defined(MISTS)
             char* suffix = NULL;
 #else
             char* const* suffix = NULL;

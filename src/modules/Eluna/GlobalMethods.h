@@ -1790,7 +1790,7 @@ namespace LuaGlobalFunctions
         uint32 extendedcost = Eluna::CHECKVAL<uint32>(L, 5);
 
 #ifdef TRINITY
-#ifdef CATA
+#if defined(CATA) || defined(MISTS)
         if (!eObjectMgr->IsVendorItemValid(entry, item, maxcount, incrtime, extendedcost, 1))
             return 0;
         eObjectMgr->AddVendorItem(entry, item, maxcount, incrtime, extendedcost, 1);
@@ -1800,7 +1800,7 @@ namespace LuaGlobalFunctions
         eObjectMgr->AddVendorItem(entry, item, maxcount, incrtime, extendedcost);
 #endif
 #else
-#ifdef CATA
+#if defined(CATA) || defined(MISTS)
         if (!eObjectMgr->IsVendorItemValid(false, "npc_vendor", entry, item, VENDOR_ITEM_TYPE_ITEM, maxcount, incrtime, extendedcost, 0))
             return 0;
         eObjectMgr->AddVendorItem(entry, item, VENDOR_ITEM_TYPE_ITEM, maxcount, incrtime, extendedcost);
@@ -1830,7 +1830,7 @@ namespace LuaGlobalFunctions
         if (!eObjectMgr->GetCreatureTemplate(entry))
             return luaL_argerror(L, 1, "valid CreatureEntry expected");
 
-#ifdef CATA
+#if defined(CATA) || defined(MISTS)
         eObjectMgr->RemoveVendorItem(entry, item, 1);
 #else
         eObjectMgr->RemoveVendorItem(entry, item);
@@ -1853,7 +1853,7 @@ namespace LuaGlobalFunctions
 
         VendorItemList const itemlist = items->m_items;
         for (VendorItemList::const_iterator itr = itemlist.begin(); itr != itemlist.end(); ++itr)
-#ifdef CATA
+#if defined(CATA) || defined(MISTS)
             eObjectMgr->RemoveVendorItem(entry, (*itr)->item, 1);
 #else
             eObjectMgr->RemoveVendorItem(entry, (*itr)->item);

@@ -228,7 +228,7 @@ enum UnitPVPStateFlags
     UNIT_BYTE2_FLAG_PVP         = 0x01,
     UNIT_BYTE2_FLAG_UNK1        = 0x02,
     UNIT_BYTE2_FLAG_FFA_PVP     = 0x04,
-    UNIT_BYTE2_FLAG_SUPPORTABLE = 0x08,                     // allows for being targeted for healing/bandaging by friendlies
+    UNIT_BYTE2_FLAG_SANCTUARY = 0x08,                     // allows for being targeted for healing/bandaging by friendlies
     UNIT_BYTE2_FLAG_AURAS       = 0x10,                     // show possitive auras as positive, and allow its dispel
     UNIT_BYTE2_FLAG_UNK5        = 0x20,                     // show negative auras as positive, *not* allowing dispel (at least for pets)
     UNIT_BYTE2_FLAG_UNK6        = 0x40,

@@ -829,7 +829,7 @@ namespace LuaCreature
         return 1;
     }
 
-#ifndef CATA
+#if !defined (CATA) && !defined(MISTS)
     /**
      * Returns the [Creature]'s shield block value.
      *

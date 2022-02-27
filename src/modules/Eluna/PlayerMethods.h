@@ -769,7 +769,7 @@ namespace LuaPlayer
     }
 #endif
 
-#ifndef CATA
+#if !defined(CATA) && !defined(MISTS)
 #ifndef CLASSIC
     /**
      * Returns the [Player]s current amount of Arena Points
@@ -1885,7 +1885,7 @@ namespace LuaPlayer
         return 0;
     }
 
-#ifndef CATA
+#if !defined(CATA) && !defined(MISTS)
 #ifndef CLASSIC
     /**
      * Sets the [Player]s Arena Points to the amount specified
@@ -2096,7 +2096,7 @@ namespace LuaPlayer
         return 0;
     }
 
-#ifndef CATA
+#if !defined(CATA) && !defined(MISTS)
 #ifndef CLASSIC
     /**
      * Adds or detracts from the [Player]s current Arena Points

@@ -436,7 +436,7 @@ ElunaRegister<Player> PlayerMethods[] =
     { "GetGuild", &LuaPlayer::GetGuild },
     { "GetAccountId", &LuaPlayer::GetAccountId },
     { "GetAccountName", &LuaPlayer::GetAccountName },
-#ifndef CATA
+#if (!defined(CATA) && !defined (MISTS))
 #ifndef CLASSIC
     { "GetArenaPoints", &LuaPlayer::GetArenaPoints },
     { "GetHonorPoints", &LuaPlayer::GetHonorPoints },
@@ -500,7 +500,7 @@ ElunaRegister<Player> PlayerMethods[] =
     { "GetCorpse", &LuaPlayer::GetCorpse },
     { "GetGossipTextId", &LuaPlayer::GetGossipTextId },
     { "GetQuestRewardStatus", &LuaPlayer::GetQuestRewardStatus },
-#ifndef CATA
+#if !defined(CATA) && !defined(MISTS)
     { "GetShieldBlockValue", &LuaPlayer::GetShieldBlockValue },
 #endif
 #ifdef CLASSIC
@@ -520,7 +520,7 @@ ElunaRegister<Player> PlayerMethods[] =
     { "UnsetKnownTitle", &LuaPlayer::UnsetKnownTitle },
 #endif
     { "SetBindPoint", &LuaPlayer::SetBindPoint },
-#ifndef CATA
+#if !defined(CATA) && !defined(MISTS)
 #ifndef CLASSIC
     { "SetArenaPoints", &LuaPlayer::SetArenaPoints },
     { "SetHonorPoints", &LuaPlayer::SetHonorPoints },
@@ -693,7 +693,7 @@ ElunaRegister<Player> PlayerMethods[] =
     { "DurabilityPointLossForEquipSlot", &LuaPlayer::DurabilityPointLossForEquipSlot },
     { "DurabilityRepairAll", &LuaPlayer::DurabilityRepairAll },
     { "DurabilityRepair", &LuaPlayer::DurabilityRepair },
-#ifndef CATA
+#if !defined(CATA) && !defined(MISTS)
 #ifndef CLASSIC
     { "ModifyHonorPoints", &LuaPlayer::ModifyHonorPoints },
     { "ModifyArenaPoints", &LuaPlayer::ModifyArenaPoints },
@@ -769,7 +769,7 @@ ElunaRegister<Creature> CreatureMethods[] =
     { "GetLootRecipient", &LuaCreature::GetLootRecipient },
     { "GetLootRecipientGroup", &LuaCreature::GetLootRecipientGroup },
     { "GetNPCFlags", &LuaCreature::GetNPCFlags },
-#ifndef CATA
+#if !defined(CATA) && !defined(MISTS)
     { "GetShieldBlockValue", &LuaCreature::GetShieldBlockValue },
 #endif
     { "GetDBTableGUIDLow", &LuaCreature::GetDBTableGUIDLow },
@@ -942,7 +942,7 @@ ElunaRegister<Item> ItemMethods[] =
     { "IsEquipped", &LuaItem::IsEquipped },
     { "HasQuest", &LuaItem::HasQuest },
     { "IsPotion", &LuaItem::IsPotion },
-#ifndef CATA
+#if !defined(CATA) && !defined(MISTS)
     { "IsWeaponVellum", &LuaItem::IsWeaponVellum },
     { "IsArmorVellum", &LuaItem::IsArmorVellum },
 #endif

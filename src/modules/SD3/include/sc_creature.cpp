@@ -305,13 +305,8 @@ SpellEntry const* ScriptedAI::SelectSpell(Unit* pTarget, int32 uiSchool, int32 i
         }
 
         // Check for school if specified
-#if defined (TBC) || defined (WOTLK) || defined (CATA)
+#if defined (TBC) || defined (WOTLK) || defined (CATA) || defined(MISTS)
         if (uiSchool >= 0 && pTempSpell->SchoolMask & uiSchool)
-        {
-            continue;
-        }
-#elif defined(MISTS)
-        if (uiSchool >= 0 && pTempSpell->GetSchoolMask() & uiSchool)
         {
             continue;
         }
@@ -347,10 +342,8 @@ SpellEntry const* ScriptedAI::SelectSpell(Unit* pTarget, int32 uiSchool, int32 i
         }
 
         // Continue if we don't have the mana to actually cast this spell
-#if defined (CATA)
+#if defined (CATA) || defined(MISTS)
         if (pTempSpell->GetManaCost() > m_creature->GetPower((Powers)pTempSpell->powerType))
-#elif defined (MISTS)
-        if (pTempSpell->GetManaCost() > m_creature->GetPower((Powers)pTempSpell->GetPowerType()))
 #else
         if (pTempSpell->manaCost > m_creature->GetPower((Powers)pTempSpell->powerType))
 #endif
@@ -360,11 +353,7 @@ SpellEntry const* ScriptedAI::SelectSpell(Unit* pTarget, int32 uiSchool, int32 i
         }
 
         // Get the Range
-#if defined(MISTS)
-        pTempRange = GetSpellRangeStore()->LookupEntry(pTempSpell->GetRangeIndex());
-#else
         pTempRange = GetSpellRangeStore()->LookupEntry(pTempSpell->rangeIndex);
-#endif
         // Spell has invalid range store so we can't use it
         if (!pTempRange)
         {
@@ -417,10 +406,8 @@ bool ScriptedAI::CanCast(Unit* pTarget, SpellEntry const* pSpellEntry, bool bTri
     }
 
     // Check for power
-#if defined (CATA)
+#if defined (CATA) || defined (MISTS)
     if (!bTriggered && m_creature->GetPower((Powers)pSpellEntry->powerType) < pSpellEntry->GetManaCost())
-#elif defined (MISTS)
-    if (!bTriggered && m_creature->GetPower((Powers)pSpellEntry->GetPowerType()) < pSpellEntry->GetManaCost())
 #else
     if (!bTriggered && m_creature->GetPower((Powers)pSpellEntry->powerType) < pSpellEntry->manaCost)
 #endif
@@ -428,11 +415,7 @@ bool ScriptedAI::CanCast(Unit* pTarget, SpellEntry const* pSpellEntry, bool bTri
         return false;
     }
 
-#if defined(MISTS)
-    SpellRangeEntry const* pTempRange = GetSpellRangeStore()->LookupEntry(pSpellEntry->GetRangeIndex());
-#else
     SpellRangeEntry const* pTempRange = GetSpellRangeStore()->LookupEntry(pSpellEntry->rangeIndex);
-#endif
 
     // Spell has invalid range store so we can't use it
     if (!pTempRange)
