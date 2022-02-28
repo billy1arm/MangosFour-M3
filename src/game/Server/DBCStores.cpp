@@ -966,7 +966,7 @@ void LoadDBCStores(const std::string& dataPath)
         exit(1);
     }
 
-#if defined(cata)
+#if defined(CATA)
 int lastAreaStore = 4713; // last area (areaflag) added in 4.3.4
 int lastCharTitlesStore = 287; // last char title added in 4.3.4
 int lastGemPropertiesStore = 2250; // last gem property added in 4.3.4
