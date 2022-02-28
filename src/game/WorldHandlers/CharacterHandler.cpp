@@ -672,9 +672,9 @@ void WorldSession::HandleCharDeleteOpcode(WorldPacket& recv_data)
 
 void WorldSession::HandlePlayerLoginOpcode(WorldPacket& recvData)
 {
-#if defined (MISTS)
     ObjectGuid playerGuid;
 
+#if defined (MISTS)
     playerGuid[7] = recvData.ReadBit();
     playerGuid[6] = recvData.ReadBit();
     playerGuid[0] = recvData.ReadBit();
