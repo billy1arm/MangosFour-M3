@@ -509,7 +509,7 @@ enum EPlayerFields
     PLAYER_FIELD_BUYBACK_PRICE_1                     = UNIT_END + 0x06A6, // Size: 12, Type: INT, Flags: PRIVATE
     PLAYER_FIELD_BUYBACK_TIMESTAMP_1                 = UNIT_END + 0x06B2, // Size: 12, Type: INT, Flags: PRIVATE
     PLAYER_FIELD_KILLS                               = UNIT_END + 0x06BE, // Size: 1, Type: TWO_SHORT, Flags: PRIVATE
-    PLAYER_FIELD_LIFETIME_HONORBALE_KILLS            = UNIT_END + 0x06BF, // Size: 1, Type: INT, Flags: PRIVATE
+    PLAYER_FIELD_LIFETIME_HONORABLE_KILLS            = UNIT_END + 0x06BF, // Size: 1, Type: INT, Flags: PRIVATE
     PLAYER_FIELD_WATCHED_FACTION_INDEX               = UNIT_END + 0x06C0, // Size: 1, Type: INT, Flags: PRIVATE
     PLAYER_FIELD_COMBAT_RATING_1                     = UNIT_END + 0x06C1, // Size: 27, Type: INT, Flags: PRIVATE
     PLAYER_FIELD_ARENA_TEAM_INFO_1_1                 = UNIT_END + 0x06DC, // Size: 21, Type: INT, Flags: PRIVATE
