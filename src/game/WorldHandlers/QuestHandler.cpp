@@ -154,7 +154,11 @@ void WorldSession::HandleQuestgiverAcceptQuestOpcode(WorldPacket& recvData)
         return;
     }
 
+#if defined (CATA)
     DEBUG_LOG("WORLD: Received opcode CMSG_QUESTGIVER_ACCEPT_QUEST - for %s to %s, quest = %u, unk1 = %u", _player->GetGuidStr().c_str(), guid.GetString().c_str(), quest, unk1);
+#elif defined (MISTS)
+    DEBUG_LOG("WORLD: Received opcode CMSG_QUESTGIVER_ACCEPT_QUEST - for %s to %s, quest = %u", _player->GetGuidStr().c_str(), guid.GetString().c_str(), quest);
+#endif
 
     Object* pObject = _player->GetObjectByTypeMask(guid, TYPEMASK_CREATURE_GAMEOBJECT_PLAYER_OR_ITEM);
 
@@ -266,7 +270,11 @@ void WorldSession::HandleQuestgiverQueryQuestOpcode(WorldPacket& recvData)
     recvData.ReadByteSeq(guid[7]);
 #endif
 
+#if defined (CATA)
     DEBUG_LOG("WORLD: Received opcode CMSG_QUESTGIVER_QUERY_QUEST - for %s to %s, quest = %u, unk1 = %u", _player->GetGuidStr().c_str(), guid.GetString().c_str(), quest, unk1);
+#elif defined (MISTS)
+    DEBUG_LOG("WORLD: Received opcode CMSG_QUESTGIVER_QUERY_QUEST - for %s to %s, quest = %u", _player->GetGuidStr().c_str(), guid.GetString().c_str(), quest);
+#endif
 
     // Verify that the guid is valid and is a questgiver or involved in the requested quest
     Object* pObject = _player->GetObjectByTypeMask(guid, TYPEMASK_CREATURE_GAMEOBJECT_OR_ITEM);
