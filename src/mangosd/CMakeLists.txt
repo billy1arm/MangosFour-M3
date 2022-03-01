@@ -44,7 +44,17 @@ source_group("SOAP" FILES ${SRC_GRP_SOAP})
 
 if(WIN32)
     set(PRODUCT_NAME "mangosd.exe")
-    set(PRODUCT_ICON ${CMAKE_CURRENT_SOURCE_DIR}/mangosd.ico)
+#if defined(CLASSIC)
+    set(PRODUCT_ICON ${CMAKE_CURRENT_SOURCE_DIR}/mangos0.ico)
+#elseif defined(TBC)
+    set(PRODUCT_ICON ${CMAKE_CURRENT_SOURCE_DIR}/mangos1.ico)
+#elseif defined(WOTLK)
+    set(PRODUCT_ICON ${CMAKE_CURRENT_SOURCE_DIR}/mangos2.ico)
+#elseif defined(CATA)
+    set(PRODUCT_ICON ${CMAKE_CURRENT_SOURCE_DIR}/mangos3.ico)
+#elseif defined(MISTS)
+    set(PRODUCT_ICON ${CMAKE_CURRENT_SOURCE_DIR}/mangos4.ico)
+#endif
     set(PRODUCT_DESCRIPTION "${MANGOS_PKG} World Server")
     configure_file(${CMAKE_SOURCE_DIR}/cmake/win/VersionInfo.h.in ${CMAKE_CURRENT_BINARY_DIR}/VersionInfo.h)
 endif()
@@ -78,7 +88,17 @@ install(
     DESTINATION ${BIN_DIR}
 )
 
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/mangosd.conf.dist.in ${CMAKE_CURRENT_BINARY_DIR}/mangosd.conf.dist)
+#if defined(CLASSIC)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/mangos0.conf.dist.in ${CMAKE_CURRENT_BINARY_DIR}/mangosd.conf.dist)
+#elif defined(TBC)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/mangos1.conf.dist.in ${CMAKE_CURRENT_BINARY_DIR}/mangosd.conf.dist)
+#elif defined(WOTLK)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/mangos2.conf.dist.in ${CMAKE_CURRENT_BINARY_DIR}/mangosd.conf.dist)
+#elif defined(CATA)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/mangos3.conf.dist.in ${CMAKE_CURRENT_BINARY_DIR}/mangosd.conf.dist)
+#elif defined(MISTS)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/mangos4.conf.dist.in ${CMAKE_CURRENT_BINARY_DIR}/mangosd.conf.dist)
+#endif
 install(
     FILES ${CMAKE_CURRENT_BINARY_DIR}/mangosd.conf.dist
     DESTINATION ${CONF_INSTALL_DIR}
