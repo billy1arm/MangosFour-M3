@@ -71,6 +71,10 @@ message(
   Also, you can specify the generator with -G. See 'cmake --help' for more details
   For example: cmake .. -DCMAKE_INSTALL_PREFIX=/opt/mangos -DSCRIPT_LIB_SD3=0"
 )
+
+set(CLIENT_BUILD_TYPE "Cata" CACHE STRING "Client Version")
+set_property(CACHE CLIENT_BUILD_TYPE PROPERTY STRINGS Classic TBC WotLK Cata Mop)
+
 message("")
 #==================================================================================#
 
