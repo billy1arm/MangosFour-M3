@@ -126,7 +126,7 @@ void WorldSession::HandleQuestgiverAcceptQuestOpcode(WorldPacket& recvData)
  #if defined (CATA)
     uint32 unk1;
     recvData >> guid >> quest >> unk1;
-#if defined (MISTS)
+#elif defined (MISTS)
     recvData >> quest;
 
     guid[3] = recvData.ReadBit();
