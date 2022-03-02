@@ -1720,6 +1720,9 @@ bool Player::BuildEnumData(QueryResult* result, ByteBuffer* data, ByteBuffer* bu
     uint32 petLevel   = 0;
     uint32 petFamily  = 0;
     uint32 char_flags = 0;
+#if defined (MISTS)    
+    uint32 playerBytes2 = fields[6].GetUInt32();
+#endif
 
 #if defined (CATA)
     data->WriteGuidMask<3>(guid);
