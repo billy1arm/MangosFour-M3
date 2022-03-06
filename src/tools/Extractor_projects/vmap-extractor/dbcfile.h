@@ -263,6 +263,7 @@ public:
      * @return size_t
      */
     size_t getMaxId();
+
 private:
     HANDLE _mpq;
     const char* _filename;

@@ -846,12 +846,12 @@ int main(int argc, char** argv)
             printf(" Map %d - %s\n", map_ids[x].id, map_ids[x].name);
         }
 
-
         delete dbc;
+
         ParsMapFiles();
         delete [] map_ids;
         //nError = ERROR_SUCCESS;
-        // Extract models, listed in DameObjectDisplayInfo.dbc
+        // Extract models, listed in GameObjectDisplayInfo.dbc
         ExtractGameobjectModels();
     }
 

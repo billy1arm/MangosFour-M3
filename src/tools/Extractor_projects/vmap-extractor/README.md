@@ -5,7 +5,7 @@ The *vmap extractor* will extract model information from the game client.
 Requirements
 ------------
 You will need a working installation of the [World of Warcraft][1] client patched
-to version 4.3.4.
+to version 4.3.4 to CATA or 5.4.8 for MOP.
 
 Instructions - Linux
 --------------------

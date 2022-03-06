@@ -14,7 +14,7 @@ generated will also reduce the time needed to wait.
 Requirements
 ------------
 You will need a working installation of the [World of Warcraft][1] client patched
-to version 4.3.4.
+to version 4.3.4 for Cata or 5.4.8 for MOP.
 
 Usage
 -----
