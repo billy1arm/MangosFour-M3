@@ -341,7 +341,7 @@ uint32 ReadMapDBC(HANDLE localeMpqHandle, int const locale)
     HANDLE dbcFile;
     if (!SFileOpenFileEx(localeMpqHandle, "DBFilesClient\\Map.dbc", SFILE_OPEN_FROM_MPQ, &dbcFile))
     {
-        printf("Error: Cannot find Map.dbc in archive!\n");
+        printf("Fatal error: Cannot find Map.dbc in archive!\n");
         exit(1);
     }
 
@@ -375,7 +375,7 @@ void ReadAreaTableDBC(HANDLE localeMpqHandle, int const locale)
     HANDLE dbcFile;
     if (!SFileOpenFileEx(localeMpqHandle, "DBFilesClient\\AreaTable.dbc", SFILE_OPEN_FROM_MPQ, &dbcFile))
     {
-        printf("Error: Cannot find AreaTable.dbc in archive!\n");
+        printf("Fatal error: Cannot find AreaTable.dbc in archive!\n");
         exit(1);
     }
 
