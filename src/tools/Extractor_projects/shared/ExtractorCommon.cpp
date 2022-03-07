@@ -489,6 +489,7 @@ bool isTransportMap(int mapID)
 bool shouldSkipMap(int mapID,bool m_skipContinents, bool m_skipJunkMaps, bool m_skipBattlegrounds)
 {
     if (m_skipContinents)
+    {
         switch (mapID)
         {
         case 0:      // Eastern Kingdoms - (CLASSIC / TBC / WOTLK / CATA / MOP)
@@ -501,40 +502,51 @@ bool shouldSkipMap(int mapID,bool m_skipContinents, bool m_skipJunkMaps, bool m_
         default:
             break;
         }
+    }
 
     if (m_skipJunkMaps)
+    {
         switch (mapID)
         {
-        case 13:    // test.wdt
-        case 25:    // ScottTest.wdt
-        case 29:    // Test.wdt
-        case 35:    // StornWind Crypt (Unused Instance)
-        case 37:    // Ashara.wdt (Unused Raid Area)
-        case 42:    // Colin.wdt
-        case 44:    // Monastry.wdt (Unused Old SM)
-        case 169:   // EmeraldDream.wdt (unused, and very large)
-        case 451:   // development.wdt
-        case 573:   // ExteriorTest.wdt - (WOTLK / CATA / MOP)
-        case 597:   // CraigTest.wdt - (WOTLK / CATA / MOP)
-        case 605:   // development_nonweighted.wdt - (WOTLK / CATA / MOP)
-        case 606:   // QA_DVD.wdt - (WOTLK / CATA / MOP)
-        case 627:   // unused.wdt - (CATA / MOP)
-        case 930:    // (UNUSED) Scenario: Alcaz Island - (MOP)
-        case 995:    // The Depths [UNUSED] - (MOP)
-        case 1010:  // MistsCTF3
-        case 1014:  // (UNUSED) Peak of Serenity Scenario - (MOP)
-        case 1028:  // (UNUSED) Scenario: Mogu Ruins - (MOP)
-        case 1029:  // (UNUSED) Scenario: Mogu Crypt - (MOP)
-        case 1049:  // (UNUSED) Scenario: Black Ox Temple - (MOP)
-        case 1060:  // Level Design Land - Dev Only - (MOP)
-        case 1181:  // PattyMack Test Garrison Bldg Map - (WOD)
-        case 1250:  // Alliance - Garrison - Herb Garden 1 (UNUSED) - (WOD)
-        case 1251:  // Alliance - Garrison - Inn 1 DONT USE - (WOD)
-        case 1264:  // Propland - Dev Only - (WOD)
-        case 1270:  // Development Land 3 - (WOD)
-        case 1310:  // Expansion 5 QA Model Map - (WOD)
-        case 1407:  // GorgrondFinaleScenarioMap(zzzOld) - (WOD)
-        case 1427:  // PattyMack Test Garrison Bld Map2 - (WOD)
+            case 13:    // test.wdt
+            case 25:    // ScottTest.wdt
+            case 29:    // Test.wdt
+            case 35:    // StornWind Crypt (Unused Instance)
+            case 37:    // Ashara.wdt (Unused Raid Area)
+            case 42:    // Colin.wdt
+            case 44:    // Monastry.wdt (Unused Old SM)
+            case 169:   // EmeraldDream.wdt (unused, and very large)
+            case 451:   // development.wdt
+            case 573:   // ExteriorTest.wdt - (WOTLK / CATA / MOP)
+            case 597:   // CraigTest.wdt - (WOTLK / CATA / MOP)
+            case 598:   // World\Maps\Sunwell5Man\Sunwell5Man.wdt - Broken Sunwell
+            case 605:   // development_nonweighted.wdt - (WOTLK / CATA / MOP)
+            case 606:   // QA_DVD.wdt - (WOTLK / CATA / MOP)
+            case 627:   // unused.wdt - (CATA / MOP)
+            case 651:   // World\Maps\ElevatorSpawnTest\ElevatorSpawnTest.wdt
+            case 660:   // World\Maps\Deephomeceiling\Deephomeceiling.wdt
+            case 728:   // World\Maps\TheBattleforGilneas\TheBattleforGilneas.wdt
+            case 930:    // (UNUSED) Scenario: Alcaz Island - (MOP)
+            case 995:    // The Depths [UNUSED] - (MOP)
+            case 1010:  // MistsCTF3
+            case 1014:  // (UNUSED) Peak of Serenity Scenario - (MOP)
+            case 1028:  // (UNUSED) Scenario: Mogu Ruins - (MOP)
+            case 1029:  // (UNUSED) Scenario: Mogu Crypt - (MOP)
+            case 1049:  // (UNUSED) Scenario: Black Ox Temple - (MOP)
+            //case 1136:  // World\Maps\OrgrimmarRaid\OrgrimmarRaid.wdt
+            case 1148:  // World\Maps\ProvingGrounds\ProvingGrounds.wdt
+            case 1155:  // World\Maps\Stormgarde Keep\Stormgarde Keep.wdt
+            case 1157:  // World\Maps\HalfhillScenario\HalfhillScenario.wdt
+            case 1060:  // Level Design Land - Dev Only - (MOP)
+            case 1161:  // World\Maps\CelestialChallenge\CelestialChallenge.wdt
+            case 1181:  // PattyMack Test Garrison Bldg Map - (WOD)
+            case 1250:  // Alliance - Garrison - Herb Garden 1 (UNUSED) - (WOD)
+            case 1251:  // Alliance - Garrison - Inn 1 DONT USE - (WOD)
+            case 1264:  // Propland - Dev Only - (WOD)
+            case 1270:  // Development Land 3 - (WOD)
+            case 1310:  // Expansion 5 QA Model Map - (WOD)
+            case 1407:  // GorgrondFinaleScenarioMap(zzzOld) - (WOD)
+            case 1427:  // PattyMack Test Garrison Bld Map2 - (WOD)
 
             return true;
         default:
@@ -544,8 +556,9 @@ bool shouldSkipMap(int mapID,bool m_skipContinents, bool m_skipJunkMaps, bool m_
             }
             break;
         }
-
+    }
     if (m_skipBattlegrounds)
+    {
         switch (mapID)
         {
         case 30:    // AV
@@ -573,5 +586,5 @@ bool shouldSkipMap(int mapID,bool m_skipContinents, bool m_skipJunkMaps, bool m_
         }
 
     return false;
+    }
 }
-
