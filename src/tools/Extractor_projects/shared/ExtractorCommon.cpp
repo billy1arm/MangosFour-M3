@@ -27,6 +27,8 @@
 #include <set>
 #include <cstdlib>
 #include <cstring>
+#include <vector>
+
 #include "ExtractorCommon.h"
 
 #ifdef WIN32
@@ -51,6 +53,7 @@
 #ifndef O_BINARY
 #define O_BINARY 0
 #endif
+
 #else
 #include <io.h>
 #endif
@@ -66,24 +69,33 @@
 *
 *  @RETURN pFile the pointer to the file, so that it can be worked on
 */
-FILE* openWoWExe()
+FILE* openWoWExe(const char *path)
 {
     FILE *pFile;
-    const char* ExeFileName[] = { "WoW.exe", "Wow.exe", "wow.exe" ,"World of Warcraft.exe", "World of Warcraft.app/Contents/MacOS/World of Warcraft"};
-    int iExeSpelling = 5; ///> WoW.exe (Classic, CATA), Wow.exe (TBC, MoP, WoD), wow.exe (WOTLK) and a variant
+    std::vector<std::string> excec_names {
+        "wow.exe",
+        "Wow.exe",
+        "WoW.exe",
+        "wow.exe",
+        "World of Warcraft.exe",
+        "World of Warcraft.app/Contents/MacOS/World of Warcraft"
+    };
 
-    /// loop through all possible file names
-    for (int iFileCount = 0; iFileCount < iExeSpelling; iFileCount++)
+    for (int i = 0; i < excec_names.size(); i++)
     {
+        std::stringstream exec;
+        exec << path << "/" << excec_names[i].c_str();
 #ifdef WIN32
-        if (fopen_s(&pFile, ExeFileName[iFileCount], "rb") == 0)
+        if (fopen_s(&pFile, exec.str().c_str(), "rb") == 0)
         {
-            return pFile; ///< successfully located the WoW executable
+            std::cout << "Found exec: " << exec.str() << std::endl;
+            return pFile;
         }
 #else
-        if ((pFile = fopen(ExeFileName[iFileCount], "rb")))
+        if ((pFile = fopen(exec.str().c_str(), "rb")))
         {
-            return pFile; ///< successfully located the WoW executable
+            std::cout << "Found exec: " << exec.str() << std::endl;
+            return pFile;
         }
 #endif
     }
@@ -98,7 +110,7 @@ FILE* openWoWExe()
 *  @PARAM sFilename is the filename of the WoW executable to be loaded
 *  @RETURN iBuild the build number of the WoW executable, or 0 if failed
 */
-int getBuildNumber()
+int getBuildNumber(const char *path)
 {
     int iBuild = -1; ///< build version # of the WoW executable (returned value)
 
@@ -123,11 +135,11 @@ int getBuildNumber()
     unsigned char mopBuild[4]      = { 0x38, 0x34, 0x31, 0x34 }; // (1)8414
 
     FILE *pFile;
-    if (!(pFile = openWoWExe()))
+    if (!(pFile = openWoWExe(path)))
     {
-        printf("\nFatal Error: failed to locate the WoW executable!\n\n");
-        printf("\nExiting program!!\n");
-        exit(0); ///> failed to locate exe file
+        std::cout << "Fatal Error: failed to locate the WoW executable!" << std::endl;
+        std::cout << "Exiting program!!" << std::endl;
+        exit(1); ///> failed to locate exe file
     }
 
     /// jump over as much of the file as possible, before we start searching for the base #
@@ -145,7 +157,7 @@ int getBuildNumber()
         // Vanilla and TBC
         if (byteSearchBuffer[0] == 0x35 || byteSearchBuffer[0] == 0x36 || byteSearchBuffer[0] == 0x38)
         {
-            /// grab the next 4 bytes
+            /// grab the next 3 bytes
             fread(preWOTLKbuildNumber, sizeof(preWOTLKbuildNumber), 1, pFile);
 
             if (!memcmp(preWOTLKbuildNumber, vanillaBuild1, sizeof(preWOTLKbuildNumber))) /// build is Vanilla?
@@ -187,15 +199,15 @@ int getBuildNumber()
         }
     }
 
-    printf("\nFatal Error: failed to identify build version!\n\n");
-    printf("\nSupported build versions:\n");
-    printf("\nVanilla: 5875, 6005, 6141\n");
-    printf("TBC:      8606\n");
-    printf("WOTLK:    12340\n");
-    printf("CATA:     15595\n");
-    printf("MOP:      18414\n");
-    printf("\n\nExiting program!!\n");
-    exit(0);
+    std::cout << "Fatal Error: failed to identify build version!" << std::endl << std::endl;
+    std::cout << "Supported build versions:" << std::endl;
+    std::cout << "Vanilla: 5875, 6005, 6141" << std::endl;
+    std::cout << "TBC:      8606" << std::endl;
+    std::cout << "WOTLK:    12340" << std::endl;
+    std::cout << "CATA:     15595" << std::endl;
+    std::cout << "MOP:      18414"  << std::endl;
+    std::cout << "Exiting program!!" << std::endl;
+    exit(1);
 }
 
 /**
@@ -255,43 +267,44 @@ int getCoreNumberFromBuild(int iBuildNumber)
 *  @PARAM sTitle is the Title text (directly under the MaNGOS logo)
 *  @PARAM iCoreNumber is the Core Number
 */
-void showBanner(const std::string& sTitle, int iCoreNumber, int build)
+void showBanner(const std::string& sTitle, int iCoreNumber)
 {
-    printf(
-        "        __  __      _  _  ___  ___  ___      \n"
-        "       |  \\/  |__ _| \\| |/ __|/ _ \\/ __|  \n"
-        "       | |\\/| / _` | .` | (_ | (_) \\__ \\  \n"
-        "       |_|  |_\\__,_|_|\\_|\\___|\\___/|___/ \n"
-        "       %s for ", sTitle.c_str());
+    std::cout << \
+        "        __  __      _  _  ___  ___  ___      " << std::endl << \
+        "       |  \\/  |__ _| \\| |/ __|/ _ \\/ __|  " << std::endl << \
+        "       | |\\/| / _` | .` | (_ | (_) \\__ \\  " << std::endl << \
+        "       |_|  |_\\__,_|_|\\_|\\___|\\___/|___/ " << std::endl << \
+        std::endl << \
+        "       " << sTitle << " for ";
 
     switch (iCoreNumber)
     {
-        case CLIENT_CLASSIC:
-            printf("MaNGOSZero\n");
-            break;
-        case CLIENT_TBC:
-            printf("MaNGOSOne\n");
-            break;
-        case CLIENT_WOTLK:
-            printf("MaNGOSTwo\n");
-            break;
-        case CLIENT_CATA:
-            printf("MaNGOSThree\n");
-            break;
-        case CLIENT_MOP:
-            printf("MaNGOSFour\n");
-            break;
-        case CLIENT_WOD:
-            printf("MaNGOSFive\n");
-            break;
-        case CLIENT_LEGION:
-            printf("MaNGOSSix\n");
-            break;
-        default:
-            printf("Unknown Version: Build: %u\n",build);
-            break;
+    case CLIENT_CLASSIC:
+        std::cout << "MaNGOSZero" << std::endl;
+        break;
+    case CLIENT_TBC:
+        std::cout << "MaNGOSOne" << std::endl;
+        break;
+    case CLIENT_WOTLK:
+        std::cout << "MaNGOSTwo" << std::endl;
+        break;
+    case CLIENT_CATA:
+        std::cout << "MaNGOSThree\n" << std::endl;
+        break;
+    case CLIENT_MOP:
+        std::cout << "MaNGOSFour" << std::endl;
+        break;
+    case CLIENT_WOD:
+        std::cout << "MaNGOSFive" << std::endl;
+        break;
+    case CLIENT_LEGION:
+        std::cout << "MaNGOSSix" << std::endl;
+        break;
+    default:
+        std::cout << "Unknown Version" << std::endl;
+        break;
     }
-    printf("  ________________________________________________\n");
+    std::cout << "  ________________________________________________" << std::endl;
 
 }
 
@@ -300,12 +313,11 @@ void showBanner(const std::string& sTitle, int iCoreNumber, int build)
 */
 void showWebsiteBanner()
 {
-    printf(
-        "  ________________________________________________\n\n"
-        "    For help and support please visit:            \n"
-        "    Website / Forum / Wiki: https://getmangos.eu  \n"
-        "  ________________________________________________\n"
-        );
+    std::cout << \
+        "  ________________________________________________" << std::endl << std::endl << \
+        "    For help and support please visit:            " << std::endl << \
+        "    Website / Forum / Wiki: https://getmangos.eu  " << std::endl << \
+        "  ________________________________________________" << std::endl ;
 }
 
 
@@ -319,25 +331,25 @@ void setMapMagicVersion(int iCoreNumber, char* magic)
     switch (iCoreNumber)
     {
     case CLIENT_CLASSIC:
-        std::strcpy(magic,"z1.4");
+        std::strcpy(magic,"z1.5");
         break;
     case CLIENT_TBC:
-        std::strcpy(magic,"s1.4");
+        std::strcpy(magic,"s1.5");
         break;
     case CLIENT_WOTLK:
-        std::strcpy(magic,"v1.4");
+        std::strcpy(magic,"v1.5");
         break;
     case CLIENT_CATA:
-        std::strcpy(magic,"c1.4");
+        std::strcpy(magic,"c1.5");
         break;
     case CLIENT_MOP:
-        std::strcpy(magic,"p1.4");
+        std::strcpy(magic,"p1.5");
         break;
     case CLIENT_WOD:
-        std::strcpy(magic,"w1.4");
+        std::strcpy(magic,"w1.5");
         break;
     case CLIENT_LEGION:
-        std::strcpy(magic,"l1.4");
+        std::strcpy(magic,"l1.5");
         break;
     default:
         std::strcpy(magic,"UNKN");
@@ -355,25 +367,25 @@ void setVMapMagicVersion(int iCoreNumber, char* magic)
     switch (iCoreNumber)
     {
     case CLIENT_CLASSIC:
-        std::strcpy(magic,"VMAPz06");
+        std::strcpy(magic,"VMAPz07");
         break;
     case CLIENT_TBC:
-        std::strcpy(magic,"VMAPs06");
+        std::strcpy(magic,"VMAPs07");
         break;
     case CLIENT_WOTLK:
-        std::strcpy(magic,"VMAPt06");
+        std::strcpy(magic,"VMAPt07");
         break;
     case CLIENT_CATA:
-        std::strcpy(magic,"VMAPc06");
+        std::strcpy(magic,"VMAPc07");
         break;
     case CLIENT_MOP:
-        std::strcpy(magic,"VMAPp06");
+        std::strcpy(magic,"VMAPp07");
         break;
     case CLIENT_WOD:
-        std::strcpy(magic,"VMAPw06");
+        std::strcpy(magic,"VMAPw07");
         break;
     case CLIENT_LEGION:
-        std::strcpy(magic,"VMAPl06");
+        std::strcpy(magic,"VMAPl07");
         break;
     default:
         std::strcpy(magic,"VMAPUNK");
@@ -382,24 +394,58 @@ void setVMapMagicVersion(int iCoreNumber, char* magic)
 }
 
 /**
+*  This function returns the .mmap file 'magic' number based on the core number
+*
+*  @PARAM iCoreNumber is the Core Number
+*/
+void setMMapMagicVersion(int iCoreNumber, char* magic)
+{
+    switch (iCoreNumber)
+    {
+    case CLIENT_CLASSIC:
+        std::strcpy(magic, "z06");
+        break;
+    case CLIENT_TBC:
+        std::strcpy(magic, "s06");
+        break;
+    case CLIENT_WOTLK:
+        std::strcpy(magic, "t06");
+        break;
+    case CLIENT_CATA:
+        std::strcpy(magic, "c06");
+        break;
+    case CLIENT_MOP:
+        std::strcpy(magic, "p06");
+        break;
+    case CLIENT_WOD:
+        std::strcpy(magic, "w06");
+        break;
+    case CLIENT_LEGION:
+        std::strcpy(magic, "l06");
+        break;
+    default:
+        std::strcpy(magic, "UNK");
+        break;
+    }
+}
+
+//#define MMAP_VERSION 4
+
+
+
+/**
 * @Create Folders based on the path provided
 *
 * @param sPath
 */
-bool CreateDir(const std::string& sPath)
+void CreateDir(const std::string& sPath)
 {
 #ifdef WIN32
-    if (_mkdir(sPath.c_str()) == 0)
-    {
-        return 1;
-    }
+    _mkdir(sPath.c_str());
 #else
-    if (mkdir(sPath.c_str(), 0777) == 0)
-    {
-        return 1;
-    }
+    mkdir(sPath.c_str(), 0777);
 #endif
-    return 0; // failed to create the directory
+
 }
 
 /**

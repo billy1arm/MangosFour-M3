@@ -22,41 +22,51 @@
  * and lore are copyrighted by Blizzard Entertainment, Inc.
  */
 
-#include "TileAssembler.h"
-#include <string>
-#include <iostream>
+#include "TileThreadPool.h"
+#include "TileMsgBlock.h"
 
-
-//=======================================================
-int main(int argc, char* argv[])
+TileThreadPool::TileThreadPool(): m_barrier(0)
 {
-    if (argc != 3)
+}
+
+TileThreadPool::~TileThreadPool()
+{
+    ACE_Message_Block *msg;
+    this->getq(msg);
+    msg->release();
+
+    delete m_barrier;
+}
+
+int TileThreadPool::start(int threads)
+{
+    m_barrier = new ACE_Barrier(threads);
+    return this->activate(THR_NEW_LWP, threads);
+}
+
+int TileThreadPool::svc(void)
+{
+    m_barrier->wait();
+
+    ACE_Message_Block *msg;
+    while (1)
     {
-        std::cout << "usage: " << argv[0] << " <raw data dir> <vmap dest dir>" << std::endl;
-        return 1;
+        if (this->getq(msg) == -1)
+        {
+            ACE_ERROR_RETURN((LM_ERROR, "%p\n", "getq"), -1);
+        }
+
+        if (msg->msg_type() == ACE_Message_Block::MB_HANGUP)
+        {
+            this->putq(msg);
+            break;
+        }
+
+        Tile_Message_Block *mb = (Tile_Message_Block*)msg;
+        mb->GetTileBuilder()->Work();
+
+        msg->release ();
     }
 
-    std::string src = argv[1];
-    std::string dest = argv[2];
-
-    std::cout << "using " << src << " as source directory and writing output to " << dest << std::endl;
-
-    std::cout << "Create TileAssembler " << std::endl;
-
-    VMAP::TileAssembler* ta = new VMAP::TileAssembler(src, dest);
-
-    std::cout << "Convert to World2 " << std::endl;
-
-    if (!ta->convertWorld2())
-    {
-        std::cout << "exit with errors" << std::endl;
-        delete ta;
-        return 1;
-    }
-
-    std::cout << "THE END!!! " << std::endl;
-
-    delete ta;
-    std::cout << "Ok, all done" << std::endl;
     return 0;
 }

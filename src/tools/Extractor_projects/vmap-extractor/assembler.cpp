@@ -1,4 +1,4 @@
-/*
+/**
  * MaNGOS is a full featured server for World of Warcraft, supporting
  * the following clients: 1.12.x, 2.4.3, 3.3.5a, 4.3.4a and 5.4.8
  *
@@ -22,4 +22,19 @@
  * and lore are copyrighted by Blizzard Entertainment, Inc.
  */
 
-IDI_APPICON ICON DISCARDABLE "../tools.ico"
+#include "TileAssembler.h"
+#include <string>
+
+bool AssembleVMAP(std::string src, std::string dest, const char* szMagic)
+{
+    bool success = true;
+    VMAP::TileAssembler* ta = new VMAP::TileAssembler(src, dest);
+
+    if (!ta->convertWorld2())
+    {
+        success = false;
+    }
+
+    delete ta;
+    return success;
+}

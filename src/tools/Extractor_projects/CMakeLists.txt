@@ -67,12 +67,10 @@ add_executable(vmap-extractor
     vmap-extractor/adtfile.h
     vmap-extractor/dbcfile.cpp
     vmap-extractor/dbcfile.h
-    vmap-extractor/gameobject_extract.cpp
+    vmap-extractor/assembler.cpp
     vmap-extractor/model.cpp
     vmap-extractor/model.h
     vmap-extractor/modelheaders.h
-    vmap-extractor/mpqfile.cpp
-    vmap-extractor/mpqfile.h
     vmap-extractor/vec3d.h
     vmap-extractor/vmapexport.cpp
     vmap-extractor/vmapexport.h
@@ -110,40 +108,6 @@ if(WIN32 AND MSVC)
 endif()
 
 #=======================================================#
-#vmap-assembler
-#=======================================================#
-add_executable(vmap-assembler
-    vmap-assembler/vmap_assembler.cpp
-    ${SHARED_SRCS}
-    $<$<BOOL:${WIN32}>:vmap-assembler/vmap-assembler.rc>
-)
-
-target_include_directories(vmap-assembler
-    PUBLIC
-        shared
-        vmap-assembler
-)
-
-target_link_libraries(vmap-assembler
-    PUBLIC
-        loadlib
-        vmap2
-)
-
-install(
-    TARGETS vmap-assembler
-    DESTINATION ${BIN_DIR}/${TOOLS_DIR}
-)
-
-if(WIN32 AND MSVC)
-    install(
-        FILES $<TARGET_PDB_FILE:vmap-assembler>
-        DESTINATION ${BIN_DIR}/${TOOLS_DIR}
-        OPTIONAL
-)
-endif()
-
-#=======================================================#
 #mmap-extractor
 #=======================================================#
 add_executable(mmap-extractor
@@ -156,6 +120,9 @@ add_executable(mmap-extractor
     Movemap-Generator/MMapCommon.h
     Movemap-Generator/TerrainBuilder.cpp
     Movemap-Generator/TerrainBuilder.h
+    Movemap-Generator/TileMsgBlock.h
+    Movemap-Generator/TileThreadPool.cpp
+    Movemap-Generator/TileThreadPool.h
     Movemap-Generator/VMapExtensions.cpp
     shared/ExtractorCommon.cpp
     shared/ExtractorCommon.h

@@ -22,54 +22,23 @@
  * and lore are copyrighted by Blizzard Entertainment, Inc.
  */
 
-#ifndef VMAPEXPORT_H
-#define VMAPEXPORT_H
+#ifndef TILE_THREAD_POOL_H
+#define TILE_THREAD_POOL_H
 
-#include <string>
-#include <set>
+#include "ace/Task.h"
+#include "ace/Barrier.h"
 
-/**
- * @brief
- *
- */
-typedef std::set<std::string> StringSet;
 
-/**
- * @brief
- *
- */
-enum ModelFlags
+class TileThreadPool : public ACE_Task<ACE_MT_SYNCH>
 {
-    MOD_M2 = 1,
-    MOD_WORLDSPAWN = 1 << 1,
-    MOD_HAS_BOUND = 1 << 2
+public:
+    TileThreadPool();
+    ~TileThreadPool();
+    int start(int threads = 1);
+    virtual int svc(void);
+
+protected:
+    ACE_Barrier *m_barrier;
 };
-
-extern char const szWorkDirWmo[]; /**< TODO */
-//extern const char* szRawVMAPMagic; /**< vmap magic string for extracted raw vmap data */
-
-/**
- * @brief Test if the specified file exists in the building directory
- *
- * @param file
- * @return bool
- */
-bool FileExists(const char* file);
-
-/**
- * @brief Get "uniform" name for a path (a uniform name has the format <md5hash>-<filename>.<ext>)
- *
- * @param path
- * @return string
- */
-std::string GetUniformName(std::string& path);
-
-/**
- * @brief Get extension for a file
- *
- * @param file
- * @return extension, if found, or empty string if not
- */
-std::string GetExtension(std::string& file);
 
 #endif
