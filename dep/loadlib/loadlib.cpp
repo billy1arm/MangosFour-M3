@@ -287,7 +287,7 @@ bool FileLoader::loadFile(char* filename, bool log)
     {
         //printf("Error loading %s\n\n", filename);
         //free();
-        return true;
+        return false;
     }
 
     return true;

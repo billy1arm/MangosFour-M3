@@ -15,11 +15,11 @@
 
 
 add_library(loadlib STATIC
-  sl/loadlib.cpp
-  sl/adt.cpp
-  sl/wdt.cpp
-  sl/mpq.cpp)
+  loadlib.cpp
+  adt.cpp
+  wdt.cpp
+  mpq.cpp)
 
-target_include_directories(loadlib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(loadlib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/sl)
 
 target_link_libraries(loadlib PUBLIC stormlib)

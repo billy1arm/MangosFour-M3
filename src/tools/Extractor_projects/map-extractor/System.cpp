@@ -329,11 +329,7 @@ uint32 ReadMapDBC()
     HANDLE dbcFile;
     if (!OpenNewestFile("DBFilesClient\\Map.dbc", &dbcFile))
     {
-<<<<<<< HEAD
         std::cerr << "Error: Cannot find Map.dbc in archive!" << std::endl;
-=======
-        printf("Fatal error: Cannot find Map.dbc in archive!\n");
->>>>>>> 3bcc86c14bd9ada0a0377308abeba4b7b08a6b77
         exit(1);
     }
 
@@ -370,11 +366,7 @@ void ReadAreaTableDBC()
     HANDLE dbcFile;
     if (!OpenNewestFile("DBFilesClient\\AreaTable.dbc", &dbcFile))
     {
-<<<<<<< HEAD
         std::cerr << "Error: Cannot find AreaTable.dbc in archive!" << std::endl;
-=======
-        printf("Fatal error: Cannot find AreaTable.dbc in archive!\n");
->>>>>>> 3bcc86c14bd9ada0a0377308abeba4b7b08a6b77
         exit(1);
     }
 

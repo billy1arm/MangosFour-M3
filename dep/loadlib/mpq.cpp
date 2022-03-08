@@ -3,22 +3,12 @@
 #include <cstdio>
 #include "StormLib.h"
 
-MPQFile::MPQFile(HANDLE mpq, const char* filename):
+MPQFile::MPQFile(HANDLE file, const char* filename):
     eof(false),
     buffer(0),
     pointer(0),
     size(0)
 {
-    HANDLE file;
-    if (!SFileOpenFileEx(mpq, filename, SFILE_OPEN_FROM_MPQ, &file))
-    {
-        int error = GetLastError();
-        if ( error != ERROR_FILE_NOT_FOUND )
-            fprintf(stderr, "Can't open %s, err=%u!\n", filename, GetLastError());
-        eof = true;
-        return;
-    }
-
     DWORD hi = 0;
     size = SFileGetFileSize(file, &hi);
 
