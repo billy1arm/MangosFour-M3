@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2010 - 2016 Eluna Lua Engine <http://emudevs.com/>
+* Copyright (C) 2010 - 2024 Eluna Lua Engine <https://elunaluaengine.github.io/>
 * This program is free software licensed under GPL version 3
 * Please see the included DOCS/LICENSE.md for more information
 */
@@ -9,9 +9,16 @@
 
 #include "ElunaUtility.h"
 #include "Common.h"
+#if defined ELUNA_TRINITY
+#include "Random.h"
+#elif defined ELUNA_CMANGOS
+#include "Util/Util.h"
+#else
+#include "Util.h"
+#endif
 #include <map>
 
-#ifdef TRINITY
+#if defined ELUNA_TRINITY
 #include "Define.h"
 #else
 #include "Platform/Define.h"
@@ -31,8 +38,8 @@ enum LuaEventState
 
 struct LuaEvent
 {
-    LuaEvent(int _funcRef, uint32 _delay, uint32 _repeats) :
-        delay(_delay), repeats(_repeats), funcRef(_funcRef), state(LUAEVENT_STATE_RUN)
+    LuaEvent(int _funcRef, uint32 _min, uint32 _max, uint32 _repeats) :
+        min(_min), max(_max), delay(0), repeats(_repeats), funcRef(_funcRef), state(LUAEVENT_STATE_RUN)
     {
     }
 
@@ -42,7 +49,14 @@ struct LuaEvent
             state = _state;
     }
 
-    uint32 delay;   // Delay between event calls
+    void GenerateDelay()
+    {
+        delay = urand(min, max);
+    }
+
+    uint32 min;   // Minimum delay between event calls
+    uint32 max;   // Maximum delay between event calls
+    uint32 delay; // The currently used waiting time
     uint32 repeats; // Amount of repeats to make, 0 for infinite
     int funcRef;    // Lua function reference ID, also used as event ID
     LuaEventState state;    // State for next call
@@ -56,7 +70,7 @@ public:
     typedef std::multimap<uint64, LuaEvent*> EventList;
     typedef std::unordered_map<int, LuaEvent*> EventMap;
 
-    ElunaEventProcessor(Eluna** _E, WorldObject* _obj);
+    ElunaEventProcessor(Eluna* _E, WorldObject* _obj);
     ~ElunaEventProcessor();
 
     void Update(uint32 diff);
@@ -64,7 +78,7 @@ public:
     void SetStates(LuaEventState state);
     // set the event to be removed when executing
     void SetState(int eventId, LuaEventState state);
-    void AddEvent(int funcRef, uint32 delay, uint32 repeats);
+    void AddEvent(int funcRef, uint32 min, uint32 max, uint32 repeats);
     EventMap eventMap;
 
 private:
@@ -74,18 +88,18 @@ private:
     EventList eventList;
     uint64 m_time;
     WorldObject* obj;
-    Eluna** E;
+    Eluna* E;
 };
 
-class EventMgr : public ElunaUtil::Lockable
+class EventMgr
 {
 public:
     typedef std::unordered_set<ElunaEventProcessor*> ProcessorSet;
     ProcessorSet processors;
     ElunaEventProcessor* globalProcessor;
-    Eluna** E;
+    Eluna* E;
 
-    EventMgr(Eluna** _E);
+    EventMgr(Eluna* _E);
     ~EventMgr();
 
     // Set the state of all timed events

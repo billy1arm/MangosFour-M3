@@ -2,7 +2,7 @@
  * MaNGOS is a full featured server for World of Warcraft, supporting
  * the following clients: 1.12.x, 2.4.3, 3.3.5a, 4.3.4a and 5.4.8
  *
- * Copyright (C) 2005-2021 MaNGOS <https://getmangos.eu>
+ * Copyright (C) 2005-2025 MaNGOS <https://www.getmangos.eu>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,8 +31,12 @@
 #include "UpdateData.h"
 #include "ObjectGuid.h"
 #include "Camera.h"
-#include "Util.h"
 #include "GameTime.h"
+#include "Util.h"
+
+#ifdef ENABLE_ELUNA
+#include "LuaValue.h"
+#endif /* ENABLE_ELUNA */
 
 #include <set>
 #include <string>
@@ -91,12 +95,14 @@ class UpdateMask;
 class InstanceData;
 class TerrainInfo;
 #ifdef ENABLE_ELUNA
+class Eluna;
 class ElunaEventProcessor;
+class LuaVal;
 #endif /* ENABLE_ELUNA */
 class TransportInfo;
 struct MangosStringLocale;
 
-typedef UNORDERED_MAP<Player*, UpdateData> UpdateDataMapType;
+typedef std::unordered_map<Player*, UpdateData> UpdateDataMapType;
 
 struct Position
 {
@@ -269,7 +275,6 @@ class Object
         void SetGuidValue(uint16 index, ObjectGuid const& value) { SetUInt64Value(index, value.GetRawValue()); }
         void SetStatFloatValue(uint16 index, float value);
         void SetStatInt32Value(uint16 index, int32 value);
-        void ForceValuesUpdateAtIndex(uint32 index);
 
         void ApplyModUInt32Value(uint16 index, int32 val, bool apply);
         void ApplyModInt32Value(uint16 index, int32 val, bool apply);
@@ -283,6 +288,12 @@ class Object
             SetFloatValue(index, GetFloatValue(index) * (apply ? (100.0f + val) / 100.0f : 100.0f / (100.0f + val)));
         }
 
+        /**
+        * method to force the update of a given flag to the client. The method is checking the index before indicating the flags need an update.
+        *
+        * \param index uint32 of the flag to be updated.
+        */
+        void ForceValuesUpdateAtIndex(uint32 index);
         void SetFlag(uint16 index, uint32 newFlag);
         void RemoveFlag(uint16 index, uint32 oldFlag);
 
@@ -713,6 +724,10 @@ class WorldObject : public Object
 
 #ifdef ENABLE_ELUNA
         ElunaEventProcessor* elunaEvents;
+
+        Eluna* GetEluna() const;
+
+        LuaVal lua_data = LuaVal({});
 #endif /* ENABLE_ELUNA */
 
     protected:

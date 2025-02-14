@@ -1,12 +1,16 @@
 /*
-* Copyright (C) 2010 - 2016 Eluna Lua Engine <http://emudevs.com/>
+* Copyright (C) 2010 - 2024 Eluna Lua Engine <https://elunaluaengine.github.io/>
 * This program is free software licensed under GPL version 3
 * Please see the included DOCS/LICENSE.md for more information
 */
 
 #include "ElunaEventMgr.h"
 #include "LuaEngine.h"
+#if !defined ELUNA_CMANGOS
 #include "Object.h"
+#else
+#include "Entities/Object.h"
+#endif
 
 extern "C"
 {
@@ -14,24 +18,20 @@ extern "C"
 #include "lauxlib.h"
 };
 
-ElunaEventProcessor::ElunaEventProcessor(Eluna** _E, WorldObject* _obj) : m_time(0), obj(_obj), E(_E)
+ElunaEventProcessor::ElunaEventProcessor(Eluna* _E, WorldObject* _obj) : m_time(0), obj(_obj), E(_E)
 {
     if (obj)
-    {
-        EventMgr::Guard guard((*E)->eventMgr->GetLock());
-        (*E)->eventMgr->processors.insert(this);
-    }
+        E->eventMgr->processors.insert(this);
 }
 
 ElunaEventProcessor::~ElunaEventProcessor()
 {
-    RemoveEvents_internal();
-
-    if (obj && Eluna::IsInitialized())
     {
-        EventMgr::Guard guard((*E)->eventMgr->GetLock());
-        (*E)->eventMgr->processors.erase(this);
+        RemoveEvents_internal();
     }
+
+    if (obj)
+        E->eventMgr->processors.erase(this);
 }
 
 void ElunaEventProcessor::Update(uint32 diff)
@@ -47,12 +47,13 @@ void ElunaEventProcessor::Update(uint32 diff)
 
         if (luaEvent->state == LUAEVENT_STATE_RUN)
         {
+            uint32 delay = luaEvent->delay;
             bool remove = luaEvent->repeats == 1;
             if (!remove)
                 AddEvent(luaEvent); // Reschedule before calling incase RemoveEvents used
 
             // Call the timed event
-            (*E)->OnTimedEvent(luaEvent->funcRef, luaEvent->delay, luaEvent->repeats ? luaEvent->repeats-- : luaEvent->repeats, obj);
+            E->OnTimedEvent(luaEvent->funcRef, delay, luaEvent->repeats ? luaEvent->repeats-- : luaEvent->repeats, obj);
 
             if (!remove)
                 continue;
@@ -73,13 +74,6 @@ void ElunaEventProcessor::SetStates(LuaEventState state)
 
 void ElunaEventProcessor::RemoveEvents_internal()
 {
-    //if (!final)
-    //{
-    //    for (EventList::iterator it = eventList.begin(); it != eventList.end(); ++it)
-    //        it->second->to_Abort = true;
-    //    return;
-    //}
-
     for (EventList::iterator it = eventList.begin(); it != eventList.end(); ++it)
         RemoveEvent(it->second);
 
@@ -97,34 +91,34 @@ void ElunaEventProcessor::SetState(int eventId, LuaEventState state)
 
 void ElunaEventProcessor::AddEvent(LuaEvent* luaEvent)
 {
+    luaEvent->GenerateDelay();
     eventList.insert(std::pair<uint64, LuaEvent*>(m_time + luaEvent->delay, luaEvent));
     eventMap[luaEvent->funcRef] = luaEvent;
 }
 
-void ElunaEventProcessor::AddEvent(int funcRef, uint32 delay, uint32 repeats)
+void ElunaEventProcessor::AddEvent(int funcRef, uint32 min, uint32 max, uint32 repeats)
 {
-    AddEvent(new LuaEvent(funcRef, delay, repeats));
+    AddEvent(new LuaEvent(funcRef, min, max, repeats));
 }
 
 void ElunaEventProcessor::RemoveEvent(LuaEvent* luaEvent)
 {
     // Unreference if should and if Eluna was not yet uninitialized and if the lua state still exists
-    if (luaEvent->state != LUAEVENT_STATE_ERASE && Eluna::IsInitialized() && (*E)->HasLuaState())
+    if (luaEvent->state != LUAEVENT_STATE_ERASE && E->HasLuaState())
     {
         // Free lua function ref
-        luaL_unref((*E)->L, LUA_REGISTRYINDEX, luaEvent->funcRef);
+        luaL_unref(E->L, LUA_REGISTRYINDEX, luaEvent->funcRef);
     }
     delete luaEvent;
 }
 
-EventMgr::EventMgr(Eluna** _E) : globalProcessor(new ElunaEventProcessor(_E, NULL)), E(_E)
+EventMgr::EventMgr(Eluna* _E) : globalProcessor(new ElunaEventProcessor(_E, NULL)), E(_E)
 {
 }
 
 EventMgr::~EventMgr()
 {
     {
-        Guard guard(GetLock());
         if (!processors.empty())
             for (ProcessorSet::const_iterator it = processors.begin(); it != processors.end(); ++it) // loop processors
                 (*it)->RemoveEvents_internal();
@@ -136,7 +130,6 @@ EventMgr::~EventMgr()
 
 void EventMgr::SetStates(LuaEventState state)
 {
-    Guard guard(GetLock());
     if (!processors.empty())
         for (ProcessorSet::const_iterator it = processors.begin(); it != processors.end(); ++it) // loop processors
             (*it)->SetStates(state);
@@ -145,7 +138,6 @@ void EventMgr::SetStates(LuaEventState state)
 
 void EventMgr::SetState(int eventId, LuaEventState state)
 {
-    Guard guard(GetLock());
     if (!processors.empty())
         for (ProcessorSet::const_iterator it = processors.begin(); it != processors.end(); ++it) // loop processors
             (*it)->SetState(eventId, state);

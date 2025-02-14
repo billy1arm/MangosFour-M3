@@ -2,7 +2,7 @@
  * MaNGOS is a full featured server for World of Warcraft, supporting
  * the following clients: 1.12.x, 2.4.3, 3.3.5a, 4.3.4a and 5.4.8
  *
- * Copyright (C) 2005-2021 MaNGOS <https://getmangos.eu>
+ * Copyright (C) 2005-2025 MaNGOS <https://www.getmangos.eu>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -407,20 +407,20 @@ class BattleGroundAV : public BattleGround
          *
          * @param plr
          */
-        virtual void AddPlayer(Player* plr) override;
+        void AddPlayer(Player* plr) override;
 
         /**
          * @brief
          *
          */
-        virtual void StartingEventOpenDoors() override;
+        void StartingEventOpenDoors() override;
         /**
          * @brief  world states
          *
          * @param data
          * @param count
          */
-        virtual void FillInitialWorldStates(WorldPacket& data, uint32& count) override;
+        void FillInitialWorldStates(WorldPacket& data, uint32& count) override;
 
         /**
          * @brief
@@ -433,7 +433,7 @@ class BattleGroundAV : public BattleGround
          * @brief
          *
          */
-        virtual void Reset() override;
+        void Reset() override;
 
         /*general stuff*/
         /**
@@ -459,7 +459,7 @@ class BattleGroundAV : public BattleGround
          * @param source
          * @param target_obj
          */
-        virtual void EventPlayerClickedOnFlag(Player* source, GameObject* target_obj) override;
+        void EventPlayerClickedOnFlag(Player* source, GameObject* target_obj) override;
         /**
          * @brief
          *
@@ -503,14 +503,14 @@ class BattleGroundAV : public BattleGround
          * @param plr
          * @return const WorldSafeLocsEntry
          */
-        virtual WorldSafeLocsEntry const* GetClosestGraveYard(Player* plr) override;
+        WorldSafeLocsEntry const* GetClosestGraveYard(Player* plr) override;
 
         /**
          * @brief
          *
          * @return Team
          */
-        virtual Team GetPrematureWinner() override;
+        Team GetPrematureWinner() override;
 
         /**
          * @brief

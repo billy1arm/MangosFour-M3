@@ -2,7 +2,7 @@
  * MaNGOS is a full featured server for World of Warcraft, supporting
  * the following clients: 1.12.x, 2.4.3, 3.3.5a, 4.3.4a and 5.4.8
  *
- * Copyright (C) 2005-2021 MaNGOS <https://getmangos.eu>
+ * Copyright (C) 2005-2025 MaNGOS <https://www.getmangos.eu>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -67,10 +67,10 @@ typedef ACE_Acceptor< WorldSocket, ACE_SOCK_ACCEPTOR > WorldAcceptor;
  * The class uses reference counting.
  *
  * For output the class uses one buffer (64K usually) and
- * a queue where it stores packet if there is no place on
- * the queue. The reason this is done, is because the server
+ * a queue where it stores packet if there is no space left on
+ * the buffer. The reason this is done, is because the server
  * does really a lot of small-size writes to it, and it doesn't
- * Scale well to allocate memory for every. When something is
+ * scale well to allocate memory for every. When something is
  * written to the output buffer the socket is not immediately
  * activated for output (again for the same reason), there
  * is 10ms celling (thats why there is Update() override method).
@@ -137,20 +137,20 @@ class WorldSocket : protected WorldHandler
         /// Called on open ,the void* is the acceptor.
         int HandleWowConnection(WorldPacket& recvPacket);
 
-        virtual int open(void*) override;
+        int open(void*) override;
 
         /// Called on failures inside of the acceptor, don't call from your code.
         virtual int close(int);
 
         /// Called when we can read from the socket.
-        virtual int handle_input(ACE_HANDLE = ACE_INVALID_HANDLE) override;
+        int handle_input(ACE_HANDLE = ACE_INVALID_HANDLE) override;
 
         /// Called when the socket can write.
-        virtual int handle_output(ACE_HANDLE = ACE_INVALID_HANDLE) override;
+        int handle_output(ACE_HANDLE = ACE_INVALID_HANDLE) override;
 
         /// Called when connection is closed or error happens.
         virtual int handle_close(ACE_HANDLE = ACE_INVALID_HANDLE,
-                                 ACE_Reactor_Mask = ACE_Event_Handler::ALL_EVENTS_MASK) override;
+                                 ACE_Reactor_Mask = ACE_Event_Handler::ALL_EVENTS_MASK);
 
         /// Called by WorldSocketMgr/ReactorRunnable.
         int Update(void);

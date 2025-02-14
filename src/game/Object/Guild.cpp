@@ -2,7 +2,7 @@
  * MaNGOS is a full featured server for World of Warcraft, supporting
  * the following clients: 1.12.x, 2.4.3, 3.3.5a, 4.3.4a and 5.4.8
  *
- * Copyright (C) 2005-2021 MaNGOS <https://getmangos.eu>
+ * Copyright (C) 2005-2025 MaNGOS <https://www.getmangos.eu>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -161,7 +161,10 @@ bool Guild::Create(Player* leader, std::string gname)
 
     // Used by Eluna
 #ifdef ENABLE_ELUNA
-    sEluna->OnCreate(this, leader, gname.c_str());
+    if (Eluna* e = sWorld.GetEluna())
+    {
+        e->OnCreate(this, leader, gname.c_str());
+    }
 #endif /* ENABLE_ELUNA */
 
     return AddMember(m_LeaderGuid, (uint32)GR_GUILDMASTER);
@@ -275,7 +278,10 @@ bool Guild::AddMember(ObjectGuid plGuid, uint32 plRank)
 
     // Used by Eluna
 #ifdef ENABLE_ELUNA
-    sEluna->OnAddMember(this, pl, newmember.RankId);
+    if (Eluna* e = sWorld.GetEluna())
+    {
+        e->OnAddMember(this, pl, newmember.RankId);
+    }
 #endif /* ENABLE_ELUNA */
 
     return true;
@@ -291,7 +297,10 @@ void Guild::SetMOTD(std::string motd)
 
     // Used by Eluna
 #ifdef ENABLE_ELUNA
-    sEluna->OnMOTDChanged(this, motd);
+    if (Eluna* e = sWorld.GetEluna())
+    {
+        e->OnMOTDChanged(this, motd);
+    }
 #endif /* ENABLE_ELUNA */
 }
 
@@ -305,7 +314,10 @@ void Guild::SetGINFO(std::string ginfo)
 
     // Used by Eluna
 #ifdef ENABLE_ELUNA
-    sEluna->OnInfoChanged(this, ginfo);
+    if (Eluna* e = sWorld.GetEluna())
+    {
+        e->OnInfoChanged(this, ginfo);
+    }
 #endif /* ENABLE_ELUNA */
 }
 
@@ -646,7 +658,10 @@ bool Guild::DelMember(ObjectGuid guid, bool isDisbanding)
 
     // Used by Eluna
 #ifdef ENABLE_ELUNA
-    sEluna->OnRemoveMember(this, player, isDisbanding); // IsKicked not a part of Mangos, implement?
+    if (Eluna* e = sWorld.GetEluna())
+    {
+        e->OnRemoveMember(this, player, isDisbanding); // IsKicked not a part of Mangos, implement?
+    }
 #endif /* ENABLE_ELUNA */
 
     return members.empty();
@@ -681,7 +696,7 @@ void Guild::BroadcastToGuild(WorldSession* session, const std::string& msg, uint
 
     for (MemberList::const_iterator itr = members.begin(); itr != members.end(); ++itr)
     {
-        Player* pl = ObjectAccessor::FindPlayer(ObjectGuid(HIGHGUID_PLAYER, itr->first));
+        Player* pl = sObjectAccessor.FindPlayer(ObjectGuid(HIGHGUID_PLAYER, itr->first));
 
         if (pl && pl->GetSession() && HasRankRight(pl->GetRank(), GR_RIGHT_GCHATLISTEN) && !pl->GetSocial()->HasIgnore(player->GetObjectGuid()))
         {
@@ -699,7 +714,7 @@ void Guild::BroadcastAddonToGuild(WorldSession* session, const std::string& msg,
 
         for (MemberList::const_iterator itr = members.begin(); itr != members.end(); ++itr)
         {
-            Player* pl = ObjectAccessor::FindPlayer(ObjectGuid(HIGHGUID_PLAYER, itr->first));
+            Player* pl = sObjectAccessor.FindPlayer(ObjectGuid(HIGHGUID_PLAYER, itr->first));
 
             if (pl && pl->GetSession() && HasRankRight(pl->GetRank(), GR_RIGHT_GCHATLISTEN) && !pl->GetSocial()->HasIgnore(session->GetPlayer()->GetObjectGuid()))
             {
@@ -727,7 +742,7 @@ void Guild::BroadcastToOfficers(WorldSession* session, const std::string& msg, u
         WorldPacket data;
         ChatHandler::BuildChatPacket(data, CHAT_MSG_OFFICER, msg.c_str(), Language(language), player->GetChatTag(), player->GetObjectGuid(), player->GetName());
 
-        Player* pl = ObjectAccessor::FindPlayer(ObjectGuid(HIGHGUID_PLAYER, itr->first));
+        Player* pl = sObjectAccessor.FindPlayer(ObjectGuid(HIGHGUID_PLAYER, itr->first));
 
         if (pl && pl->GetSession() && HasRankRight(pl->GetRank(), GR_RIGHT_OFFCHATLISTEN) && !pl->GetSocial()->HasIgnore(player->GetObjectGuid()))
         {
@@ -745,7 +760,7 @@ void Guild::BroadcastAddonToOfficers(WorldSession* session, const std::string& m
             WorldPacket data;
             ChatHandler::BuildChatPacket(data, CHAT_MSG_OFFICER, msg.c_str(), LANG_ADDON, CHAT_TAG_NONE, ObjectGuid(), NULL, ObjectGuid(), NULL, NULL, 0, prefix.c_str());
 
-            Player* pl = ObjectAccessor::FindPlayer(ObjectGuid(HIGHGUID_PLAYER, itr->first));
+            Player* pl = sObjectAccessor.FindPlayer(ObjectGuid(HIGHGUID_PLAYER, itr->first));
 
             if (pl && pl->GetSession() && HasRankRight(pl->GetRank(), GR_RIGHT_OFFCHATLISTEN) && !pl->GetSocial()->HasIgnore(session->GetPlayer()->GetObjectGuid()))
             {
@@ -759,7 +774,7 @@ void Guild::BroadcastPacket(WorldPacket* packet)
 {
     for (MemberList::const_iterator itr = members.begin(); itr != members.end(); ++itr)
     {
-        Player* player = ObjectAccessor::FindPlayer(ObjectGuid(HIGHGUID_PLAYER, itr->first));
+        Player* player = sObjectAccessor.FindPlayer(ObjectGuid(HIGHGUID_PLAYER, itr->first));
         if (player)
         {
             player->GetSession()->SendPacket(packet);
@@ -773,7 +788,7 @@ void Guild::BroadcastPacketToRank(WorldPacket* packet, uint32 rankId)
     {
         if (itr->second.RankId == rankId)
         {
-            Player* player = ObjectAccessor::FindPlayer(ObjectGuid(HIGHGUID_PLAYER, itr->first));
+            Player* player = sObjectAccessor.FindPlayer(ObjectGuid(HIGHGUID_PLAYER, itr->first));
             if (player)
             {
                 player->GetSession()->SendPacket(packet);
@@ -988,7 +1003,10 @@ void Guild::Disband()
 
     // Used by Eluna
 #ifdef ENABLE_ELUNA
-    sEluna->OnDisband(this);
+    if (Eluna* e = sWorld.GetEluna())
+    {
+        e->OnDisband(this);
+    }
 #endif /* ENABLE_ELUNA */
 
     sGuildMgr.RemoveGuild(m_Id);
@@ -1006,7 +1024,7 @@ void Guild::Roster(WorldSession* session /*= NULL*/)
     for (MemberList::const_iterator itr = members.begin(); itr != members.end(); ++itr)
     {
         MemberSlot const member = itr->second;
-        Player* player = ObjectAccessor::FindPlayer(ObjectGuid(HIGHGUID_PLAYER, itr->first));
+        Player* player = sObjectAccessor.FindPlayer(ObjectGuid(HIGHGUID_PLAYER, itr->first));
 
         ObjectGuid guid = member.guid;
         data.WriteGuidMask<3, 4>(guid);
@@ -1412,7 +1430,7 @@ void Guild::DisplayGuildBankContentUpdate(uint8 TabId, int32 slot1, int32 slot2)
 
     for (MemberList::const_iterator itr = members.begin(); itr != members.end(); ++itr)
     {
-        Player* player = ObjectAccessor::FindPlayer(ObjectGuid(HIGHGUID_PLAYER, itr->first));
+        Player* player = sObjectAccessor.FindPlayer(ObjectGuid(HIGHGUID_PLAYER, itr->first));
         if (!player)
         {
             continue;
@@ -1459,7 +1477,7 @@ void Guild::DisplayGuildBankContentUpdate(uint8 TabId, GuildItemPosCountVec cons
 
     for (MemberList::const_iterator itr = members.begin(); itr != members.end(); ++itr)
     {
-        Player* player = ObjectAccessor::FindPlayer(ObjectGuid(HIGHGUID_PLAYER, itr->first));
+        Player* player = sObjectAccessor.FindPlayer(ObjectGuid(HIGHGUID_PLAYER, itr->first));
         if (!player)
         {
             continue;
@@ -1685,10 +1703,13 @@ bool Guild::MemberMoneyWithdraw(uint64 amount, uint32 LowGuid)
                                    itr->second.BankRemMoney, m_Id, LowGuid);
     }
 
-//#ifdef ENABLE_ELUNA
-//    Player* player = sObjectMgr.GetPlayer(ObjectGuid(HIGHGUID_PLAYER, LowGuid));
-//    sEluna->OnMemberWitdrawMoney(this, player, amount, false); // IsRepair not a part of Mangos, implement?
-//#endif
+#ifdef ENABLE_ELUNA
+    Player* player = sObjectMgr.GetPlayer(ObjectGuid(HIGHGUID_PLAYER, LowGuid));
+    if (Eluna* e = sWorld.GetEluna())
+    {
+        e->OnMemberWitdrawMoney(this, player, amount, false); // IsRepair not a part of Mangos, implement?
+    }
+#endif
 
     return true;
 }
@@ -2114,7 +2135,10 @@ void Guild::LogBankEvent(uint8 EventType, uint8 TabId, uint32 PlayerGuidLow, uin
     }
 
 #ifdef ENABLE_ELUNA
-    sEluna->OnBankEvent(this, EventType, TabId, PlayerGuidLow, ItemOrMoney, ItemStackCount, DestTabId);
+    if (Eluna* e = sWorld.GetEluna())
+    {
+        e->OnBankEvent(this, EventType, TabId, PlayerGuidLow, ItemOrMoney, ItemStackCount, DestTabId);
+    }
 #endif
 
     // save event to database

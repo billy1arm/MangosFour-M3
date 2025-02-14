@@ -2,7 +2,7 @@
  * MaNGOS is a full featured server for World of Warcraft, supporting
  * the following clients: 1.12.x, 2.4.3, 3.3.5a, 4.3.4a and 5.4.8
  *
- * Copyright (C) 2005-2021 MaNGOS <https://getmangos.eu>
+ * Copyright (C) 2005-2025 MaNGOS <https://www.getmangos.eu>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,6 +37,11 @@
 #ifdef ENABLE_ELUNA
 #include "LuaEngine.h"
 #endif /* ENABLE_ELUNA */
+
+/** \addtogroup auctionhouse
+ * @{
+ * \file
+ */
 
 // please DO NOT use iterator++, because it is slower than ++iterator!!!
 // post-incrementation is always slower than pre-incrementation !
@@ -90,7 +95,7 @@ void WorldSession::SendAuctionCommandResult(AuctionEntry* auc, AuctionAction Act
             data << uint32(invError);
             break;
         case AUCTION_ERR_HIGHER_BID:
-            data << ObjectGuid(HIGHGUID_PLAYER, auc->bidder);   // new bidder guid
+            data << ObjectGuid(HIGHGUID_PLAYER, auc->bidder); // new bidder guid
             data << uint64(auc->bid);                           // new bid
             data << uint64(auc->GetAuctionOutBid());            // new AuctionOutBid?
             break;
@@ -280,7 +285,9 @@ void WorldSession::HandleAuctionSellItem(WorldPacket& recv_data)
     recv_data >> etime;
 
     if (!bid || !etime)
-        return;                                             // check for cheaters
+    {
+        return;                                              // check for cheaters
+    }
 
     Player* pl = GetPlayer();
 
@@ -393,7 +400,10 @@ void WorldSession::HandleAuctionSellItem(WorldPacket& recv_data)
 
         // Used by Eluna
 #ifdef ENABLE_ELUNA
-        sEluna->OnAdd(auctionHouse, AH);
+    if (Eluna* e = sWorld.GetEluna())
+    {
+        e->OnAdd(auctionHouse, AH);
+    }
 #endif /* ENABLE_ELUNA */
     }
 }
@@ -410,7 +420,9 @@ void WorldSession::HandleAuctionPlaceBid(WorldPacket& recv_data)
     recv_data >> auctionId >> price;
 
     if (!auctionId || !price)
-        return;                                             // check for cheaters
+    {
+        return;                                              // check for cheaters
+    }
 
     AuctionHouseEntry const* auctionHouseEntry = GetCheckedAuctionHouseForAuctioneer(auctioneerGuid);
     if (!auctionHouseEntry)
@@ -426,7 +438,7 @@ void WorldSession::HandleAuctionPlaceBid(WorldPacket& recv_data)
 
     if (!auction || auction->owner == pl->GetGUIDLow())
     {
-        // you cannot bid your own auction:
+        // you can not bid your own auction:
         SendAuctionCommandResult(NULL, AUCTION_BID_PLACED, AUCTION_ERR_BID_OWN);
         return;
     }
@@ -437,7 +449,7 @@ void WorldSession::HandleAuctionPlaceBid(WorldPacket& recv_data)
     Player* auction_owner = sObjectMgr.GetPlayer(ownerGuid);
     if (!auction_owner && sObjectMgr.GetPlayerAccountIdByGUID(ownerGuid) == pl->GetSession()->GetAccountId())
     {
-        // you cannot bid your another character auction:
+        // you can not bid your another character auction:
         SendAuctionCommandResult(NULL, AUCTION_BID_PLACED, AUCTION_ERR_BID_OWN);
         return;
     }
@@ -452,7 +464,7 @@ void WorldSession::HandleAuctionPlaceBid(WorldPacket& recv_data)
 
     // price too low for next bid if not buyout
     if ((price < auction->buyout || auction->buyout == 0) &&
-            price < auction->bid + auction->GetAuctionOutBid())
+        price < auction->bid + auction->GetAuctionOutBid())
     {
         // client test but possible in result lags
         SendAuctionCommandResult(auction, AUCTION_BID_PLACED, AUCTION_ERR_BID_INCREMENT);
@@ -558,7 +570,10 @@ void WorldSession::HandleAuctionRemoveItem(WorldPacket& recv_data)
 
     // Used by Eluna
 #ifdef ENABLE_ELUNA
-    sEluna->OnRemove(auctionHouse, auction);
+    if (Eluna* e = sWorld.GetEluna())
+    {
+        e->OnRemove(auctionHouse, auction);
+    }
 #endif /* ENABLE_ELUNA */
     delete auction;
 }
@@ -637,7 +652,7 @@ void WorldSession::HandleAuctionListOwnerItems(WorldPacket& recv_data)
     AuctionHouseObject* auctionHouse = sAuctionMgr.GetAuctionsMap(auctionHouseEntry);
 
     WorldPacket data(SMSG_AUCTION_OWNER_LIST_RESULT, (4 + 4 + 4));
-    data << uint32(0);                                      // amount place holder
+    data << (uint32) 0;                                     // amount place holder
 
     uint32 count = 0;
     uint32 totalcount = 0;

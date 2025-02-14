@@ -3,7 +3,7 @@
 ################################################################################
 
 [MangosdConf]
-ConfVersion=2017021400
+ConfVersion=2023011700
 
 ################################################################################
 # CONNECTIONS AND DIRECTORIES
@@ -127,6 +127,10 @@ BindIP                       = "0.0.0.0"
 #        Map update interval (in milliseconds)
 #        Default: 100
 #
+#    MapUpdateThreads
+#        Number of map update threads to run
+#        Default: 2
+#
 #    ChangeWeatherInterval
 #        Weather update interval (in milliseconds)
 #        Default: 600000 (10 min)
@@ -219,6 +223,7 @@ GridUnload                        = 1
 LoadAllGridsOnMaps                = ""
 GridCleanUpDelay                  = 300000
 MapUpdateInterval                 = 100
+MapUpdateThreads                  = 2
 ChangeWeatherInterval             = 600000
 PlayerSave.Interval               = 900000
 PlayerSave.Stats.MinLevel         = 0
@@ -302,6 +307,12 @@ MaxWhoListReturns                 = 49
 #        Log filters (disabled by default, mostly debug only output affected cases)
 #        Default: 0 - include in log if log level permit
 #                 1 - not include with any log level
+#
+#    LogWhispers
+#        Log whispers between players to database, character.character_whispers
+#                 0 - Don't log anything
+#        Default: 1 - Only log GM tickets responses and the following conversation until closing the ticket
+#                 2 - Log all whispers
 #
 #    WorldLogFile
 #        Packet logging file for the worldserver
@@ -402,6 +413,7 @@ LogFilter_Damage             = 0
 LogFilter_Combat             = 0
 LogFilter_SpellCast          = 0
 LogFilter_Calendar           = 1
+LogWhispers                  = 1
 WorldLogFile                 = "world-packets.log"
 WorldLogTimestamp            = 0
 DBErrorLogFile               = "world-database.log"
@@ -657,6 +669,14 @@ SD3ErrorLogFile              = "scriptdev3-errors.log"
 #        Default: 0 (not allowed)
 #                 1 (allowed)
 #
+#    Guild.PetitionCost
+#        The cost for guild petition charter (in copper)
+#        Default: 1000 (10 silver)
+#
+#    Guild.PetitionSignatures
+#        Required signatures count to create a guild (0..4).
+#        Default: 4
+#
 #    Guild.EventLogRecordsCount
 #        Count of guild event log records stored in guild_eventlog table
 #        Increase to store more guild events in table, minimum is 100
@@ -708,22 +728,6 @@ SD3ErrorLogFile              = "scriptdev3-errors.log"
 #        Max count that player can learn the primary trade skill.
 #        Default: 2
 #        Max : 10
-#
-#    TradeSkill.GMIgnore.MaxPrimarySkillsCount
-#        GM level starting from max primary skill count requirement ignored.
-#        Default: 4 (Console as noneone)
-#
-#    TradeSkill.GMIgnore.Level
-#        GM level starting from trade skill level requirement ignored.
-#        Default: 4 (Console as noneone)
-#
-#    TradeSkill.GMIgnore.Skill
-#        GM level starting from trade skill skill requirement ignored.
-#        Default: 4 (Console as noneone)
-#
-#    MinPetitionSigns
-#        Min signatures count to creating guild (0..9).
-#        Default: 4
 #
 #    MaxGroupXPDistance
 #        Max distance to creature for group memeber to get XP at creature death.
@@ -842,6 +846,8 @@ Quests.Daily.ResetHour                    = 6
 Quests.Weekly.ResetWeekDay                = 3
 Quests.Weekly.ResetHour                   = 6
 Quests.IgnoreRaid                         = 0
+Guild.PetitionCost                        = 1000
+Guild.PetitionSignatures                  = 4
 Guild.EventLogRecordsCount                = 100
 Guild.BankEventLogRecordsCount            = 25
 Guild.UndeletableLevel                    = 4
@@ -853,10 +859,6 @@ TimerBar.Breath.Max                       = 180
 TimerBar.Fire.GMLevel                     = 4
 TimerBar.Fire.Max                         = 1
 MaxPrimaryTradeSkill                      = 2
-TradeSkill.GMIgnore.MaxPrimarySkillsCount = 4
-TradeSkill.GMIgnore.Level                 = 4
-TradeSkill.GMIgnore.Skill                 = 4
-MinPetitionSigns                          = 4
 MaxGroupXPDistance                        = 74
 MailDeliveryDelay                         = 3600
 MassMailer.SendPerTick                    = 10
@@ -1139,6 +1141,15 @@ Channel.SilentlyGMJoin          = 0
 #                 0 (disable)
 #                 1 (enable)
 #
+#    GM.TicketListSize
+#        Number of tickets shown to a GM by .ticket list/onlinelist.
+#        Default: 30
+#
+#    GM.TicketOfflineClosing
+#        Is GM ticket close available for teh offline players or not.
+#        Default: 0 (false) closing denied
+#                 1 (true) closing enabled
+#
 #    GM.Chat
 #        GM chat mode at login
 #        Default: 2 (last save state)
@@ -1188,12 +1199,18 @@ Channel.SilentlyGMJoin          = 0
 #        A spell that will be cast when a gm uses ".gm visible off" (Must be aura spell)
 #        Default: 37800 (50% Transparency)
 #                 0 (Disabled)
+#    GM.MaxSpeedFactor
+#        Set the max speed factor whend using commands .mod speed / .mod aspeed  etc...
+#        Only Integer values
+#        Default: 10
 #
 ################################################################################
 
 GM.LoginState            = 2
 GM.Visible               = 2
 GM.AcceptTickets         = 2
+GM.TicketListSize        = 30
+GM.TicketOfflineClosing  = 1
 GM.Chat                  = 2
 GM.WhisperingTo          = 2
 GM.InGMList.Level        = 3
@@ -1203,6 +1220,7 @@ GM.StartLevel            = 1
 GM.LowerSecurity         = 0
 GM.AllowAchievementGain  = 1
 GM.InvisibleAura         = 37800
+GM.MaxSpeedFactor        = 10
 
 ################################################################################
 # VISIBILITY AND RADIUSES
@@ -1778,6 +1796,17 @@ Currency.ConquestPointsDefaultWeekCap = 135000
 Currency.ConquestPointsArenaReward    = 12000
 
 ###################################################################################################
+# QUEST TRACKER
+#    QuestTracker.Enable
+#        Description: Store data in the database about quest completion and abandonment to help find bugged quests.
+#        Default:     0  - (Disabled)
+#                     1  - (Enabled)
+#
+###################################################################################################
+
+QuestTracker.Enable= 0
+
+###################################################################################################
 # WARDEN SETTINGS
 #
 #    Warden.WinEnabled
@@ -1845,13 +1874,45 @@ Warden.ClientCheckFailAction = 1
 Warden.BanDuration           = 86400
 Warden.DBLogLevel            = 0
 
-###################################################################################################################
+###################################################################################################
+#  REALM STATUS FLAG
+#
+#    Realm.RecommendedOrNew.Enabled
+#       Enable setting to set realm flag after initial startup
+#       Default: 0 (Disabled)
+#                1 (Enabled)
+#
+#    Realm.RecommendedOrNew
+#       Sets the recommended or new flag on realm.
+#       Default: 0 (Recommended)
+#                1 (New)
+#
+#       Note: Recommended will display as 'New Players' for Wrath of the Lich King
+#
+###################################################################################################
+
+Realm.RecommendedOrNew.Enabled = 0
+Realm.RecommendedOrNew = 0
+
+###################################################################################################
 #  ELUNA SETTINGS
 #
-#    Eluna.Enabled
-#       Enable Eluna LuaEngine
-#       Default: 1 (Enabled)
-#                0 (Disabled)
+#   Eluna.Enabled
+#       Description: Enable or disable Eluna LuaEngine
+#       Default:     true  - (enabled)
+#                    false - (disabled)
+#
+#   Eluna.CompatibilityMode
+#       Description: Toggles Eluna between compatibility mode (single-threaded) or multistate mode.
+#                    Compatibility mode limits the core to a single map update thread.
+#       Default:     true  - (enabled)
+#                    false - (disabled)
+#
+#   Eluna.OnlyOnMaps
+#       Description: When Eluna is enabled, a state will only be created for a list of specified maps
+#                    This only works for multistate mode.
+#       Default:     ""  - (enabled on all maps)
+#                    "0,1,2,..." - (enabled on specific maps only)
 #
 #   Eluna.TraceBack
 #       Description: Sets whether to use debug.traceback function on a lua error or not.
@@ -1864,8 +1925,10 @@ Warden.DBLogLevel            = 0
 #                    The path can be relative or absolute.
 #       Default:     "lua_scripts"
 #
-###################################################################################################################
+###################################################################################################
 
-Eluna.Enabled    = 1
-Eluna.TraceBack  = false
+Eluna.Enabled = true
+Eluna.CompatibilityMode = false
+Eluna.OnlyOnMaps = ""
+Eluna.TraceBack = false
 Eluna.ScriptPath = "lua_scripts"

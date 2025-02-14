@@ -2,7 +2,7 @@
  * MaNGOS is a full featured server for World of Warcraft, supporting
  * the following clients: 1.12.x, 2.4.3, 3.3.5a, 4.3.4a and 5.4.8
  *
- * Copyright (C) 2005-2021 MaNGOS <https://getmangos.eu>
+ * Copyright (C) 2005-2025 MaNGOS <https://www.getmangos.eu>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -101,7 +101,7 @@ void WorldSession::HandleGuildInviteOpcode(WorldPacket& recvPacket)
 
     if (normalizePlayerName(Invitedname))
     {
-        player = ObjectAccessor::FindPlayerByName(Invitedname.c_str());
+        player = sObjectAccessor.FindPlayerByName(Invitedname.c_str());
     }
 
     if (!player)
@@ -305,6 +305,10 @@ void WorldSession::HandleGuildAcceptOpcode(WorldPacket& /*recvPacket*/)
 void WorldSession::HandleGuildDeclineOpcode(WorldPacket& recvPacket)
 {
     DEBUG_LOG("WORLD: Received opcode %s", LookupOpcodeName(recvPacket.GetOpcode()));
+    if (GetPlayer()->GetGuildId())
+    {
+        return;
+    }
 
     if (Player* inviter = sObjectMgr.GetPlayer(GetPlayer()->GetGuildInviterGuid()))
     {
@@ -312,7 +316,6 @@ void WorldSession::HandleGuildDeclineOpcode(WorldPacket& recvPacket)
     }
 
     GetPlayer()->SetGuildIdInvited(0);
-    GetPlayer()->SetInGuild(0);
     GetPlayer()->SetGuildLevel(0);
 }
 
@@ -1201,6 +1204,14 @@ void WorldSession::HandleGuildBankDepositMoney(WorldPacket& recv_data)
 
     // log
     pGuild->LogBankEvent(GUILD_BANK_LOG_DEPOSIT_MONEY, uint8(0), GetPlayer()->GetGUIDLow(), money);
+
+#ifdef ENABLE_ELUNA
+    // TODO: ELUNAFIX NEEDED
+    //if (Eluna* e = xxx->GetEluna())
+    //{
+    //    e->OnMemberDepositMoney(pGuild, GetPlayer(), money);
+    //}
+#endif
 
     pGuild->DisplayGuildBankTabsInfo(this);
     pGuild->DisplayGuildBankContent(this, 0);

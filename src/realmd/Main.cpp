@@ -2,7 +2,7 @@
  * MaNGOS is a full featured server for World of Warcraft, supporting
  * the following clients: 1.12.x, 2.4.3, 3.3.5a, 4.3.4a and 5.4.8
  *
- * Copyright (C) 2005-2021 MaNGOS <https://getmangos.eu>
+ * Copyright (C) 2005-2025 MaNGOS <https://www.getmangos.eu>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,13 +31,18 @@
 #include "Realm/RealmList.h"
 
 #include "Config/Config.h"
+#include "GitRevision.h"
 #include "Log.h"
 #include "Auth/AuthSocket.h"
 #include "SystemConfig.h"
-#include "revision.h"
+#include "revision_data.h"
 #include "Util.h"
+
 #include <openssl/opensslv.h>
 #include <openssl/crypto.h>
+#if defined(OPENSSL_VERSION_MAJOR) && (OPENSSL_VERSION_MAJOR >= 3)
+#  include <openssl/provider.h>
+#endif
 
 #include <ace/Get_Opt.h>
 #include <ace/Dev_Poll_Reactor.h>
@@ -111,7 +116,7 @@ extern int main(int argc, char** argv)
                 cfg_file = cmd_opts.opt_arg();
                 break;
             case 'v':
-                printf("%s\n", REVISION_NR);
+                printf("%s\n", GitRevision::GetProjectRevision());
                 return 0;
 
             case 's':
@@ -201,7 +206,8 @@ extern int main(int argc, char** argv)
 
     sLog.Initialize();
 
-    sLog.outString("%s [realm-daemon]", REVISION_NR);
+    sLog.outString("%s [realm-daemon]", GitRevision::GetProjectRevision());
+    sLog.outString("%s", GitRevision::GetFullRevision());
     sLog.outString("<Ctrl-C> to stop.\n");
     sLog.outString("Using configuration file %s.", cfg_file);
 
@@ -218,11 +224,40 @@ extern int main(int argc, char** argv)
     }
 
     DETAIL_LOG("Using SSL version: %s (Library: %s)", OPENSSL_VERSION_TEXT, SSLeay_version(SSLEAY_VERSION));
-    if (SSLeay() < 0x009080bfL)
+
+#if defined(OPENSSL_VERSION_MAJOR) && (OPENSSL_VERSION_MAJOR >= 3)
+    OSSL_PROVIDER* legacy;
+    OSSL_PROVIDER* deflt;
+
+    /* Load Multiple providers into the default (NULL) library context */
+    legacy = OSSL_PROVIDER_load(NULL, "legacy");
+    if (legacy == NULL)
     {
-        DETAIL_LOG("WARNING: Outdated version of OpenSSL lib. Logins to server may not work!");
-        DETAIL_LOG("WARNING: Minimal required version [OpenSSL 0.9.8k]");
+        sLog.outError("Failed to load OpenSSL 3.x Legacy provider\n");
+#ifdef WIN32
+        sLog.outError("\nPlease check you have set the following Enviroment Varible:\n");
+        sLog.outError("OPENSSL_MODULES=C:\\OpenSSL-Win64\\bin\n");
+        sLog.outError("(where C:\\OpenSSL-Win64\\bin is the location you installed OpenSSL\n");
+#endif
+        Log::WaitBeforeContinueIfNeed();
+        return 0;
     }
+    deflt = OSSL_PROVIDER_load(NULL, "default");
+    if (deflt == NULL)
+    {
+        sLog.outError("Failed to load OpenSSL 3.x Default provider\n");
+        OSSL_PROVIDER_unload(legacy);
+        Log::WaitBeforeContinueIfNeed();
+        return 0;
+    }
+#else
+    if (SSLeay() < 0x10100000L || SSLeay() > 0x10200000L)
+    {
+        DETAIL_LOG("WARNING: OpenSSL version may be out of date or unsupported. Logins to server may not work!");
+        DETAIL_LOG("WARNING: Minimal required version [OpenSSL 1.1.x] and Maximum supported version [OpenSSL 1.2]");
+    }
+#endif
+
 
     DETAIL_LOG("Using ACE: %s", ACE_VERSION);
 

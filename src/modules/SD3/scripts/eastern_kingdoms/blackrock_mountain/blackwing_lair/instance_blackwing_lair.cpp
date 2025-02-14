@@ -3,8 +3,8 @@
  * area triggers, creatures, game objects, instances, items, and spells beyond
  * the default database scripting in mangos.
  *
- * Copyright (C) 2006-2013  ScriptDev2 <http://www.scriptdev2.com/>
- * Copyright (C) 2014-2021 MaNGOS <https://getmangos.eu>
+ * Copyright (C) 2006-2013 ScriptDev2 <http://www.scriptdev2.com/>
+ * Copyright (C) 2014-2025 MaNGOS <https://www.getmangos.eu>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,6 +35,7 @@
 
 #include "precompiled.h"
 #include "blackwing_lair.h"
+#include <random>
 
 static const uint32 aRazorgoreSpawns[MAX_EGGS_DEFENDERS] = { NPC_BLACKWING_LEGIONNAIRE, NPC_BLACKWING_MAGE, NPC_DRAGONSPAWN, NPC_DRAGONSPAWN };
 
@@ -422,7 +423,8 @@ struct is_blackwing_lair : public InstanceScript
                 }
 
                 // Randomize generators
-                std::random_shuffle(m_vGeneratorGuids.begin(), m_vGeneratorGuids.end());
+                std::mt19937 rng(std::time(nullptr));
+                std::shuffle(m_vGeneratorGuids.begin(), m_vGeneratorGuids.end(), rng);
 
                 // Spawn the defenders
                 for (uint8 i = 0; i < MAX_EGGS_DEFENDERS; ++i)

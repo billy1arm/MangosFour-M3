@@ -2,7 +2,7 @@
  * MaNGOS is a full featured server for World of Warcraft, supporting
  * the following clients: 1.12.x, 2.4.3, 3.3.5a, 4.3.4a and 5.4.8
  *
- * Copyright (C) 2005-2021 MaNGOS <https://getmangos.eu>
+ * Copyright (C) 2005-2025 MaNGOS <https://www.getmangos.eu>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -433,6 +433,14 @@ void WorldSession::HandleSellItemOpcode(WorldPacket& recv_data)
         {
             if (pProto->SellPrice > 0)
             {
+                uint64 money = pProto->SellPrice * count;
+                if (_player->GetMoney() >= MAX_MONEY_AMOUNT - money) // prevent exceeding gold limit
+                {
+                    _player->SendEquipError(EQUIP_ERR_TOO_MUCH_GOLD, nullptr, nullptr);
+                    _player->SendSellError(SELL_ERR_UNK, pCreature, itemGuid, 0);
+                    return;
+                }
+
                 if (count < pItem->GetCount())              // need split items
                 {
                     Item* pNewItem = pItem->CloneItem(count, _player);
@@ -464,8 +472,6 @@ void WorldSession::HandleSellItemOpcode(WorldPacket& recv_data)
                     pItem->RemoveFromUpdateQueueOf(_player);
                     _player->AddItemToBuyBackSlot(pItem);
                 }
-
-                uint64 money = pProto->SellPrice * count;
 
                 _player->ModifyMoney(money);
                 _player->GetAchievementMgr().UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_MONEY_FROM_VENDORS, money);

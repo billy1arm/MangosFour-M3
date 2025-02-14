@@ -23,9 +23,18 @@
 
 {% block sidebar %}
     <h2>{{ current_class.name }} Methods</h2>
-    {%- for method in current_class.methods %}
-    <a class="fn {{ 'current' if method == current_method }}" href="{{ root(current_class.name + '/' + method.name + '.html') }}">{{ method.name }}</a>
-    {%- endfor %}
+    <script src="sidebar.js"></script>
+    <script>
+      // Highlight current method by adding "current" class to it
+      var element = document.getElementById("{{ current_class.name + ':' + current_method.name }}");
+      if (element) {
+        var classname = "current";
+        arr = element.className.split(" ");
+        if (arr.indexOf(classname) == -1) {
+          element.className += " " + classname;
+        }
+      }
+    </script>
 {% endblock %}
 
 
@@ -37,7 +46,14 @@
         <p>This method is <em>undocumented</em>. <strong>Use at your own risk.</strong></p>
         <p>For temporary documentation, please check the <a href="https://github.com/ElunaLuaEngine/Eluna/blob/master/LuaFunctions.cpp">LuaFunctions</a> source file.</p>
         {%- endif %}
-
+        
+        {%- if current_method.tables %}
+        <div class="table-container">
+            {{ current_method.tables }}
+        </div>
+        {%- endif %}
+        
+        
         <h2 id="synopsis" class='section-header'>
             <a href="#synopsis">Synopsis</a>
         </h2>

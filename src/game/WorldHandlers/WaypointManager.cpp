@@ -2,7 +2,7 @@
  * MaNGOS is a full featured server for World of Warcraft, supporting
  * the following clients: 1.12.x, 2.4.3, 3.3.5a, 4.3.4a and 5.4.8
  *
- * Copyright (C) 2005-2021 MaNGOS <https://getmangos.eu>
+ * Copyright (C) 2005-2025 MaNGOS <https://www.getmangos.eu>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,6 +33,12 @@
 
 INSTANTIATE_SINGLETON_1(WaypointManager);
 
+/**
+ * If the emote, spell, model1, or model2 variables are not 0, then the function returns false.
+ * Otherwise, if any of the textid variables are not 0, then the function returns false. Otherwise, the
+ * function returns true
+ * @return a boolean value.
+ */
 bool WaypointBehavior::isEmpty()
 {
     if (emote || spell || model1 || model2)
@@ -49,6 +55,10 @@ bool WaypointBehavior::isEmpty()
     return true;
 }
 
+/**
+ * This function is a copy constructor for the WaypointBehavior class.
+ * @param b The waypoint behavior to copy.
+ */
 WaypointBehavior::WaypointBehavior(const WaypointBehavior& b)
 {
     emote = b.emote;
@@ -61,12 +71,17 @@ WaypointBehavior::WaypointBehavior(const WaypointBehavior& b)
     }
 }
 
+/**
+ * It loads the waypoints from the database
+ * @return a pointer to a WaypointPath object.
+ */
 void WaypointManager::Load()
 {
     uint32 total_paths = 0;
     uint32 total_nodes = 0;
     uint32 total_behaviors = 0;
 
+    /* Getting the script chain map for the DBS_ON_CREATURE_MOVEMENT event. */
     ScriptChainMap const* scm = sScriptMgr.GetScriptChainMap(DBS_ON_CREATURE_MOVEMENT);
     if (!scm)
     {
@@ -75,6 +90,7 @@ void WaypointManager::Load()
 
     std::set<uint32> movementScriptSet;
 
+    /* Iterating through the map and printing out the key and value. */
     for (ScriptChainMap::const_iterator itr = scm->begin(); itr != scm->end(); ++itr)
     {
         movementScriptSet.insert(itr->first);
@@ -90,29 +106,23 @@ void WaypointManager::Load()
     {
         BarGoLink bar(1);
         bar.step();
-        sLog.outString();
         sLog.outString(">> Loaded 0 paths. DB table `creature_movement` is empty.");
+        sLog.outString();
     }
     else
     {
         total_paths = (uint32)result->GetRowCount();
-        BarGoLink bar(total_paths);
 
-        do
+        do                                                  // Count expected amount of nodes
         {
-            bar.step();
             Field* fields   = result->Fetch();
 
-            uint32 id       = fields[0].GetUInt32();
+            // uint32 id    = fields[0].GetUInt32();
             uint32 count    = fields[1].GetUInt32();
 
             total_nodes += count;
         }
         while (result->NextRow());
-
-        sLog.outString();
-        sLog.outString(">> Paths loaded");
-
         delete result;
 
         //                                   0   1      2           3           4           5         6
@@ -120,14 +130,14 @@ void WaypointManager::Load()
                                      //   7        8        9        10       11       12     13     14           15      16
                                      "`textid1`, `textid2`, `textid3`, `textid4`, `textid5`, `emote`, `spell`, `orientation`, `model1`, `model2` FROM `creature_movement`");
 
-        BarGoLink barRow((int)result->GetRowCount());
+        BarGoLink bar(result->GetRowCount());
 
         // error after load, we check if creature guid corresponding to the path id has proper MovementType
         std::set<uint32> creatureNoMoveType;
 
         do
         {
-            barRow.step();
+            bar.step();
             Field* fields = result->Fetch();
 
             uint32 id           = fields[0].GetUInt32();
@@ -146,7 +156,7 @@ void WaypointManager::Load()
                 creatureNoMoveType.insert(id);
             }
 
-            WaypointPath& path  = m_pathTemplateMap[id << 8];
+            WaypointPath& path  = m_pathMap[id];
             WaypointNode& node  = path[point];
 
             node.x              = fields[2].GetFloat();
@@ -249,14 +259,14 @@ void WaypointManager::Load()
                 ERROR_DB_STRICT_LOG("Table creature_movement has waypoint for creature guid %u (entry %u), but MovementType is not WAYPOINT_MOTION_TYPE(2). Make sure that this is actually used in a script!", *itr, cData->id);
 
                 if (cInfo->MovementType == WAYPOINT_MOTION_TYPE)
+                {
                     sLog.outErrorDb("    creature_template for this entry has MovementType WAYPOINT_MOTION_TYPE(2), did you intend to use creature_movement_template ?");
+                }
             }
         }
 
+        sLog.outString(">> Loaded %u paths, %u nodes and %u behaviors from waypoints", total_paths, total_nodes, total_behaviors);
         sLog.outString();
-        sLog.outString(">> Waypoints and behaviors loaded");
-        sLog.outString();
-        sLog.outString(">>> Loaded %u paths, %u nodes and %u behaviors", total_paths, total_nodes, total_behaviors);
 
         delete result;
     }
@@ -271,32 +281,26 @@ void WaypointManager::Load()
     {
         BarGoLink bar(1);
         bar.step();
-        sLog.outString();
         sLog.outString(">> Loaded 0 path templates. DB table `creature_movement_template` is empty.");
+        sLog.outString();
     }
     else
     {
         total_nodes = 0;
         total_behaviors = 0;
         total_paths = (uint32)result->GetRowCount();
-        BarGoLink barRow(total_paths);
 
-        do
+        do                                                  // Count expected amount of nodes
         {
-            barRow.step();
             Field* fields = result->Fetch();
 
-            uint32 entry    = fields[0].GetUInt32();
+            // uint32 entry = fields[0].GetUInt32();
             uint32 count    = fields[1].GetUInt32();
 
             total_nodes += count;
         }
         while (result->NextRow());
-
         delete result;
-
-        sLog.outString();
-        sLog.outString(">> Path templates loaded");
 
         //                                   0      1      2           3           4           5         6
         result = WorldDatabase.Query("SELECT `entry`, `point`, `position_x`, `position_y`, `position_z`, `waittime`, `script_id`,"
@@ -321,7 +325,7 @@ void WaypointManager::Load()
                 continue;
             }
 
-            WaypointPath& path  = m_pathTemplateMap[entry];
+            WaypointPath& path  = m_pathTemplateMap[entry << 8];
             WaypointNode& node  = path[point];
 
             node.x              = fields[2].GetFloat();
@@ -406,21 +410,23 @@ void WaypointManager::Load()
 
         delete result;
 
+        sLog.outString(">> Loaded %u path templates with %u nodes and %u behaviors from waypoint templates", total_paths, total_nodes, total_behaviors);
         sLog.outString();
-        sLog.outString(">> Waypoint templates loaded");
-        sLog.outString();
-        sLog.outString(">>> Loaded %u path templates with %u nodes and %u behaviors", total_paths, total_nodes, total_behaviors);
     }
 
     if (!movementScriptSet.empty())
     {
         for (std::set<uint32>::const_iterator itr = movementScriptSet.begin(); itr != movementScriptSet.end(); ++itr)
         {
-            sLog.outErrorDb("Table `dbscripts_on_creature_movement` contain unused script, id %u.", *itr);
+            sLog.outErrorDb("Table `db_scripts` (on creature movement) contain unused script, id %u.", *itr);
         }
+        sLog.outString();
     }
 }
 
+/**
+ * It clears all the waypoints from the path map, path template map, and external path template map
+ */
 void WaypointManager::Unload()
 {
     for (WaypointPathMap::iterator itr = m_pathMap.begin(); itr != m_pathMap.end(); ++itr)
@@ -440,8 +446,13 @@ void WaypointManager::Unload()
         _clearPath(itr->second);
     }
     m_externalPathTemplateMap.clear();
+
 }
 
+/**
+ * It deletes all the waypoints in a path
+ * @param path The path to clear.
+ */
 void WaypointManager::_clearPath(WaypointPath& path)
 {
     for (WaypointPath::const_iterator itr = path.begin(); itr != path.end(); ++itr)
@@ -451,7 +462,19 @@ void WaypointManager::_clearPath(WaypointPath& path)
     path.clear();
 }
 
-/// Insert a node into the storage for external access
+/**
+ * It adds a waypoint to the external waypoint map
+ * @param entry The entry of the NPC you want to add the waypoint to.
+ * @param pathId This is the path ID. It's a number between 0 and 255.
+ * @param pointId The point ID of the waypoint.
+ * @param x The X coordinate of the waypoint.
+ * @param y The Y coordinate of the waypoint.
+ * @param z The Z coordinate of the waypoint.
+ * @param o The orientation
+ * @param waittime The time in milliseconds that the NPC will wait at this node before moving to the
+ * next node.
+ * @return a boolean value.
+ */
 bool WaypointManager::AddExternalNode(uint32 entry, int32 pathId, uint32 pointId, float x, float y, float z, float o, uint32 waittime)
 {
     if (pathId < 0 || pathId >= 0xFF)
@@ -470,7 +493,17 @@ bool WaypointManager::AddExternalNode(uint32 entry, int32 pathId, uint32 pointId
     return true;
 }
 
-/// - Insert at a certain point, if pointId == 0 insert last. In this case pointId will be changed to the id to which the node was added
+/**
+ * It adds a new waypoint to the waypoint path
+ * @param entry The entry of the creature.
+ * @param dbGuid The GUID of the creature in the database.
+ * @param pointId The waypoint ID.
+ * @param wpDest
+ * @param x The X coordinate of the waypoint.
+ * @param y The Y coordinate of the waypoint.
+ * @param z The Z coordinate of the waypoint.
+ * @return A pointer to the WaypointNode object that was just created.
+ */
 WaypointNode const* WaypointManager::AddNode(uint32 entry, uint32 dbGuid, uint32& pointId, WaypointPathOrigin wpDest, float x, float y, float z)
 {
     // Support only normal movement tables
@@ -528,6 +561,15 @@ WaypointNode const* WaypointManager::AddNode(uint32 entry, uint32 dbGuid, uint32
     return &path[pointId];
 }
 
+/**
+ * It deletes a waypoint from the database
+ * @param entry The entry of the creature.
+ * @param dbGuid The GUID of the creature in the database.
+ * @param point The point number to delete.
+ * @param pathId The path ID of the waypoint path you want to delete a node from.
+ * @param wpOrigin This is the type of waypoint path you want to delete.
+ * @return a pointer to a WaypointPath object.
+ */
 void WaypointManager::DeleteNode(uint32 entry, uint32 dbGuid, uint32 point, int32 pathId, WaypointPathOrigin wpOrigin)
 {
     // Support only normal movement tables
@@ -550,6 +592,10 @@ void WaypointManager::DeleteNode(uint32 entry, uint32 dbGuid, uint32 point, int3
     path->erase(point);
 }
 
+/**
+ * It deletes a path from the database, but not from the map
+ * @param id The ID of the path you want to delete.
+ */
 void WaypointManager::DeletePath(uint32 id)
 {
     WorldDatabase.PExecuteLog("DELETE FROM `creature_movement` WHERE `id`=%u", id);
@@ -564,6 +610,19 @@ void WaypointManager::DeletePath(uint32 id)
     // only meant to be called by GM commands
 }
 
+/**
+ * It updates the position of a waypoint in the database
+ * @param entry The entry of the creature.
+ * @param dbGuid The GUID of the creature in the database.
+ * @param point The point number in the path.
+ * @param pathId The path ID of the waypoint.
+ * @param wpOrigin This is the type of waypoint path. It can be PATH_FROM_GUID, PATH_FROM_ENTRY, or
+ * PATH_FROM_EXTERNAL.
+ * @param x The X coordinate of the waypoint.
+ * @param y The Y coordinate of the waypoint.
+ * @param z The Z coordinate of the waypoint.
+ * @return a pointer to a WaypointPath object.
+ */
 void WaypointManager::SetNodePosition(uint32 entry, uint32 dbGuid, uint32 point, int32 pathId, WaypointPathOrigin wpOrigin, float x, float y, float z)
 {
     // Support only normal movement tables
@@ -592,6 +651,17 @@ void WaypointManager::SetNodePosition(uint32 entry, uint32 dbGuid, uint32 point,
     }
 }
 
+/**
+ * It updates the waittime of a waypoint in the database
+ * @param entry The entry of the creature.
+ * @param dbGuid The GUID of the creature in the database.
+ * @param point The point number in the path.
+ * @param pathId The path ID of the waypoint path you want to modify.
+ * @param wpOrigin This is the type of waypoint path you want to modify.
+ * @param waittime The time in milliseconds that the NPC will wait at the waypoint before moving to the
+ * next one.
+ * @return a pointer to a WaypointPath object.
+ */
 void WaypointManager::SetNodeWaittime(uint32 entry, uint32 dbGuid, uint32 point, int32 pathId, WaypointPathOrigin wpOrigin, uint32 waittime)
 {
     // Support only normal movement tables
@@ -618,6 +688,16 @@ void WaypointManager::SetNodeWaittime(uint32 entry, uint32 dbGuid, uint32 point,
     }
 }
 
+/**
+ * It updates the orientation of a waypoint in the database
+ * @param entry The entry of the creature.
+ * @param dbGuid The GUID of the creature in the database.
+ * @param point The point number in the path.
+ * @param pathId The path ID of the waypoint path you want to modify.
+ * @param wpOrigin This is the type of waypoint path you want to modify.
+ * @param orientation The new orientation of the waypoint.
+ * @return a pointer to a WaypointPath object.
+ */
 void WaypointManager::SetNodeOrientation(uint32 entry, uint32 dbGuid, uint32 point, int32 pathId, WaypointPathOrigin wpOrigin, float orientation)
 {
     // Support only normal movement tables
@@ -644,7 +724,17 @@ void WaypointManager::SetNodeOrientation(uint32 entry, uint32 dbGuid, uint32 poi
     }
 }
 
-/// return true if a valid scriptId is provided
+/**
+ * It updates the script_id field of the creature_movement table for the given entry, dbGuid, point,
+ * pathId, and wpOrigin
+ * @param entry The entry of the creature.
+ * @param dbGuid The GUID of the creature in the database.
+ * @param point The waypoint number.
+ * @param pathId The path ID of the waypoint path you want to modify.
+ * @param wpOrigin This is the type of waypoint path you want to modify.
+ * @param scriptId The scriptId of the script you want to run.
+ * @return The script_id of the waypoint.
+ */
 bool WaypointManager::SetNodeScriptId(uint32 entry, uint32 dbGuid, uint32 point, int32 pathId, WaypointPathOrigin wpOrigin, uint32 scriptId)
 {
     // Support only normal movement tables
@@ -679,6 +769,14 @@ bool WaypointManager::SetNodeScriptId(uint32 entry, uint32 dbGuid, uint32 point,
     return scm->find(scriptId) != scm->end();
 }
 
+/**
+ * It checks if the textid is valid and if it is, it removes it from the set of textids.
+ * @param isTemplate Whether the waypoint is for a creature template or a creature.
+ * @param entryOrGuid The entry or guid of the creature.
+ * @param point The point ID of the waypoint.
+ * @param be WaypointBehavior*
+ * @param ids A set of all the text IDs used in the database.
+ */
 inline void CheckWPText(bool isTemplate, uint32 entryOrGuid, uint32 point, WaypointBehavior* be, std::set<int32>& ids)
 {
     int zeroCount = 0;                                      // Counting leading zeros for futher textid shift
@@ -709,6 +807,10 @@ inline void CheckWPText(bool isTemplate, uint32 entryOrGuid, uint32 point, Waypo
     }
 }
 
+/**
+ * It checks if the waypoint text exists in the database
+ * @param ids The set of ids that are being checked for existence.
+ */
 void WaypointManager::CheckTextsExistance(std::set<int32>& ids)
 {
     for (WaypointPathMap::const_iterator pmItr = m_pathMap.begin(); pmItr != m_pathMap.end(); ++pmItr)

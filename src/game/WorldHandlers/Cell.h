@@ -2,7 +2,7 @@
  * MaNGOS is a full featured server for World of Warcraft, supporting
  * the following clients: 1.12.x, 2.4.3, 3.3.5a, 4.3.4a and 5.4.8
  *
- * Copyright (C) 2005-2021 MaNGOS <https://getmangos.eu>
+ * Copyright (C) 2005-2025 MaNGOS <https://www.getmangos.eu>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -50,8 +50,7 @@ struct CellArea
 
 struct Cell
 {
-        Cell() { data.All = 0; }
-        Cell(const Cell& cell) { data.All = cell.data.All; }
+        Cell() : data() { };
         explicit Cell(CellPair const& p);
 
         void Compute(uint32& x, uint32& y) const
@@ -62,14 +61,14 @@ struct Cell
 
         bool DiffCell(const Cell& cell) const
         {
-            return (data.Part.cell_x != cell.data.Part.cell_x ||
-                    data.Part.cell_y != cell.data.Part.cell_y);
+            return(data.Part.cell_x != cell.data.Part.cell_x ||
+                   data.Part.cell_y != cell.data.Part.cell_y);
         }
 
         bool DiffGrid(const Cell& cell) const
         {
-            return (data.Part.grid_x != cell.data.Part.grid_x ||
-                    data.Part.grid_y != cell.data.Part.grid_y);
+            return(data.Part.grid_x != cell.data.Part.grid_x ||
+                   data.Part.grid_y != cell.data.Part.grid_y);
         }
 
         uint32 CellX() const { return data.Part.cell_x; }
@@ -88,26 +87,19 @@ struct Cell
                        data.Part.grid_y * MAX_NUMBER_OF_CELLS + data.Part.cell_y);
         }
 
-        Cell& operator=(const Cell& cell)
-        {
-            data.All = cell.data.All;
-            return *this;
-        }
-
         bool operator==(const Cell& cell) const { return (data.All == cell.data.All); }
         bool operator!=(const Cell& cell) const { return !operator==(cell); }
         union
         {
             struct
             {
-                unsigned grid_x : 6;
-                unsigned grid_y : 6;
-                unsigned cell_x : 6;
-                unsigned cell_y : 6;
-                unsigned nocreate : 1;
-                unsigned reserved : 7;
+                uint8 grid_x : 8;
+                uint8 grid_y : 8;
+                uint8 cell_x : 8;
+                uint8 cell_y : 8;
+                uint8 nocreate : 8;
             } Part;
-            uint32 All;
+            uint64 All;
         } data;
 
         template<class T, class CONTAINER> void Visit(const CellPair& cellPair, TypeContainerVisitor<T, CONTAINER> &visitor, Map& m, float x, float y, float radius) const;

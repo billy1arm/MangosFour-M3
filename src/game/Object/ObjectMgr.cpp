@@ -2,7 +2,7 @@
  * MaNGOS is a full featured server for World of Warcraft, supporting
  * the following clients: 1.12.x, 2.4.3, 3.3.5a, 4.3.4a and 5.4.8
  *
- * Copyright (C) 2005-2021 MaNGOS <https://getmangos.eu>
+ * Copyright (C) 2005-2025 MaNGOS <https://www.getmangos.eu>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -197,10 +197,12 @@ ObjectMgr::~ObjectMgr()
     }
 
     for (int race = 0; race < MAX_RACES; ++race)
+    {
         for (int class_ = 0; class_ < MAX_CLASSES; ++class_)
         {
             delete[] playerInfo[race][class_].levelInfo;
         }
+    }
 
     // free objects
     for (GroupMap::iterator itr = mGroupMap.begin(); itr != mGroupMap.end(); ++itr)
@@ -277,8 +279,14 @@ void ObjectMgr::LoadCreatureLocales()
 {
     mCreatureLocaleMap.clear();                             // need for reload case
 
-    QueryResult* result = WorldDatabase.Query("SELECT `entry`,`name_loc1`,`subname_loc1`,`name_loc2`,`subname_loc2`,`name_loc3`,`subname_loc3`,`name_loc4`,`subname_loc4`,`name_loc5`,`subname_loc5`,`name_loc6`,`subname_loc6`,`name_loc7`,`subname_loc7`,`name_loc8`,`subname_loc8` FROM `locales_creature`");
-
+    QueryResult* result = WorldDatabase.Query("SELECT `entry`,"
+                                              "`name_loc1`,`subname_loc1`,`name_loc2`,`subname_loc2`,"
+                                              "`name_loc3`,`subname_loc3`,`name_loc4`,`subname_loc4`,"
+                                              "`name_loc5`,`subname_loc5`,`name_loc6`,`subname_loc6`,"
+                                              "`name_loc7`,`subname_loc7`,`name_loc8`,`subname_loc8`,"
+                                              "`name_loc9`,`subname_loc9`,`name_loc10`,`subname_loc10`,"
+                                              "`name_loc11`,`subname_loc11`"
+                                              " FROM `locales_creature`");
     if (!result)
     {
         BarGoLink bar(1);
@@ -340,7 +348,7 @@ void ObjectMgr::LoadCreatureLocales()
 
     delete result;
 
-    sLog.outString(">> Loaded " SIZEFMTD " creature locale strings", mCreatureLocaleMap.size());
+    sLog.outString(">> Loaded %zu creature locale strings", mCreatureLocaleMap.size());
     sLog.outString();
 }
 
@@ -349,11 +357,13 @@ void ObjectMgr::LoadGossipMenuItemsLocales()
     mGossipMenuItemsLocaleMap.clear();                      // need for reload case
 
     QueryResult* result = WorldDatabase.Query("SELECT `menu_id`,`id`,"
-                          "`option_text_loc1`,`box_text_loc1`,`option_text_loc2`,`box_text_loc2`,"
-                          "`option_text_loc3`,`box_text_loc3`,`option_text_loc4`,`box_text_loc4`,"
-                          "`option_text_loc5`,`box_text_loc5`,`option_text_loc6`,`box_text_loc6`,"
-                          "`option_text_loc7`,`box_text_loc7`,`option_text_loc8`,`box_text_loc8` "
-                          "FROM `locales_gossip_menu_option`");
+                                              "`option_text_loc1`,`box_text_loc1`,`option_text_loc2`,`box_text_loc2`,"
+                                              "`option_text_loc3`,`box_text_loc3`,`option_text_loc4`,`box_text_loc4`,"
+                                              "`option_text_loc5`,`box_text_loc5`,`option_text_loc6`,`box_text_loc6`,"
+                                              "`option_text_loc7`,`box_text_loc7`,`option_text_loc8`,`box_text_loc8`,"
+                                              "`option_text_loc9`,`box_text_loc9`,`option_text_loc10`,`box_text_loc10`,"
+                                              "`option_text_loc11`,`box_text_loc11` "
+                                              "FROM `locales_gossip_menu_option`");
 
     if (!result)
     {
@@ -435,7 +445,7 @@ void ObjectMgr::LoadGossipMenuItemsLocales()
 
     delete result;
 
-    sLog.outString(">> Loaded " SIZEFMTD " gossip_menu_option locale strings", mGossipMenuItemsLocaleMap.size());
+    sLog.outString(">> Loaded %zu gossip_menu_option locale strings", mGossipMenuItemsLocaleMap.size());
     sLog.outString();
 }
 
@@ -443,7 +453,11 @@ void ObjectMgr::LoadPointOfInterestLocales()
 {
     mPointOfInterestLocaleMap.clear();                      // need for reload case
 
-    QueryResult* result = WorldDatabase.Query("SELECT `entry`,`icon_name_loc1`,`icon_name_loc2`,`icon_name_loc3`,`icon_name_loc4`,`icon_name_loc5`,`icon_name_loc6`,`icon_name_loc7`,`icon_name_loc8` FROM `locales_points_of_interest`");
+    QueryResult* result = WorldDatabase.Query("SELECT `entry`,"
+                                                "`icon_name_loc1`,`icon_name_loc2`,`icon_name_loc3`,`icon_name_loc4`,"
+                                                "`icon_name_loc5`,`icon_name_loc6`,`icon_name_loc7`,`icon_name_loc8`,"
+                                                "`icon_name_loc9`,`icon_name_loc10`,`icon_name_loc11`"
+                                                " FROM `locales_points_of_interest`");
 
     if (!result)
     {
@@ -494,7 +508,7 @@ void ObjectMgr::LoadPointOfInterestLocales()
 
     delete result;
 
-    sLog.outString(">> Loaded " SIZEFMTD " points_of_interest locale strings", mPointOfInterestLocaleMap.size());
+    sLog.outString(">> Loaded %zu points_of_interest locale strings", mPointOfInterestLocaleMap.size());
     sLog.outString();
 }
 
@@ -1644,6 +1658,7 @@ void ObjectMgr::LoadCreatures()
 
             if (cInfo->ExtraFlags & CREATURE_FLAG_EXTRA_ACTIVE)
             {
+                sLog.outString("Adding `creature` with Active Flag: Map: %u, Guid %u", data.mapid, guid);
                 m_activeCreatures.insert(ActiveCreatureGuidsOnMap::value_type(data.mapid, guid));
             }
         }
@@ -1654,7 +1669,7 @@ void ObjectMgr::LoadCreatures()
 
     delete result;
 
-    sLog.outString(">> Loaded " SIZEFMTD " creatures", mCreatureDataMap.size());
+    sLog.outString(">> Loaded %zu creatures", mCreatureDataMap.size());
     sLog.outString();
 }
 
@@ -1868,7 +1883,7 @@ void ObjectMgr::LoadGameObjects()
     delete result;
 
     sLog.outString();
-    sLog.outString(">> Loaded " SIZEFMTD " gameobjects", mGameObjectDataMap.size());
+    sLog.outString(">> Loaded %zu gameobjects", mGameObjectDataMap.size());
 }
 
 void ObjectMgr::LoadGameObjectAddon()
@@ -2039,15 +2054,18 @@ void ObjectMgr::LoadItemLocales()
 {
     mItemLocaleMap.clear();                                 // need for reload case
 
-    QueryResult* result = WorldDatabase.Query("SELECT `entry`,`name_loc1`,`description_loc1`,`name_loc2`,`description_loc2`,`name_loc3`,`description_loc3`,`name_loc4`,`description_loc4`,`name_loc5`,`description_loc5`,`name_loc6`,`description_loc6`,`name_loc7`,`description_loc7`,`name_loc8`,`description_loc8` FROM `locales_item`");
-
+    QueryResult* result = WorldDatabase.Query("SELECT `entry`,"
+                                              "`name_loc1`,`description_loc1`,`name_loc2`,`description_loc2`,"
+                                              "`name_loc3`,`description_loc3`,`name_loc4`,`description_loc4`,"
+                                              "`name_loc5`,`description_loc5`,`name_loc6`,`description_loc6`,"
+                                              "`name_loc7`,`description_loc7`,`name_loc8`,`description_loc8`,"
+                                              "`name_loc9`,`description_loc9`,`name_loc10`,`description_loc10`,"
+                                              "`name_loc11`,`description_loc11`"
+                                              " FROM `locales_item`");
     if (!result)
     {
         BarGoLink bar(1);
-
         bar.step();
-
-        sLog.outString();
         sLog.outString(">> Loaded 0 Item locale strings. DB table `locales_item` is empty.");
         return;
     }
@@ -2106,8 +2124,8 @@ void ObjectMgr::LoadItemLocales()
 
     delete result;
 
+    sLog.outString(">> Loaded %zu Item locale strings", mItemLocaleMap.size());
     sLog.outString();
-    sLog.outString(">> Loaded " SIZEFMTD " Item locale strings", mItemLocaleMap.size());
 }
 
 struct SQLItemLoader : public SQLStorageLoaderBase<SQLItemLoader, SQLStorage>
@@ -3758,8 +3776,8 @@ void ObjectMgr::BuildPlayerLevelInfo(uint8 race, uint8 _class, uint8 level, Play
 /* *                                Static Wrappers                                              */
 /* ********************************************************************************************* */
 GameObjectInfo const* ObjectMgr::GetGameObjectInfo(uint32 id) { return sGOStorage.LookupEntry<GameObjectInfo>(id); }
-Player* ObjectMgr::GetPlayer(const char* name) { return ObjectAccessor::FindPlayerByName(name); }
-Player* ObjectMgr::GetPlayer(ObjectGuid guid, bool inWorld /*=true*/) { return ObjectAccessor::FindPlayer(guid, inWorld); }
+Player* ObjectMgr::GetPlayer(const char* name) { return sObjectAccessor.FindPlayerByName(name); }
+Player* ObjectMgr::GetPlayer(ObjectGuid guid, bool inWorld /*=true*/) { return sObjectAccessor.FindPlayer(guid, inWorld); }
 CreatureInfo const* ObjectMgr::GetCreatureTemplate(uint32 id) { return sCreatureStorage.LookupEntry<CreatureInfo>(id); }
 CreatureModelInfo const* ObjectMgr::GetCreatureModelInfo(uint32 modelid) { return sCreatureModelStorage.LookupEntry<CreatureModelInfo>(modelid); }
 EquipmentInfo const* ObjectMgr::GetEquipmentInfo(uint32 entry) { return sEquipmentStorage.LookupEntry<EquipmentInfo>(entry); }
@@ -3784,7 +3802,6 @@ void ObjectMgr::LoadArenaTeams()
 
     if (!result)
     {
-
         BarGoLink bar(1);
 
         bar.step();
@@ -3804,7 +3821,6 @@ void ObjectMgr::LoadArenaTeams()
 
     do
     {
-
         bar.step();
         ++count;
 
@@ -3837,11 +3853,9 @@ void ObjectMgr::LoadGroups()
     if (!result)
     {
         BarGoLink bar(1);
-
         bar.step();
-
-        sLog.outString();
         sLog.outString(">> Loaded %u group definitions", count);
+        sLog.outString();
         return;
     }
 
@@ -3865,8 +3879,8 @@ void ObjectMgr::LoadGroups()
 
     delete result;
 
-    sLog.outString();
     sLog.outString(">> Loaded %u group definitions", count);
+    sLog.outString();
 
     // -- loading members --
     count = 0;
@@ -3996,11 +4010,11 @@ void ObjectMgr::LoadGroups()
         delete result;
     }
 
-    sLog.outString();
     sLog.outString(">> Loaded %u group-instance binds total", count);
-
     sLog.outString();
+
     sLog.outString(">> Loaded %u group members total", count);
+    sLog.outString();
 }
 
 void ObjectMgr::LoadQuests()
@@ -4036,7 +4050,7 @@ void ObjectMgr::LoadQuests()
                           //   76             77                78                79
                           "`ReqCurrencyId1`, `ReqCurrencyId2`, `ReqCurrencyId3`, `ReqCurrencyId4`,"
                           //   80                81                   82                   83
-                          "`ReqCurrencyCount1`, `ReqCurrencyCount1`, `ReqCurrencyCount1`, `ReqCurrencyCount1`,"
+                          "`ReqCurrencyCount1`, `ReqCurrencyCount2`, `ReqCurrencyCount3`, `ReqCurrencyCount4`,"
                           //   84            85               86               87               88
                           "`ReqSpellCast1`, `ReqSpellCast2`, `ReqSpellCast3`, `ReqSpellCast4`, `ReqSpellLearned`,"
                           //   89               90                  91                  92                  93                  94
@@ -4075,9 +4089,9 @@ void ObjectMgr::LoadQuests()
         BarGoLink bar(1);
         bar.step();
 
-        sLog.outString();
         sLog.outString(">> Loaded 0 quests definitions");
         sLog.outErrorDb("`quest_template` table is empty!");
+        sLog.outString();
         return;
     }
 
@@ -4870,8 +4884,8 @@ void ObjectMgr::LoadQuests()
         }
     }
 
+    sLog.outString(">> Loaded %zu quests definitions", mQuestTemplates.size());
     sLog.outString();
-    sLog.outString(">> Loaded " SIZEFMTD " quests definitions", mQuestTemplates.size());
 }
 
 void ObjectMgr::LoadQuestLocales()
@@ -4887,17 +4901,17 @@ void ObjectMgr::LoadQuestLocales()
                           "`Title_loc5`,`Details_loc5`,`Objectives_loc5`,`OfferRewardText_loc5`,`RequestItemsText_loc5`,`EndText_loc5`,`CompletedText_loc5`,`ObjectiveText1_loc5`,`ObjectiveText2_loc5`,`ObjectiveText3_loc5`,`ObjectiveText4_loc5`,`PortraitGiverName_loc5`,`PortraitGiverText_loc5`,`PortraitTurnInName_loc5`,`PortraitTurnInText_loc5`,"
                           "`Title_loc6`,`Details_loc6`,`Objectives_loc6`,`OfferRewardText_loc6`,`RequestItemsText_loc6`,`EndText_loc6`,`CompletedText_loc6`,`ObjectiveText1_loc6`,`ObjectiveText2_loc6`,`ObjectiveText3_loc6`,`ObjectiveText4_loc6`,`PortraitGiverName_loc6`,`PortraitGiverText_loc6`,`PortraitTurnInName_loc6`,`PortraitTurnInText_loc6`,"
                           "`Title_loc7`,`Details_loc7`,`Objectives_loc7`,`OfferRewardText_loc7`,`RequestItemsText_loc7`,`EndText_loc7`,`CompletedText_loc7`,`ObjectiveText1_loc7`,`ObjectiveText2_loc7`,`ObjectiveText3_loc7`,`ObjectiveText4_loc7`,`PortraitGiverName_loc7`,`PortraitGiverText_loc7`,`PortraitTurnInName_loc7`,`PortraitTurnInText_loc7`,"
-                          "`Title_loc8`,`Details_loc8`,`Objectives_loc8`,`OfferRewardText_loc8`,`RequestItemsText_loc8`,`EndText_loc8`,`CompletedText_loc8`,`ObjectiveText1_loc8`,`ObjectiveText2_loc8`,`ObjectiveText3_loc8`,`ObjectiveText4_loc8`,`PortraitGiverName_loc8`,`PortraitGiverText_loc8`,`PortraitTurnInName_loc8`,`PortraitTurnInText_loc8`"
+                          "`Title_loc8`,`Details_loc8`,`Objectives_loc8`,`OfferRewardText_loc8`,`RequestItemsText_loc8`,`EndText_loc8`,`CompletedText_loc8`,`ObjectiveText1_loc8`,`ObjectiveText2_loc8`,`ObjectiveText3_loc8`,`ObjectiveText4_loc8`,`PortraitGiverName_loc8`,`PortraitGiverText_loc8`,`PortraitTurnInName_loc8`,`PortraitTurnInText_loc8`,"
+                          "`Title_loc9`,`Details_loc9`,`Objectives_loc9`,`OfferRewardText_loc9`,`RequestItemsText_loc9`,`EndText_loc9`,`CompletedText_loc9`,`ObjectiveText1_loc9`,`ObjectiveText2_loc9`,`ObjectiveText3_loc9`,`ObjectiveText4_loc9`,`PortraitGiverName_loc9`,`PortraitGiverText_loc9`,`PortraitTurnInName_loc9`,`PortraitTurnInText_loc9`,"
+                          "`Title_loc10`,`Details_loc10`,`Objectives_loc10`,`OfferRewardText_loc10`,`RequestItemsText_loc10`,`EndText_loc10`,`CompletedText_loc10`,`ObjectiveText1_loc10`,`ObjectiveText2_loc10`,`ObjectiveText3_loc10`,`ObjectiveText4_loc10`,`PortraitGiverName_loc10`,`PortraitGiverText_loc10`,`PortraitTurnInName_loc10`,`PortraitTurnInText_loc10`,"
+                          "`Title_loc11`,`Details_loc11`,`Objectives_loc11`,`OfferRewardText_loc11`,`RequestItemsText_loc11`,`EndText_loc11`,`CompletedText_loc11`,`ObjectiveText1_loc11`,`ObjectiveText2_loc11`,`ObjectiveText3_loc11`,`ObjectiveText4_loc11`,`PortraitGiverName_loc11`,`PortraitGiverText_loc11`,`PortraitTurnInName_loc11`,`PortraitTurnInText_loc11`"
                           " FROM `locales_quest`"
                                              );
 
     if (!result)
     {
         BarGoLink bar(1);
-
         bar.step();
-
-        sLog.outString();
         sLog.outString(">> Loaded 0 Quest locale strings. DB table `locales_quest` is empty.");
         return;
     }
@@ -5099,7 +5113,7 @@ void ObjectMgr::LoadQuestLocales()
     delete result;
 
     sLog.outString();
-    sLog.outString(">> Loaded " SIZEFMTD " Quest locale strings", mQuestLocaleMap.size());
+    sLog.outString(">> Loaded %zu Quest locale strings", mQuestLocaleMap.size());
 }
 
 void ObjectMgr::LoadPageTexts()
@@ -5154,15 +5168,15 @@ void ObjectMgr::LoadPageTextLocales()
 {
     mPageTextLocaleMap.clear();                             // need for reload case
 
-    QueryResult* result = WorldDatabase.Query("SELECT `entry`,`text_loc1`,`text_loc2`,`text_loc3`,`text_loc4`,`text_loc5`,`text_loc6`,`text_loc7`,`text_loc8` FROM `locales_page_text`");
-
+    QueryResult* result = WorldDatabase.Query("SELECT `entry`,"
+                                              "`text_loc1`,`text_loc2`,`text_loc3`,`text_loc4`,"
+                                              "`text_loc5`,`text_loc6`,`text_loc7`,`text_loc8`,"
+                                              "`text_loc9`,`text_loc10`,`text_loc11`"
+                                              " FROM `locales_page_text`");
     if (!result)
     {
         BarGoLink bar(1);
-
         bar.step();
-
-        sLog.outString();
         sLog.outString(">> Loaded 0 PageText locale strings. DB table `locales_page_text` is empty.");
         return;
     }
@@ -5208,8 +5222,8 @@ void ObjectMgr::LoadPageTextLocales()
 
     delete result;
 
+    sLog.outString(">> Loaded %zu PageText locale strings", mPageTextLocaleMap.size());
     sLog.outString();
-    sLog.outString(">> Loaded " SIZEFMTD " PageText locale strings", mPageTextLocaleMap.size());
 }
 
 void ObjectMgr::LoadInstanceEncounters()
@@ -5282,7 +5296,7 @@ void ObjectMgr::LoadInstanceEncounters()
     delete result;
 
     sLog.outString();
-    sLog.outString(">> Loaded " SIZEFMTD " Instance Encounters", m_DungeonEncounters.size());
+    sLog.outString(">> Loaded %zu Instance Encounters", m_DungeonEncounters.size());
 }
 
 struct SQLInstanceLoader : public SQLStorageLoaderBase<SQLInstanceLoader, SQLStorage>
@@ -5435,8 +5449,8 @@ void ObjectMgr::LoadGossipText()
         BarGoLink bar(1);
         bar.step();
 
-        sLog.outString();
         sLog.outString(">> Loaded %u npc texts", count);
+        sLog.outString();
         return;
     }
 
@@ -5477,8 +5491,8 @@ void ObjectMgr::LoadGossipText()
     }
     while (result->NextRow());
 
-    sLog.outString();
     sLog.outString(">> Loaded %u npc texts", count);
+    sLog.outString();
     delete result;
 }
 
@@ -5487,23 +5501,22 @@ void ObjectMgr::LoadGossipTextLocales()
     mNpcTextLocaleMap.clear();                              // need for reload case
 
     QueryResult* result = WorldDatabase.Query("SELECT `entry`,"
-                          "`Text0_0_loc1`,`Text0_1_loc1`,`Text1_0_loc1`,`Text1_1_loc1`,`Text2_0_loc1`,`Text2_1_loc1`,`Text3_0_loc1`,`Text3_1_loc1`,`Text4_0_loc1`,`Text4_1_loc1`,`Text5_0_loc1`,`Text5_1_loc1`,`Text6_0_loc1`,`Text6_1_loc1`,`Text7_0_loc1`,`Text7_1_loc1`,"
-                          "`Text0_0_loc2`,`Text0_1_loc2`,`Text1_0_loc2`,`Text1_1_loc2`,`Text2_0_loc2`,`Text2_1_loc2`,`Text3_0_loc2`,`Text3_1_loc2`,`Text4_0_loc2`,`Text4_1_loc2`,`Text5_0_loc2`,`Text5_1_loc2`,`Text6_0_loc2`,`Text6_1_loc2`,`Text7_0_loc2`,`Text7_1_loc2`,"
-                          "`Text0_0_loc3`,`Text0_1_loc3`,`Text1_0_loc3`,`Text1_1_loc3`,`Text2_0_loc3`,`Text2_1_loc3`,`Text3_0_loc3`,`Text3_1_loc3`,`Text4_0_loc3`,`Text4_1_loc3`,`Text5_0_loc3`,`Text5_1_loc3`,`Text6_0_loc3`,`Text6_1_loc3`,`Text7_0_loc3`,`Text7_1_loc3`,"
-                          "`Text0_0_loc4`,`Text0_1_loc4`,`Text1_0_loc4`,`Text1_1_loc4`,`Text2_0_loc4`,`Text2_1_loc4`,`Text3_0_loc4`,`Text3_1_loc4`,`Text4_0_loc4`,`Text4_1_loc4`,`Text5_0_loc4`,`Text5_1_loc4`,`Text6_0_loc4`,`Text6_1_loc4`,`Text7_0_loc4`,`Text7_1_loc4`,"
-                          "`Text0_0_loc5`,`Text0_1_loc5`,`Text1_0_loc5`,`Text1_1_loc5`,`Text2_0_loc5`,`Text2_1_loc5`,`Text3_0_loc5`,`Text3_1_loc5`,`Text4_0_loc5`,`Text4_1_loc5`,`Text5_0_loc5`,`Text5_1_loc5`,`Text6_0_loc5`,`Text6_1_loc5`,`Text7_0_loc5`,`Text7_1_loc5`,"
-                          "`Text0_0_loc6`,`Text0_1_loc6`,`Text1_0_loc6`,`Text1_1_loc6`,`Text2_0_loc6`,`Text2_1_loc6`,`Text3_0_loc6`,`Text3_1_loc6`,`Text4_0_loc6`,`Text4_1_loc6`,`Text5_0_loc6`,`Text5_1_loc6`,`Text6_0_loc6`,`Text6_1_loc6`,`Text7_0_loc6`,`Text7_1_loc6`,"
-                          "`Text0_0_loc7`,`Text0_1_loc7`,`Text1_0_loc7`,`Text1_1_loc7`,`Text2_0_loc7`,`Text2_1_loc7`,`Text3_0_loc7`,`Text3_1_loc7`,`Text4_0_loc7`,`Text4_1_loc7`,`Text5_0_loc7`,`Text5_1_loc7`,`Text6_0_loc7`,`Text6_1_loc7`,`Text7_0_loc7`,`Text7_1_loc7`, "
-                          "`Text0_0_loc8`,`Text0_1_loc8`,`Text1_0_loc8`,`Text1_1_loc8`,`Text2_0_loc8`,`Text2_1_loc8`,`Text3_0_loc8`,`Text3_1_loc8`,`Text4_0_loc8`,`Text4_1_loc8`,`Text5_0_loc8`,`Text5_1_loc8`,`Text6_0_loc8`,`Text6_1_loc8`,`Text7_0_loc8`,`Text7_1_loc8` "
-                          " FROM `locales_npc_text`");
-
+                                              "`Text0_0_loc1`,`Text0_1_loc1`,`Text1_0_loc1`,`Text1_1_loc1`,`Text2_0_loc1`,`Text2_1_loc1`,`Text3_0_loc1`,`Text3_1_loc1`,`Text4_0_loc1`,`Text4_1_loc1`,`Text5_0_loc1`,`Text5_1_loc1`,`Text6_0_loc1`,`Text6_1_loc1`,`Text7_0_loc1`,`Text7_1_loc1`,"
+                                              "`Text0_0_loc2`,`Text0_1_loc2`,`Text1_0_loc2`,`Text1_1_loc2`,`Text2_0_loc2`,`Text2_1_loc2`,`Text3_0_loc2`,`Text3_1_loc2`,`Text4_0_loc2`,`Text4_1_loc2`,`Text5_0_loc2`,`Text5_1_loc2`,`Text6_0_loc2`,`Text6_1_loc2`,`Text7_0_loc2`,`Text7_1_loc2`,"
+                                              "`Text0_0_loc3`,`Text0_1_loc3`,`Text1_0_loc3`,`Text1_1_loc3`,`Text2_0_loc3`,`Text2_1_loc3`,`Text3_0_loc3`,`Text3_1_loc3`,`Text4_0_loc3`,`Text4_1_loc3`,`Text5_0_loc3`,`Text5_1_loc3`,`Text6_0_loc3`,`Text6_1_loc3`,`Text7_0_loc3`,`Text7_1_loc3`,"
+                                              "`Text0_0_loc4`,`Text0_1_loc4`,`Text1_0_loc4`,`Text1_1_loc4`,`Text2_0_loc4`,`Text2_1_loc4`,`Text3_0_loc4`,`Text3_1_loc4`,`Text4_0_loc4`,`Text4_1_loc4`,`Text5_0_loc4`,`Text5_1_loc4`,`Text6_0_loc4`,`Text6_1_loc4`,`Text7_0_loc4`,`Text7_1_loc4`,"
+                                              "`Text0_0_loc5`,`Text0_1_loc5`,`Text1_0_loc5`,`Text1_1_loc5`,`Text2_0_loc5`,`Text2_1_loc5`,`Text3_0_loc5`,`Text3_1_loc5`,`Text4_0_loc5`,`Text4_1_loc5`,`Text5_0_loc5`,`Text5_1_loc5`,`Text6_0_loc5`,`Text6_1_loc5`,`Text7_0_loc5`,`Text7_1_loc5`,"
+                                              "`Text0_0_loc6`,`Text0_1_loc6`,`Text1_0_loc6`,`Text1_1_loc6`,`Text2_0_loc6`,`Text2_1_loc6`,`Text3_0_loc6`,`Text3_1_loc6`,`Text4_0_loc6`,`Text4_1_loc6`,`Text5_0_loc6`,`Text5_1_loc6`,`Text6_0_loc6`,`Text6_1_loc6`,`Text7_0_loc6`,`Text7_1_loc6`,"
+                                              "`Text0_0_loc7`,`Text0_1_loc7`,`Text1_0_loc7`,`Text1_1_loc7`,`Text2_0_loc7`,`Text2_1_loc7`,`Text3_0_loc7`,`Text3_1_loc7`,`Text4_0_loc7`,`Text4_1_loc7`,`Text5_0_loc7`,`Text5_1_loc7`,`Text6_0_loc7`,`Text6_1_loc7`,`Text7_0_loc7`,`Text7_1_loc7`, "
+                                              "`Text0_0_loc8`,`Text0_1_loc8`,`Text1_0_loc8`,`Text1_1_loc8`,`Text2_0_loc8`,`Text2_1_loc8`,`Text3_0_loc8`,`Text3_1_loc8`,`Text4_0_loc8`,`Text4_1_loc8`,`Text5_0_loc8`,`Text5_1_loc8`,`Text6_0_loc8`,`Text6_1_loc8`,`Text7_0_loc8`,`Text7_1_loc8`,"
+                                              "`Text0_0_loc9`,`Text0_1_loc9`,`Text1_0_loc9`,`Text1_1_loc9`,`Text2_0_loc9`,`Text2_1_loc9`,`Text3_0_loc9`,`Text3_1_loc9`,`Text4_0_loc9`,`Text4_1_loc9`,`Text5_0_loc9`,`Text5_1_loc9`,`Text6_0_loc9`,`Text6_1_loc9`,`Text7_0_loc9`,`Text7_1_loc9`,"
+                                              "`Text0_0_loc10`,`Text0_1_loc10`,`Text1_0_loc10`,`Text1_1_loc10`,`Text2_0_loc10`,`Text2_1_loc10`,`Text3_0_loc10`,`Text3_1_loc10`,`Text4_0_loc10`,`Text4_1_loc10`,`Text5_0_loc10`,`Text5_1_loc10`,`Text6_0_loc10`,`Text6_1_loc10`,`Text7_0_loc10`,`Text7_1_loc10`,"
+                                              "`Text0_0_loc11`,`Text0_1_loc11`,`Text1_0_loc11`,`Text1_1_loc11`,`Text2_0_loc11`,`Text2_1_loc11`,`Text3_0_loc11`,`Text3_1_loc11`,`Text4_0_loc11`,`Text4_1_loc11`,`Text5_0_loc11`,`Text5_1_loc11`,`Text6_0_loc11`,`Text6_1_loc11`,`Text7_0_loc11`,`Text7_1_loc11` "
+                                              " FROM `locales_npc_text`");
     if (!result)
     {
         BarGoLink bar(1);
-
         bar.step();
-
-        sLog.outString();
         sLog.outString(">> Loaded 0 Quest locale strings. DB table `locales_npc_text` is empty.");
         return;
     }
@@ -5564,15 +5577,20 @@ void ObjectMgr::LoadGossipTextLocales()
 
     delete result;
 
+    sLog.outString(">> Loaded %zu NpcText locale strings", mNpcTextLocaleMap.size());
     sLog.outString();
-    sLog.outString(">> Loaded " SIZEFMTD " NpcText locale strings", mNpcTextLocaleMap.size());
 }
 
 // not very fast function but it is called only once a day, or on starting-up
+/// @param serverUp true if the server is already running, false when the server is started
 void ObjectMgr::ReturnOrDeleteOldMails(bool serverUp)
 {
-    time_t basetime = time(NULL);
-    DEBUG_LOG("Returning mails current time: hour: %d, minute: %d, second: %d ", localtime(&basetime)->tm_hour, localtime(&basetime)->tm_min, localtime(&basetime)->tm_sec);
+    time_t curTime = time(NULL);
+    tm lt;
+    localtime_r(&curTime, &lt);
+    uint64 basetime(curTime);
+    sLog.outString("Returning mails current time: hour: %d, minute: %d, second: %d ", lt.tm_hour, lt.tm_min, lt.tm_sec);
+
     // delete all old mails without item and without body immediately, if starting server
     if (!serverUp)
     {
@@ -5584,8 +5602,8 @@ void ObjectMgr::ReturnOrDeleteOldMails(bool serverUp)
     {
         BarGoLink bar(1);
         bar.step();
-        sLog.outString();
         sLog.outString(">> Only expired mails (need to be return or delete) or DB table `mail` is empty.");
+        sLog.outString();
         return;                                             // any mails need to be returned or deleted
     }
 
@@ -5680,8 +5698,8 @@ void ObjectMgr::ReturnOrDeleteOldMails(bool serverUp)
     while (result->NextRow());
     delete result;
 
-    sLog.outString();
     sLog.outString(">> Loaded %u mails", count);
+    sLog.outString();
 }
 
 void ObjectMgr::LoadQuestAreaTriggers()
@@ -5696,9 +5714,8 @@ void ObjectMgr::LoadQuestAreaTriggers()
     {
         BarGoLink bar(1);
         bar.step();
-
-        sLog.outString();
         sLog.outString(">> Loaded %u quest trigger points", count);
+        sLog.outString();
         return;
     }
 
@@ -5744,8 +5761,8 @@ void ObjectMgr::LoadQuestAreaTriggers()
 
     delete result;
 
-    sLog.outString();
     sLog.outString(">> Loaded %u quest trigger points", count);
+    sLog.outString();
 }
 
 void ObjectMgr::LoadTavernAreaTriggers()
@@ -5760,9 +5777,8 @@ void ObjectMgr::LoadTavernAreaTriggers()
     {
         BarGoLink bar(1);
         bar.step();
-
-        sLog.outString();
         sLog.outString(">> Loaded %u tavern triggers", count);
+        sLog.outString();
         return;
     }
 
@@ -5790,8 +5806,8 @@ void ObjectMgr::LoadTavernAreaTriggers()
 
     delete result;
 
-    sLog.outString();
     sLog.outString(">> Loaded %u tavern triggers", count);
+    sLog.outString();
 }
 
 uint32 ObjectMgr::GetNearestTaxiNode(float x, float y, float z, uint32 mapid, Team team)
@@ -5921,9 +5937,8 @@ void ObjectMgr::LoadGraveyardZones()
     {
         BarGoLink bar(1);
         bar.step();
-
-        sLog.outString();
         sLog.outString(">> Loaded %u graveyard-zone links", count);
+        sLog.outString();
         return;
     }
 
@@ -5975,8 +5990,8 @@ void ObjectMgr::LoadGraveyardZones()
 
     delete result;
 
-    sLog.outString();
     sLog.outString(">> Loaded %u graveyard-zone links", count);
+    sLog.outString();
 }
 
 WorldSafeLocsEntry const* ObjectMgr::GetClosestGraveYard(float x, float y, float z, uint32 MapId, Team team)
@@ -6172,11 +6187,9 @@ void ObjectMgr::LoadAreaTriggerTeleports()
     if (!result)
     {
         BarGoLink bar(1);
-
         bar.step();
-
-        sLog.outString();
         sLog.outString(">> Loaded %u area trigger teleport definitions", count);
+        sLog.outString();
         return;
     }
 
@@ -6293,8 +6306,8 @@ void ObjectMgr::LoadAreaTriggerTeleports()
 
     delete result;
 
-    sLog.outString();
     sLog.outString(">> Loaded %u area trigger teleport definitions", count);
+    sLog.outString();
 }
 
 /*
@@ -6551,17 +6564,20 @@ void ObjectMgr::LoadGameObjectLocales()
     mGameObjectLocaleMap.clear();                           // need for reload case
 
     QueryResult* result = WorldDatabase.Query("SELECT `entry`,"
-                          "`name_loc1`,`name_loc2`,`name_loc3`,`name_loc4`,`name_loc5`,`name_loc6`,`name_loc7`,`name_loc8`,"
-                          "`castbarcaption_loc1`,`castbarcaption_loc2`,`castbarcaption_loc3`,`castbarcaption_loc4`,"
-                          "`castbarcaption_loc5`,`castbarcaption_loc6`,`castbarcaption_loc7`,`castbarcaption_loc8` FROM `locales_gameobject`");
-
+                                              "`name_loc1`,`name_loc2`,`name_loc3`,`name_loc4`,"
+                                              "`name_loc5`,`name_loc6`,`name_loc7`,`name_loc8`,"
+                                              "`name_loc9`,`name_loc10`,`name_loc11`,"
+                                              "`castbarcaption_loc1`,`castbarcaption_loc2`,"
+                                              "`castbarcaption_loc3`,`castbarcaption_loc4`,"
+                                              "`castbarcaption_loc5`,`castbarcaption_loc6`,"
+                                              "`castbarcaption_loc7`,`castbarcaption_loc8`,"
+                                              "`castbarcaption_loc9`,`castbarcaption_loc10`,"
+                                              "`castbarcaption_loc11`"
+                                              " FROM `locales_gameobject`");
     if (!result)
     {
         BarGoLink bar(1);
-
         bar.step();
-
-        sLog.outString();
         sLog.outString(">> Loaded 0 gameobject locale strings. DB table `locales_gameobject` is empty.");
         return;
     }
@@ -6623,8 +6639,8 @@ void ObjectMgr::LoadGameObjectLocales()
 
     delete result;
 
+    sLog.outString(">> Loaded %zu gameobject locale strings", mGameObjectLocaleMap.size());
     sLog.outString();
-    sLog.outString(">> Loaded " SIZEFMTD " gameobject locale strings", mGameObjectLocaleMap.size());
 }
 
 struct SQLGameObjectLoader : public SQLStorageLoaderBase<SQLGameObjectLoader, SQLHashStorage>
@@ -6987,11 +7003,9 @@ void ObjectMgr::LoadExplorationBaseXP()
     if (!result)
     {
         BarGoLink bar(1);
-
         bar.step();
-
-        sLog.outString();
         sLog.outString(">> Loaded %u BaseXP definitions", count);
+        sLog.outString();
         return;
     }
 
@@ -7011,8 +7025,8 @@ void ObjectMgr::LoadExplorationBaseXP()
 
     delete result;
 
-    sLog.outString();
     sLog.outString(">> Loaded %u BaseXP definitions", count);
+    sLog.outString();
 }
 
 uint32 ObjectMgr::GetBaseXP(uint32 level) const
@@ -7038,11 +7052,9 @@ void ObjectMgr::LoadPetNames()
     if (!result)
     {
         BarGoLink bar(1);
-
         bar.step();
-
-        sLog.outString();
         sLog.outString(">> Loaded %u pet name parts", count);
+        sLog.outString();
         return;
     }
 
@@ -7069,8 +7081,8 @@ void ObjectMgr::LoadPetNames()
     while (result->NextRow());
     delete result;
 
-    sLog.outString();
     sLog.outString(">> Loaded %u pet name parts", count);
+    sLog.outString();
 }
 
 void ObjectMgr::LoadPetNumber()
@@ -7086,8 +7098,8 @@ void ObjectMgr::LoadPetNumber()
     BarGoLink bar(1);
     bar.step();
 
-    sLog.outString();
     sLog.outString(">> Loaded the max pet number: %d", m_PetNumbers.GetNextAfterMaxUsed() - 1);
+    sLog.outString();
 }
 
 std::string ObjectMgr::GeneratePetName(uint32 entry)
@@ -7122,11 +7134,9 @@ void ObjectMgr::LoadCorpses()
     if (!result)
     {
         BarGoLink bar(1);
-
         bar.step();
-
-        sLog.outString();
         sLog.outString(">> Loaded %u corpses", count);
+        sLog.outString();
         return;
     }
 
@@ -7154,8 +7164,8 @@ void ObjectMgr::LoadCorpses()
     while (result->NextRow());
     delete result;
 
-    sLog.outString();
     sLog.outString(">> Loaded %u corpses", count);
+    sLog.outString();
 }
 
 void ObjectMgr::LoadReputationRewardRate()
@@ -7168,11 +7178,9 @@ void ObjectMgr::LoadReputationRewardRate()
     if (!result)
     {
         BarGoLink bar(1);
-
         bar.step();
-
-        sLog.outString();
         sLog.outErrorDb(">> Loaded `reputation_reward_rate`, table is empty!");
+        sLog.outString();
         return;
     }
 
@@ -7225,8 +7233,8 @@ void ObjectMgr::LoadReputationRewardRate()
 
     delete result;
 
-    sLog.outString();
     sLog.outString(">> Loaded %u reputation_reward_rate", count);
+    sLog.outString();
 }
 
 void ObjectMgr::LoadReputationOnKill()
@@ -7242,11 +7250,9 @@ void ObjectMgr::LoadReputationOnKill()
     if (!result)
     {
         BarGoLink bar(1);
-
         bar.step();
-
-        sLog.outString();
         sLog.outErrorDb(">> Loaded 0 creature award reputation definitions. DB table `creature_onkill_reputation` is empty.");
+        sLog.outString();
         return;
     }
 
@@ -7304,8 +7310,8 @@ void ObjectMgr::LoadReputationOnKill()
 
     delete result;
 
-    sLog.outString();
     sLog.outString(">> Loaded %u creature award reputation definitions", count);
+    sLog.outString();
 }
 
 void ObjectMgr::LoadReputationSpilloverTemplate()
@@ -7318,11 +7324,9 @@ void ObjectMgr::LoadReputationSpilloverTemplate()
     if (!result)
     {
         BarGoLink bar(1);
-
         bar.step();
-
-        sLog.outString();
         sLog.outString(">> Loaded `reputation_spillover_template`, table is empty.");
+        sLog.outString();
         return;
     }
 
@@ -7747,11 +7751,11 @@ void ObjectMgr::LoadDungeonFinderItems()
         Field* fields = result->Fetch();
         bar.step();
 
-        uint32 id = fields[0].GetUInt32();
-        uint32 minLevel = fields[1].GetUInt32();
-        uint32 maxLevel = fields[2].GetUInt32();
-        uint32 itemReward = fields[3].GetInt32();
-        uint32 itemAmount = fields[4].GetUInt32();
+        uint32 id          = fields[0].GetUInt32();
+        uint32 minLevel    = fields[1].GetUInt32();
+        uint32 maxLevel    = fields[2].GetUInt32();
+        uint32 itemReward  = fields[3].GetInt32();
+        uint32 itemAmount  = fields[4].GetUInt32();
         uint32 dungeonType = fields[5].GetUInt32();
 
         DungeonFinderItems rewardItems(minLevel, maxLevel, itemReward, itemAmount, dungeonType);
@@ -8519,8 +8523,11 @@ bool ObjectMgr::LoadMangosStrings(DatabaseType& db, char const* table, int32 min
 
     sLog.outString("Loading texts from %s%s", table, extra_content ? ", with additional data" : "");
 
-    QueryResult* result = db.PQuery("SELECT `entry`,`content_default`,`content_loc1`,`content_loc2`,`content_loc3`,`content_loc4`,`content_loc5`,`content_loc6`,`content_loc7`,`content_loc8` %s FROM %s",
-                                    extra_content ? ",sound,type,language,emote" : "", table);
+    QueryResult* result = db.PQuery("SELECT `entry`,`content_default`,"
+                                    "`content_loc1`,`content_loc2`,`content_loc3`,`content_loc4`,"
+                                    "`content_loc5`,`content_loc6`,`content_loc7`,`content_loc8`,"
+                                    "`content_loc9`,`content_loc10`,`content_loc11`"
+                                    " %s FROM %s", extra_content ? ",sound,type,language,emote" : "", table);
 
     if (!result)
     {
@@ -8598,10 +8605,10 @@ bool ObjectMgr::LoadMangosStrings(DatabaseType& db, char const* table, int32 min
         // Load additional string content if necessary
         if (extra_content)
         {
-            data.SoundId     = fields[10].GetUInt32();
-            data.Type        = fields[11].GetUInt32();
-            data.LanguageId  = Language(fields[12].GetUInt32());
-            data.Emote       = fields[13].GetUInt32();
+            data.SoundId     = fields[13].GetUInt32();
+            data.Type        = fields[14].GetUInt32();
+            data.LanguageId  = Language(fields[15].GetUInt32());
+            data.Emote       = fields[16].GetUInt32();
 
             if (data.SoundId && !sSoundEntriesStore.LookupEntry(data.SoundId))
             {
@@ -8722,6 +8729,7 @@ bool ObjectMgr::IsPlayerMeetToCondition(uint16 conditionId, Player const* pPlaye
 
     return false;
 }
+
 bool ObjectMgr::CheckDeclinedNames(const std::wstring& mainpart, DeclinedName const& names)
 {
     for (int i = 0; i < MAX_DECLINED_NAME_CASES; ++i)
@@ -8740,6 +8748,8 @@ bool ObjectMgr::CheckDeclinedNames(const std::wstring& mainpart, DeclinedName co
     return true;
 }
 
+// Attention: make sure to keep this list in sync with ConditionSource to avoid array
+//            out of bounds access! It is accessed with ConditionSource as index!
 char const* conditionSourceToStr[] =
 {
     "loot system",
@@ -8750,7 +8760,7 @@ char const* conditionSourceToStr[] =
     "hardcoded",
     "vendor's item check",
     "spell_area check",
-    "npc_spellclick_spells check",
+    "npc_spellclick_spells check", // Unused. For 3.x and later.
     "DBScript engine",
     "phase mgr"
 };
@@ -8818,10 +8828,12 @@ bool PlayerCondition::Meets(Player const* player, Map const* map, WorldObject co
         {
             Unit::SpellAuraHolderMap const& auras = player->GetSpellAuraHolderMap();
             for (Unit::SpellAuraHolderMap::const_iterator itr = auras.begin(); itr != auras.end(); ++itr)
-                if ((itr->second->GetSpellProto()->HasAttribute(SPELL_ATTR_CASTABLE_WHILE_MOUNTED) || itr->second->GetSpellProto()->HasAttribute(SPELL_ATTR_UNK4)) && itr->second->GetSpellProto()->SpellVisual[0] == 3580)
+            {
+                if ((itr->second->GetSpellProto()->HasAttribute(SPELL_ATTR_CASTABLE_WHILE_MOUNTED) || itr->second->GetSpellProto()->HasAttribute(SPELL_ATTR_ABILITY)) && itr->second->GetSpellProto()->SpellVisual[0] == 3580)
                 {
                     return true;
                 }
+            }
             return false;
         }
         case CONDITION_NO_AURA:
@@ -9122,6 +9134,19 @@ bool PlayerCondition::Meets(Player const* player, Map const* map, WorldObject co
             Cell::VisitGridObjects(player, searcher, m_value2);
 
             return creature;
+        }
+        case CONDITION_GAMEOBJECT_IN_RANGE:
+        {
+            GameObject* pGo = NULL;
+
+            if (source)
+            {
+                MaNGOS::NearestGameObjectEntryInObjectRangeCheck go_check(*source, m_value1, m_value2);
+                MaNGOS::GameObjectLastSearcher<MaNGOS::NearestGameObjectEntryInObjectRangeCheck> searcher(pGo, go_check);
+
+                Cell::VisitGridObjects(source, searcher, m_value2);
+            }
+            return pGo;
         }
         default:
             return false;
@@ -9602,6 +9627,21 @@ bool PlayerCondition::IsValid(uint16 entry, ConditionType condition, uint32 valu
                 sLog.outErrorDb("Creature in range condition (entry %u, type %u) has an invalid value in value2. (Range %u must be greater than 0), skipping.", entry, condition, value2);
                 return false;
             }
+            break;
+        }
+        case CONDITION_GAMEOBJECT_IN_RANGE:
+        {
+            if (!sGOStorage.LookupEntry<GameObjectInfo>(value1))
+            {
+                sLog.outErrorDb("Game object in range condition (entry %u, type %u) has an invalid value in value1 (gameobject). (Game object %u does not exist in the database), skipping.", entry, condition, value1);
+                return false;
+            }
+            if (value2 <= 0)
+            {
+                sLog.outErrorDb("Game object in range condition (entry %u, type %u) has an invalid value in value2 (range). (Range %u must be greater than 0), skipping.", entry, condition, value2);
+                return false;
+            }
+            break;
         }
         case CONDITION_NONE:
             break;
@@ -10127,8 +10167,8 @@ void ObjectMgr::LoadVendors(char const* tableName, bool isTemplates)
 
         bar.step();
 
-        sLog.outString();
         sLog.outString(">> Loaded `%s`, table is empty!", tableName);
+        sLog.outString();
         return;
     }
 
@@ -10212,7 +10252,7 @@ void ObjectMgr::LoadActiveEntities(Map* _map)
     // Special case on startup - load continents
     if (!_map)
     {
-        uint32 continents[] = {0, 1, 530, 571};
+        uint32 continents[] = {0, 1, 369, 530, 571};
         for (int i = 0; i < countof(continents); ++i)
         {
             _map = sMapMgr.FindMap(continents[i]);
@@ -10245,7 +10285,7 @@ void ObjectMgr::LoadActiveEntities(Map* _map)
             }
         }
     }
-    else                                                   // Normal case - Load all npcs that are active
+    else                                                    // Normal case - Load all npcs that are active
     {
         std::pair<ActiveCreatureGuidsOnMap::const_iterator, ActiveCreatureGuidsOnMap::const_iterator> bounds = m_activeCreatures.equal_range(_map->GetId());
         for (ActiveCreatureGuidsOnMap::const_iterator itr = bounds.first; itr != bounds.second; ++itr)
@@ -10340,17 +10380,29 @@ void ObjectMgr::LoadGossipMenu(std::set<uint32>& gossipScriptSet)
     for (uint32 i = 1; i < sCreatureStorage.GetMaxEntry(); ++i)
     {
         if (CreatureInfo const* cInfo = sCreatureStorage.LookupEntry<CreatureInfo>(i))
+        {
             if (cInfo->GossipMenuId)
+            {
                 if (m_mGossipMenusMap.find(cInfo->GossipMenuId) == m_mGossipMenusMap.end())
+                {
                     sLog.outErrorDb("Creature (Entry: %u) has GossipMenuId = %u for nonexistent menu", cInfo->Entry, cInfo->GossipMenuId);
+                }
+            }
+        }
     }
 
     if (!sLog.HasLogFilter(LOG_FILTER_DB_STRICTED_CHECK))
     {
         for (SQLStorageBase::SQLSIterator<GameObjectInfo> itr = sGOStorage.getDataBegin<GameObjectInfo>(); itr < sGOStorage.getDataEnd<GameObjectInfo>(); ++itr)
+        {
             if (uint32 menuid = itr->GetGossipMenuId())
+            {
                 if (m_mGossipMenusMap.find(menuid) == m_mGossipMenusMap.end())
+                {
                     sLog.outErrorDb("Gameobject (Entry: %u) has gossip_menu_id = %u for nonexistent menu", itr->id, menuid);
+                }
+            }
+        }
     }
 
     sLog.outString(">> Loaded %u gossip_menu entries", count);
@@ -10495,7 +10547,7 @@ void ObjectMgr::LoadGossipMenuItems(std::set<uint32>& gossipScriptSet)
 
             if (found_menu_uses && !found_flags_uses)
             {
-                sLog.outErrorDb("Table gossip_menu_option for menu %u, id %u has `npc_option_npcflag` = %u but creatures using this menu does not have corresponding`npcflag`. Option will not accessible in game.", gMenuItem.menu_id, gMenuItem.id, gMenuItem.npc_option_npcflag);
+                sLog.outErrorDb("Table gossip_menu_option for menu %u, id %u has `npc_option_npcflag` = %u but creatures using this menu does not have corresponding `NpcFlags`. Option will not accessible in game.", gMenuItem.menu_id, gMenuItem.id, gMenuItem.npc_option_npcflag);
             }
         }
 
@@ -10588,6 +10640,15 @@ void ObjectMgr::AddVendorItem(uint32 entry, uint32 item, uint8 type, uint32 maxc
     WorldDatabase.PExecuteLog("INSERT INTO `npc_vendor` (`entry`,`item`,`maxcount`,`incrtime`,`extendedcost`) VALUES('%u','%i','%u','%u','%u')", entry, type == VENDOR_ITEM_TYPE_CURRENCY ? -int32(item) : item, maxcount, incrtime, extendedcost);
 }
 
+void ObjectMgr::AddVendorItem(uint32 entry, uint32 item, uint32 maxcount, uint32 incrtime, uint32 extendedcost)
+{
+    VendorItemData& vList = m_mCacheVendorItemMap[entry];
+    uint8 type = VENDOR_ITEM_TYPE_CURRENCY ? -int32(item) : item;
+    vList.AddItem(item, type, maxcount, incrtime, extendedcost, 0);
+
+    WorldDatabase.PExecuteLog("INSERT INTO `npc_vendor` (`entry`,`item`,`maxcount`,`incrtime`,`extendedcost`) VALUES('%u','%i','%u','%u','%u')", entry, type == VENDOR_ITEM_TYPE_CURRENCY ? -int32(item) : item, maxcount, incrtime, extendedcost);
+}
+
 bool ObjectMgr::RemoveVendorItem(uint32 entry, uint32 item, uint8 type)
 {
     CacheVendorItemMap::iterator  iter = m_mCacheVendorItemMap.find(entry);
@@ -10656,7 +10717,7 @@ bool ObjectMgr::IsVendorItemValid(bool isTemplate, char const* tableName, uint32
         }
         else
             sLog.outErrorDb("Table `%s` for %s %u contain nonexistent item (%u), ignoring",
-            tableName, idStr, vendor_entry, item_id);
+                            tableName, idStr, vendor_entry, item_id);
         return false;
     }
 
@@ -10668,7 +10729,7 @@ bool ObjectMgr::IsVendorItemValid(bool isTemplate, char const* tableName, uint32
         }
         else
             sLog.outErrorDb("Table `%s` contain item (Entry: %u) with wrong ExtendedCost (%u) for %s %u, ignoring",
-            tableName, item_id, ExtendedCost, idStr, vendor_entry);
+                            tableName, item_id, ExtendedCost, idStr, vendor_entry);
         return false;
     }
 
@@ -10680,7 +10741,7 @@ bool ObjectMgr::IsVendorItemValid(bool isTemplate, char const* tableName, uint32
         }
         else
             sLog.outErrorDb("Table `%s` has `maxcount` (%u) for item %u of %s %u but `incrtime`=0, ignoring",
-            tableName, maxcount, item_id, idStr, vendor_entry);
+                            tableName, maxcount, item_id, idStr, vendor_entry);
         return false;
     }
     else if (maxcount == 0 && incrtime > 0)
@@ -10691,7 +10752,7 @@ bool ObjectMgr::IsVendorItemValid(bool isTemplate, char const* tableName, uint32
         }
         else
             sLog.outErrorDb("Table `%s` has `maxcount`=0 for item %u of %s %u but `incrtime`<>0, ignoring",
-            tableName, item_id, idStr, vendor_entry);
+                            tableName, item_id, idStr, vendor_entry);
         return false;
     }
 
@@ -10706,8 +10767,8 @@ bool ObjectMgr::IsVendorItemValid(bool isTemplate, char const* tableName, uint32
 
     if (!vItems && !tItems)
     {
-        return true;
-    }                                        // later checks for non-empty lists
+        return true;                                        // later checks for non-empty lists
+    }
 
     if (vItems && vItems->FindItem(item_id))
     {
@@ -10716,8 +10777,10 @@ bool ObjectMgr::IsVendorItemValid(bool isTemplate, char const* tableName, uint32
             ChatHandler(pl).PSendSysMessage(LANG_ITEM_ALREADY_IN_LIST, item_id);
         }
         else
+        {
             sLog.outErrorDb("Table `%s` has duplicate items %u for %s %u, ignoring",
             tableName, item_id, idStr, vendor_entry);
+        }
         return false;
     }
 
@@ -11109,9 +11172,6 @@ void ObjectMgr::LoadCreatureTemplateSpells()
 {
     sCreatureTemplateSpellsStorage.Load();
 
-    sLog.outString(">> Loaded %u creature_template_spells definitions", sCreatureTemplateSpellsStorage.GetRecordCount());
-    sLog.outString();
-
     for (SQLStorageBase::SQLSIterator<CreatureTemplateSpells> itr = sCreatureTemplateSpellsStorage.getDataBegin<CreatureTemplateSpells>(); itr < sCreatureTemplateSpellsStorage.getDataEnd<CreatureTemplateSpells>(); ++itr)
     {
         if (!sCreatureStorage.LookupEntry<CreatureInfo>(itr->entry))
@@ -11128,11 +11188,9 @@ void ObjectMgr::LoadCreatureTemplateSpells()
             }
         }
     }
-}
 
-MangosStringLocale const* GetMangosStringData(int32 entry)
-{
-    return sObjectMgr.GetMangosStringLocale(entry);
+    sLog.outString(">> Loaded %u creature_template_spells definitions", sCreatureTemplateSpellsStorage.GetRecordCount());
+    sLog.outString();
 }
 
 CreatureInfo const* GetCreatureTemplateStore(uint32 entry)
@@ -11143,6 +11201,11 @@ CreatureInfo const* GetCreatureTemplateStore(uint32 entry)
 Quest const* GetQuestTemplateStore(uint32 entry)
 {
     return sObjectMgr.GetQuestTemplate(entry);
+}
+
+MangosStringLocale const* GetMangosStringData(int32 entry)
+{
+    return sObjectMgr.GetMangosStringLocale(entry);
 }
 
 bool FindCreatureData::operator()(CreatureDataPair const& dataPair)

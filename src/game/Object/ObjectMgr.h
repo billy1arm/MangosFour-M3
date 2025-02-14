@@ -2,7 +2,7 @@
  * MaNGOS is a full featured server for World of Warcraft, supporting
  * the following clients: 1.12.x, 2.4.3, 3.3.5a, 4.3.4a and 5.4.8
  *
- * Copyright (C) 2005-2021 MaNGOS <https://getmangos.eu>
+ * Copyright (C) 2005-2025 MaNGOS <https://www.getmangos.eu>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -55,9 +55,9 @@ struct PhaseDefinition;
 struct SpellPhaseInfo;
 
 typedef std::list<PhaseDefinition*> PhaseDefinitionContainer;
-typedef UNORDERED_MAP<uint32 /*zoneId*/, PhaseDefinitionContainer> PhaseDefinitionStore;
+typedef std::unordered_map<uint32 /*zoneId*/, PhaseDefinitionContainer> PhaseDefinitionStore;
 
-typedef UNORDERED_MAP<uint32 /*spellId*/, SpellPhaseInfo*> SpellPhaseStore;
+typedef std::unordered_map<uint32 /*spellId*/, SpellPhaseInfo*> SpellPhaseStore;
 
 struct GameTele
 {
@@ -70,7 +70,7 @@ struct GameTele
     std::wstring wnameLow;
 };
 
-typedef UNORDERED_MAP<uint32, GameTele > GameTeleMap;
+typedef std::unordered_map<uint32, GameTele > GameTeleMap;
 
 struct SpellClickInfo
 {
@@ -125,8 +125,8 @@ struct CellObjectGuids
     CellGuidSet gameobjects;
     CellCorpseSet corpses;
 };
-typedef UNORDERED_MAP < uint32/*cell_id*/, CellObjectGuids > CellObjectGuidsMap;
-typedef UNORDERED_MAP < uint32/*(mapid,spawnMode) pair*/, CellObjectGuidsMap > MapObjectGuids;
+typedef std::unordered_map < uint32/*cell_id*/, CellObjectGuids > CellObjectGuidsMap;
+typedef std::unordered_map < uint32/*(mapid,spawnMode) pair*/, CellObjectGuidsMap > MapObjectGuids;
 
 // mangos string ranges
 #define MIN_MANGOS_STRING_ID           1                    // 'mangos_string'
@@ -150,7 +150,7 @@ struct MangosStringLocale
     uint32 Emote;                       // 0 -> default, i -> i-1 locale index
 };
 
-typedef UNORDERED_MAP<uint32, CreatureData> CreatureDataMap;
+typedef std::unordered_map<uint32, CreatureData> CreatureDataMap;
 typedef CreatureDataMap::value_type CreatureDataPair;
 
 class FindCreatureData
@@ -173,7 +173,7 @@ class FindCreatureData
         float i_spawnedDist;
 };
 
-typedef UNORDERED_MAP<uint32, GameObjectData> GameObjectDataMap;
+typedef std::unordered_map<uint32, GameObjectData> GameObjectDataMap;
 typedef GameObjectDataMap::value_type GameObjectDataPair;
 
 class FindGOData
@@ -196,16 +196,16 @@ class FindGOData
         float i_spawnedDist;
 };
 
-typedef UNORDERED_MAP<uint32, CreatureLocale> CreatureLocaleMap;
-typedef UNORDERED_MAP<uint32, GameObjectLocale> GameObjectLocaleMap;
-typedef UNORDERED_MAP<uint32, ItemLocale> ItemLocaleMap;
-typedef UNORDERED_MAP<uint32, QuestLocale> QuestLocaleMap;
-typedef UNORDERED_MAP<uint32, NpcTextLocale> NpcTextLocaleMap;
-typedef UNORDERED_MAP<uint32, PageTextLocale> PageTextLocaleMap;
-typedef UNORDERED_MAP<int32, MangosStringLocale> MangosStringLocaleMap;
-typedef UNORDERED_MAP<uint32, GossipMenuItemsLocale> GossipMenuItemsLocaleMap;
-typedef UNORDERED_MAP<uint32, PointOfInterestLocale> PointOfInterestLocaleMap;
-typedef UNORDERED_MAP<uint32, uint32> ItemConvertMap;
+typedef std::unordered_map<uint32, CreatureLocale> CreatureLocaleMap;
+typedef std::unordered_map<uint32, GameObjectLocale> GameObjectLocaleMap;
+typedef std::unordered_map<uint32, ItemLocale> ItemLocaleMap;
+typedef std::unordered_map<uint32, QuestLocale> QuestLocaleMap;
+typedef std::unordered_map<uint32, NpcTextLocale> NpcTextLocaleMap;
+typedef std::unordered_map<uint32, PageTextLocale> PageTextLocaleMap;
+typedef std::unordered_map<int32, MangosStringLocale> MangosStringLocaleMap;
+typedef std::unordered_map<uint32, GossipMenuItemsLocale> GossipMenuItemsLocaleMap;
+typedef std::unordered_map<uint32, PointOfInterestLocale> PointOfInterestLocaleMap;
+typedef std::unordered_map<uint32, uint32> ItemConvertMap;
 
 typedef std::multimap<int32, uint32> ExclusiveQuestGroupsMap;
 typedef std::multimap<uint32, ItemRequiredTarget> ItemRequiredTargetMap;
@@ -238,7 +238,7 @@ struct MailLevelReward
 };
 
 typedef std::list<MailLevelReward> MailLevelRewardList;
-typedef UNORDERED_MAP<uint8, MailLevelRewardList> MailLevelRewardMap;
+typedef std::unordered_map<uint8, MailLevelRewardList> MailLevelRewardMap;
 
 // We assume the rate is in general the same for all three types below, but chose to keep three for scalability and customization
 struct RepRewardRate
@@ -334,7 +334,7 @@ struct QuestPOI
 };
 
 typedef std::vector<QuestPOI> QuestPOIVector;
-typedef UNORDERED_MAP<uint32, QuestPOIVector> QuestPOIMap;
+typedef std::unordered_map<uint32, QuestPOIVector> QuestPOIMap;
 
 struct DungeonEncounter
 {
@@ -362,7 +362,7 @@ struct DungeonFinderRequirements
     DungeonFinderRequirements()
         : minItemLevel(0), item(0), item2(0), allianceQuestId(0), hordeQuestId(0), achievement(0) {}
     DungeonFinderRequirements(uint32 MinItemLevel, uint32 Item, uint32 Item2, uint32 AllianceQuestId,
-        uint32 HordeQuestId, uint32 Achievement, const char* QuestIncompleteText)
+                              uint32 HordeQuestId, uint32 Achievement, const char* QuestIncompleteText)
         : minItemLevel(MinItemLevel), item(Item), item2(Item2), allianceQuestId(AllianceQuestId),
         hordeQuestId(HordeQuestId), achievement(Achievement), questIncompleteText(QuestIncompleteText) {}
 };
@@ -390,9 +390,9 @@ struct DungeonFinderItems
         : minLevel(MinLevel), maxLevel(MaxLevel), itemReward(ItemReward), itemAmount(ItemAmount), dungeonType(DungeonType) {}
 };
 
-typedef UNORDERED_MAP<uint32, DungeonFinderRequirements> DungeonFinderRequirementsMap;
-typedef UNORDERED_MAP<uint32, DungeonFinderRewards> DungeonFinderRewardsMap;
-typedef UNORDERED_MAP<uint32, DungeonFinderItems> DungeonFinderItemsMap;
+typedef std::unordered_map<uint32, DungeonFinderRequirements> DungeonFinderRequirementsMap;
+typedef std::unordered_map<uint32, DungeonFinderRewards> DungeonFinderRewardsMap;
+typedef std::unordered_map<uint32, DungeonFinderItems> DungeonFinderItemsMap;
 
 struct GraveYardData
 {
@@ -426,7 +426,7 @@ enum ConditionType
     CONDITION_LEVEL                 = 15,                   // player_level 0, 1 or 2 (0: equal to, 1: equal or higher than, 2: equal or less than)
     CONDITION_NOITEM                = 16,                   // item_id      count   check not present req. amount items in inventory
     CONDITION_SPELL                 = 17,                   // spell_id     0, 1 (0: has spell, 1: hasn't spell)
-    CONDITION_INSTANCE_SCRIPT       = 18,                   // instance_condition_id (instance script specific enum) 0
+    CONDITION_INSTANCE_SCRIPT       = 18,                   // map_id       instance_condition_id (instance script specific enum)
     CONDITION_QUESTAVAILABLE        = 19,                   // quest_id     0       for case when loot/gossip possible only if player can start quest
     CONDITION_ACHIEVEMENT           = 20,                   // ach_id       0, 1 (0: has achievement, 1: hasn't achievement) for player
     CONDITION_ACHIEVEMENT_REALM     = 21,                   // ach_id       0, 1 (0: has achievement, 1: hasn't achievement) for server
@@ -452,6 +452,7 @@ enum ConditionType
     CONDITION_DEAD_OR_AWAY          = 36,                   // value1: 0=player dead, 1=player is dead (with group dead), 2=player in instance are dead, 3=creature is dead
                                                             // value2: if != 0 only consider players in range of this value
     CONDITION_CREATURE_IN_RANGE     = 37,                   // value1: creature entry; value2: range; returns only alive creatures
+    CONDITION_GAMEOBJECT_IN_RANGE   = 38,                   // value1: gameobject entry; value2: range
 };
 
 enum ConditionSource                                        // From where was the condition called?
@@ -500,10 +501,10 @@ class PlayerCondition
 };
 
 // NPC gossip text id
-typedef UNORDERED_MAP<uint32, uint32> CacheNpcTextIdMap;
+typedef std::unordered_map<uint32, uint32> CacheNpcTextIdMap;
 
-typedef UNORDERED_MAP<uint32, VendorItemData> CacheVendorItemMap;
-typedef UNORDERED_MAP<uint32, TrainerSpellData> CacheTrainerSpellMap;
+typedef std::unordered_map<uint32, VendorItemData> CacheVendorItemMap;
+typedef std::unordered_map<uint32, TrainerSpellData> CacheTrainerSpellMap;
 
 enum SkillRangeType
 {
@@ -576,21 +577,21 @@ class ObjectMgr
         ObjectMgr();
         ~ObjectMgr();
 
-        typedef UNORDERED_MAP<uint32, Item*> ItemMap;
+        typedef std::unordered_map<uint32, Item*> ItemMap;
 
-        typedef UNORDERED_MAP<uint32, Group*> GroupMap;
+        typedef std::unordered_map<uint32, Group*> GroupMap;
 
-        typedef UNORDERED_MAP<uint32, ArenaTeam*> ArenaTeamMap;
+        typedef std::unordered_map<uint32, ArenaTeam*> ArenaTeamMap;
 
-        typedef UNORDERED_MAP<uint32, Quest*> QuestMap;
+        typedef std::unordered_map<uint32, Quest*> QuestMap;
 
-        typedef UNORDERED_MAP<uint32, AreaTrigger> AreaTriggerMap;
+        typedef std::unordered_map<uint32, AreaTrigger> AreaTriggerMap;
 
-        typedef UNORDERED_MAP<uint32, RepRewardRate > RepRewardRateMap;
-        typedef UNORDERED_MAP<uint32, ReputationOnKillEntry> RepOnKillMap;
-        typedef UNORDERED_MAP<uint32, RepSpilloverTemplate> RepSpilloverTemplateMap;
+        typedef std::unordered_map<uint32, RepRewardRate > RepRewardRateMap;
+        typedef std::unordered_map<uint32, ReputationOnKillEntry> RepOnKillMap;
+        typedef std::unordered_map<uint32, RepSpilloverTemplate> RepSpilloverTemplateMap;
 
-        typedef UNORDERED_MAP<uint32, PointOfInterest> PointOfInterestMap;
+        typedef std::unordered_map<uint32, PointOfInterest> PointOfInterestMap;
 
         void LoadGameobjectInfo();
         void AddGameobjectInfo(GameObjectInfo* goinfo);
@@ -772,8 +773,8 @@ class ObjectMgr
 
         // Static wrappers for various accessors
         static GameObjectInfo const* GetGameObjectInfo(uint32 id);                  ///< Wrapper for sGOStorage.LookupEntry
-        static Player* GetPlayer(const char* name);                                 ///< Wrapper for ObjectAccessor::FindPlayerByName
-        static Player* GetPlayer(ObjectGuid guid, bool inWorld = true);             ///< Wrapper for ObjectAccessor::FindPlayer
+        static Player* GetPlayer(const char* name);                                 ///< Wrapper for sObjectAccessor.FindPlayerByName
+        static Player* GetPlayer(ObjectGuid guid, bool inWorld = true);             ///< Wrapper for sObjectAccessor.FindPlayer
         static CreatureInfo const* GetCreatureTemplate(uint32 id);                  ///< Wrapper for sCreatureStorage.LookupEntry
         static CreatureModelInfo const* GetCreatureModelInfo(uint32 modelid);       ///< Wrapper for sCreatureModelStorage.LookupEntry
         static EquipmentInfo const* GetEquipmentInfo(uint32 entry);                 ///< Wrapper for sEquipmentStorage.LookupEntry
@@ -877,6 +878,7 @@ class ObjectMgr
         {
             LoadTrainers("npc_trainer", false);
         }
+
         /// @param _map Map* of the map for which to load active entities. If NULL active entities on continents are loaded
         void LoadActiveEntities(Map* _map);
 
@@ -885,7 +887,10 @@ class ObjectMgr
         std::string GeneratePetName(uint32 entry);
         uint32 GetBaseXP(uint32 level) const;
         uint32 GetXPForLevel(uint32 level) const;
-        uint32 GetXPForPetLevel(uint32 level) const { return GetXPForLevel(level) / 20; }
+        uint32 GetXPForPetLevel(uint32 level) const
+        {
+            return GetXPForLevel(level) / 20;
+        }
 
         int32 GetFishingBaseSkillLevel(uint32 entry) const
         {
@@ -1413,8 +1418,8 @@ class ObjectMgr
 
         QuestMap            mQuestTemplates;
 
-        typedef UNORDERED_MAP<uint32, GossipText> GossipTextMap;
-        typedef UNORDERED_MAP<uint32, uint32> QuestAreaTriggerMap;
+        typedef std::unordered_map<uint32, GossipText> GossipTextMap;
+        typedef std::unordered_map<uint32, uint32> QuestAreaTriggerMap;
         typedef std::set<uint32> TavernAreaTriggerSet;
         typedef std::set<uint32> GameObjectForQuestSet;
 

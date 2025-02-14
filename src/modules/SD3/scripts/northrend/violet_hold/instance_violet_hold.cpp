@@ -1,4 +1,11 @@
-/* Copyright (C) 2006 - 2013 ScriptDev2 <http://www.scriptdev2.com/>
+/**
+ * ScriptDev3 is an extension for mangos providing enhanced features for
+ * area triggers, creatures, game objects, instances, items, and spells beyond
+ * the default database scripting in mangos.
+ *
+ * Copyright (C) 2006-2013 ScriptDev2 <http://www.scriptdev2.com/>
+ * Copyright (C) 2014-2025 MaNGOS <https://www.getmangos.eu>
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -26,6 +33,7 @@ EndScriptData */
 
 #include "precompiled.h"
 #include "violet_hold.h"
+#include <random>
 
 struct BossInformation
 {
@@ -834,7 +842,10 @@ struct is_violet_hold : public InstanceScript
 
             if (m_vRandomBosses.size() < 2)                         // Get some new random bosses
             {
-                std::random_shuffle(m_vRandomBossList.begin(), m_vRandomBossList.end());
+                //std::random_shuffle(m_vRandomBossList.begin(), m_vRandomBossList.end());
+                std::mt19937 rng(std::time(nullptr));
+                std::shuffle(m_vRandomBossList.begin(), m_vRandomBossList.end(), rng);
+
                 // two required, in case the first is already pushed to m_vRandomBosses
                 if (m_vRandomBossList.size() < 2)
                 {

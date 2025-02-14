@@ -2,7 +2,7 @@
  * MaNGOS is a full featured server for World of Warcraft, supporting
  * the following clients: 1.12.x, 2.4.3, 3.3.5a, 4.3.4a and 5.4.8
  *
- * Copyright (C) 2005-2021 MaNGOS <https://getmangos.eu>
+ * Copyright (C) 2005-2025 MaNGOS <https://www.getmangos.eu>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -54,7 +54,7 @@ namespace MaNGOS
             /// <param name="textId">The text id.</param>
             /// <param name="source">The source.</param>
             /// <param name="args">The args.</param>
-            BattleGroundChatBuilder(ChatMsg msgtype, int32 textId, Player const* source, va_list* args = NULL)
+            BattleGroundChatBuilder(ChatMsg msgtype, int32 textId, Player const* source, va_list* args = nullptr)
                 : i_msgtype(msgtype), i_textId(textId), i_source(source), i_args(args) {}
             void operator()(WorldPacket& data, int32 loc_idx)
             {
@@ -188,7 +188,7 @@ namespace MaNGOS
 
                 char str [2048];
                 snprintf(str, 2048, text, arg1str, arg2str);
-                // copyied from BuildMonsterChat
+                // copied from BuildMonsterChat
                 data << uint8(CHAT_MSG_MONSTER_YELL);
                 data << uint32(i_language);
                 data << ObjectGuid(i_source->GetObjectGuid());
@@ -214,10 +214,12 @@ template<class Do>
 void BattleGround::BroadcastWorker(Do& _do)
 {
     for (BattleGroundPlayerMap::const_iterator itr = m_Players.begin(); itr != m_Players.end(); ++itr)
-        if (Player* plr = ObjectAccessor::FindPlayer(itr->first))
+    {
+        if (Player* plr = sObjectAccessor.FindPlayer(itr->first))
         {
             _do(plr);
         }
+    }
 }
 
 BattleGround::BattleGround(): m_BuffChange(false), m_ArenaBuffSpawned(false), m_StartDelayTime(0), m_startMaxDist(0)
@@ -482,6 +484,13 @@ void BattleGround::Update(uint32 diff)
         else if (GetStartDelayTime() <= 0 && !(m_Events & BG_STARTING_EVENT_4))
         {
             m_Events |= BG_STARTING_EVENT_4;
+
+#ifdef ENABLE_ELUNA
+            if (Eluna* e = this->GetBgMap()->GetEluna())
+            {
+                e->OnBGCreate(this, GetTypeID(), GetInstanceID());
+            }
+#endif /* ENABLE_ELUNA */
 
             StartingEventOpenDoors();
 
@@ -832,7 +841,10 @@ void BattleGround::UpdateWorldStateForPlayer(uint32 Field, uint32 Value, Player*
 void BattleGround::EndBattleGround(Team winner)
 {
 #ifdef ENABLE_ELUNA
-    sEluna->OnBGEnd(this, GetTypeID(), GetInstanceID(), winner);
+    if (Eluna* e = GetBgMap()->GetEluna())
+    {
+        e->OnBGEnd(this, GetTypeID(), GetInstanceID(), winner);
+    }
 #endif /* ENABLE_ELUNA */
     this->RemoveFromBGFreeSlotQueue();
 
@@ -877,7 +889,7 @@ void BattleGround::EndBattleGround(Team winner)
         uint8 battleground_type = (uint8)GetTypeID();
 
         // query next id
-        result = CharacterDatabase.Query("SELECT MAX(id) FROM pvpstats_battlegrounds");
+        result = CharacterDatabase.Query("SELECT MAX(`id`) FROM `pvpstats_battlegrounds`");
         if (result)
         {
             Field* fields = result->Fetch();
@@ -1008,7 +1020,7 @@ void BattleGround::EndBattleGround(Team winner)
         {
             static SqlStatementID insPvPstatsPlayer;
             BattleGroundScoreMap::iterator score = m_PlayerScores.find(itr->first);
-            SqlStatement stmt = CharacterDatabase.CreateStatement(insPvPstatsPlayer, "INSERT INTO pvpstats_players (battleground_id, character_guid, score_killing_blows, score_deaths, score_honorable_kills, score_bonus_honor, score_damage_done, score_healing_done, attr_1, attr_2, attr_3, attr_4, attr_5) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            SqlStatement stmt = CharacterDatabase.CreateStatement(insPvPstatsPlayer, "INSERT INTO `pvpstats_players` (`battleground_id`, `character_guid`, `score_killing_blows`, `score_deaths`, `score_honorable_kills`, `score_bonus_honor`, `score_damage_done`, `score_healing_done`, `attr_1`, `attr_2`, `attr_3`, `attr_4`, `attr_5`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
             stmt.addUInt32(battleground_id);
             stmt.addUInt32(plr->GetGUIDLow());
@@ -1495,7 +1507,10 @@ void BattleGround::StartBattleGround()
     sBattleGroundMgr.AddBattleGround(GetInstanceID(), GetTypeID(), this);
 
 #ifdef ENABLE_ELUNA
-    sEluna->OnBGStart(this, GetTypeID(), GetInstanceID());
+    if (Eluna* e = GetBgMap()->GetEluna())
+    {
+        e->OnBGCreate(this, GetTypeID(), GetInstanceID());
+    }
 #endif /* ENABLE_ELUNA */
 }
 
@@ -1532,7 +1547,11 @@ void BattleGround::AddPlayer(Player* plr)
     // Add to list/maps
     m_Players[guid] = bp;
 
-    UpdatePlayersCountByTeam(team, false);                  // +1 player
+    bool const isInBattleground = IsPlayerInBattleGround(guid);
+    if (!isInBattleground)
+    {
+        UpdatePlayersCountByTeam(team, false); // +1 player
+    }
 
     WorldPacket data;
     sBattleGroundMgr.BuildPlayerJoinedBattleGroundPacket(&data, plr);
@@ -1841,23 +1860,10 @@ void BattleGround::DoorOpen(ObjectGuid guid)
     }
 }
 
-Team BattleGround::GetPrematureWinner()
-{
-    uint32 hordePlayers = GetPlayersCountByTeam(HORDE);
-    uint32 alliancePlayers = GetPlayersCountByTeam(ALLIANCE);
-
-    if (hordePlayers > alliancePlayers)
-    {
-        return HORDE;
-    }
-    if (alliancePlayers > hordePlayers)
-    {
-        return ALLIANCE;
-    }
-
-    return TEAM_NONE;
-}
-
+/// <summary>
+/// Called when [object DB load].
+/// </summary>
+/// <param name="creature">The creature.</param>
 void BattleGround::OnObjectDBLoad(Creature* creature)
 {
     const BattleGroundEventIdx eventId = sBattleGroundMgr.GetCreatureEventIndex(creature->GetGUIDLow());
@@ -2345,4 +2351,27 @@ void BattleGround::SetBracket(PvPDifficultyEntry const* bracketEntry)
 {
     m_BracketId  = bracketEntry->GetBracketId();
     SetLevelRange(bracketEntry->minLevel, bracketEntry->maxLevel);
+}
+
+/// <summary>
+/// Gets the winner in case of premature finish of the BG.
+/// Different BG's may have different criteria for choosing the winner besides simple player accounting
+/// </summary>
+/// <returns>The winner team</returns>
+Team BattleGround::GetPrematureWinner()
+{
+    uint32 hordePlayers = GetPlayersCountByTeam(HORDE);
+    uint32 alliancePlayers = GetPlayersCountByTeam(ALLIANCE);
+
+    if (alliancePlayers > hordePlayers)
+    {
+        return ALLIANCE;
+    }
+
+    if (hordePlayers > alliancePlayers)
+    {
+        return HORDE;
+    }
+
+    return TEAM_NONE;
 }

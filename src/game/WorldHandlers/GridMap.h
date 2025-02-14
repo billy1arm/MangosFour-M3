@@ -2,7 +2,7 @@
  * MaNGOS is a full featured server for World of Warcraft, supporting
  * the following clients: 1.12.x, 2.4.3, 3.3.5a, 4.3.4a and 5.4.8
  *
- * Copyright (C) 2005-2021 MaNGOS <https://getmangos.eu>
+ * Copyright (C) 2005-2025 MaNGOS <https://www.getmangos.eu>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -196,7 +196,7 @@ class GridMap
 };
 
 template<typename Countable>
-class  Referencable
+class Referencable
 {
     public:
         Referencable() { m_count = 0; }
@@ -222,7 +222,7 @@ typedef ACE_Atomic_Op<ACE_Thread_Mutex, long> AtomicLong;
 #define DEFAULT_WATER_SEARCH      50.0f                     // default search distance to case detection water level
 
 // class for sharing and managin GridMap objects
-class  TerrainInfo : public Referencable<AtomicLong>
+class TerrainInfo : public Referencable<AtomicLong>
 {
     public:
         TerrainInfo(uint32 mapid);
@@ -291,7 +291,7 @@ class  TerrainInfo : public Referencable<AtomicLong>
 // class for managing TerrainData object and all sort of geometry querying operations
 class TerrainManager : public MaNGOS::Singleton<TerrainManager, MaNGOS::ClassLevelLockable<TerrainManager, ACE_Thread_Mutex> >
 {
-        typedef UNORDERED_MAP<uint32,  TerrainInfo*> TerrainDataMap;
+        typedef std::unordered_map<uint32,  TerrainInfo*> TerrainDataMap;
         friend class MaNGOS::OperatorNew<TerrainManager>;
 
     public:

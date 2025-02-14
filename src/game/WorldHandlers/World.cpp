@@ -2,7 +2,7 @@
  * MaNGOS is a full featured server for World of Warcraft, supporting
  * the following clients: 1.12.x, 2.4.3, 3.3.5a, 4.3.4a and 5.4.8
  *
- * Copyright (C) 2005-2021 MaNGOS <https://getmangos.eu>
+ * Copyright (C) 2005-2025 MaNGOS <https://www.getmangos.eu>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -79,12 +79,14 @@
 #include "DisableMgr.h"
 #include "Language.h"
 #include "CommandMgr.h"
-#include "revision.h"
+#include "GitRevision.h"
 #include "UpdateTime.h"
 #include "GameTime.h"
 
 #ifdef ENABLE_ELUNA
 #include "LuaEngine.h"
+#include "ElunaConfig.h"
+#include "ElunaLoader.h"
 #endif /* ENABLE_ELUNA */
 
 // WARDEN
@@ -161,6 +163,11 @@ World::World(): mail_timer(0), mail_timer_expires(0), m_NextMonthlyQuestReset(0)
 World::~World()
 {
     // it is assumed that no other thread is accessing this data when the destructor is called.  therefore, no locks are necessary
+#ifdef ENABLE_ELUNA
+    // Delete world Eluna state
+    delete eluna;
+    eluna = nullptr;
+#endif /* ENABLE_ELUNA */
 
     ///- Empty the kicked session set
     for (auto const session : m_sessions)
@@ -188,9 +195,6 @@ void World::CleanupsBeforeStop()
     KickAll();                                       // save and kick all players
     UpdateSessions(1);                               // real players unload required UpdateSessions call
     sBattleGroundMgr.DeleteAllBattleGrounds();       // unload battleground templates before different singletons destroyed
-#ifdef ENABLE_ELUNA
-    Eluna::Uninitialize();
-#endif
 }
 
 /// Find a player in a specified zone
@@ -580,15 +584,6 @@ void World::LoadConfigSettings(bool reload)
     setConfig(CONFIG_BOOL_GRID_UNLOAD, "GridUnload", true);
     setConfig(CONFIG_UINT32_MAX_WHOLIST_RETURNS, "MaxWhoListReturns", 49);
 
-    std::string forceLoadGridOnMaps = sConfig.GetStringDefault("LoadAllGridsOnMaps", "");
-    if (!forceLoadGridOnMaps.empty())
-    {
-        unsigned int pos = 0;
-        unsigned int id;
-        VMAP::VMapFactory::chompAndTrim(forceLoadGridOnMaps);
-        while (VMAP::VMapFactory::getNextId(forceLoadGridOnMaps, pos, id))
-            m_configForceLoadMapIds.insert(id);
-    }
     setConfig(CONFIG_UINT32_AUTOBROADCAST_INTERVAL, "AutoBroadcast", 600);
 
     if (getConfig(CONFIG_UINT32_AUTOBROADCAST_INTERVAL) > 0)
@@ -605,6 +600,17 @@ void World::LoadConfigSettings(bool reload)
         m_broadcastTimer.SetInterval(getConfig(CONFIG_UINT32_AUTOBROADCAST_INTERVAL) * IN_MILLISECONDS);
     }
 
+
+    std::string forceLoadGridOnMaps = sConfig.GetStringDefault("LoadAllGridsOnMaps", "");
+    if (!forceLoadGridOnMaps.empty())
+    {
+        unsigned int pos = 0;
+        unsigned int id;
+        VMAP::VMapFactory::chompAndTrim(forceLoadGridOnMaps);
+        while (VMAP::VMapFactory::getNextId(forceLoadGridOnMaps, pos, id))
+            m_configForceLoadMapIds.insert(id);
+    }
+
     setConfig(CONFIG_UINT32_INTERVAL_SAVE, "PlayerSave.Interval", 15 * MINUTE * IN_MILLISECONDS);
     setConfigMinMax(CONFIG_UINT32_MIN_LEVEL_STAT_SAVE, "PlayerSave.Stats.MinLevel", 0, 0, MAX_LEVEL);
     setConfig(CONFIG_BOOL_STATS_SAVE_ONLY_ON_LOGOUT, "PlayerSave.Stats.SaveOnlyOnLogout", true);
@@ -614,6 +620,8 @@ void World::LoadConfigSettings(bool reload)
     {
         sMapMgr.SetGridCleanUpDelay(getConfig(CONFIG_UINT32_INTERVAL_GRIDCLEAN));
     }
+
+    setConfig(CONFIG_UINT32_NUMTHREADS, "MapUpdateThreads", 2);
 
     setConfigMin(CONFIG_UINT32_INTERVAL_MAPUPDATE, "MapUpdateInterval", 100, MIN_MAP_UPDATE_DELAY);
     if (reload)
@@ -703,15 +711,13 @@ void World::LoadConfigSettings(bool reload)
 
     setConfigMinMax(CONFIG_UINT32_MAX_PRIMARY_TRADE_SKILL, "MaxPrimaryTradeSkill", 2, 0, 10);
 
-    setConfigMinMax(CONFIG_UINT32_TRADE_SKILL_GMIGNORE_MAX_PRIMARY_COUNT, "TradeSkill.GMIgnore.MaxPrimarySkillsCount", SEC_CONSOLE, SEC_PLAYER, SEC_CONSOLE);
-    setConfigMinMax(CONFIG_UINT32_TRADE_SKILL_GMIGNORE_LEVEL, "TradeSkill.GMIgnore.Level", SEC_CONSOLE, SEC_PLAYER, SEC_CONSOLE);
-    setConfigMinMax(CONFIG_UINT32_TRADE_SKILL_GMIGNORE_SKILL, "TradeSkill.GMIgnore.Skill", SEC_CONSOLE, SEC_PLAYER, SEC_CONSOLE);
-
-    setConfigMinMax(CONFIG_UINT32_MIN_PETITION_SIGNS, "MinPetitionSigns", 4, 0, 4);
+    setConfigMinMax(CONFIG_UINT32_MIN_PETITION_SIGNS, "MinPetitionSigns", 9, 0, 9);
 
     setConfig(CONFIG_UINT32_GM_LOGIN_STATE,          "GM.LoginState",      2);
     setConfig(CONFIG_UINT32_GM_VISIBLE_STATE,        "GM.Visible",         2);
     setConfig(CONFIG_UINT32_GM_ACCEPT_TICKETS,       "GM.AcceptTickets",   2);
+    setConfig(CONFIG_UINT32_GM_TICKET_LIST_SIZE,     "GM.TicketListSize", 30);
+    setConfig(CONFIG_BOOL_GM_TICKET_OFFLINE_CLOSING, "GM.TicketOfflineClosing", false);
     setConfig(CONFIG_UINT32_GM_CHAT,                 "GM.Chat",            2);
     setConfig(CONFIG_UINT32_GM_WISPERING_TO,         "GM.WhisperingTo",    2);
 
@@ -723,6 +729,7 @@ void World::LoadConfigSettings(bool reload)
     setConfig(CONFIG_BOOL_GM_LOWER_SECURITY, "GM.LowerSecurity", false);
     setConfig(CONFIG_BOOL_GM_ALLOW_ACHIEVEMENT_GAINS, "GM.AllowAchievementGain", true);
     setConfig(CONFIG_UINT32_GM_INVISIBLE_AURA, "GM.InvisibleAura", 37800);
+    setConfig(CONFIG_UINT32_GM_MAX_SPEED_FACTOR, "GM.MaxSpeedFactor", 10);
 
     setConfig(CONFIG_UINT32_GROUP_VISIBILITY, "Visibility.GroupMode", 0);
 
@@ -875,6 +882,7 @@ void World::LoadConfigSettings(bool reload)
 
     setConfig(CONFIG_UINT32_INSTANT_LOGOUT, "InstantLogout", SEC_MODERATOR);
 
+    setConfig(CONFIG_UNIT32_GUILD_PETITION_COST, "Guild.PetitionCost", 1000);
     setConfigMin(CONFIG_UINT32_GUILD_EVENT_LOG_COUNT, "Guild.EventLogRecordsCount", GUILD_EVENTLOG_MAX_RECORDS, GUILD_EVENTLOG_MAX_RECORDS);
     setConfigMin(CONFIG_UINT32_GUILD_BANK_EVENT_LOG_COUNT, "Guild.BankEventLogRecordsCount", GUILD_BANK_MAX_LOGS, GUILD_BANK_MAX_LOGS);
     setConfig(CONGIG_UINT32_GUILD_UNDELETABLE_LEVEL, "Guild.UndeletableLevel", 4);
@@ -887,7 +895,11 @@ void World::LoadConfigSettings(bool reload)
     setConfig(CONFIG_UINT32_TIMERBAR_FIRE_GMLEVEL,    "TimerBar.Fire.GMLevel", SEC_CONSOLE);
     setConfig(CONFIG_UINT32_TIMERBAR_FIRE_MAX,        "TimerBar.Fire.Max", 1);
 
+    setConfig(CONFIG_UINT32_LOG_WHISPERS,             "LogWhispers", 1);
+
     setConfig(CONFIG_BOOL_PET_UNSUMMON_AT_MOUNT,      "PetUnsummonAtMount", true);
+
+    setConfig(CONFIG_BOOL_ENABLE_QUEST_TRACKER,        "QuestTracker.Enable", 0);
 
     // Warden
 /* badly broken on m3 :( - this causes all these defaults to be set to 0
@@ -900,6 +912,10 @@ void World::LoadConfigSettings(bool reload)
     setConfig(CONFIG_UINT32_WARDEN_CLIENT_FAIL_ACTION, "Warden.ClientCheckFailAction", 0);
     setConfig(CONFIG_UINT32_WARDEN_CLIENT_RESPONSE_DELAY, "Warden.ClientResponseDelay", 600);
     setConfig(CONFIG_UINT32_WARDEN_DB_LOGLEVEL, "Warden.DBLogLevel", 0); */
+
+    // Recommended Or New Flag
+    setConfig(CONFIG_BOOL_REALM_RECOMMENDED_OR_NEW_ENABLED, "Realm.RecommendedOrNew.Enabled", false);
+    setConfig(CONFIG_BOOL_REALM_RECOMMENDED_OR_NEW, "Realm.RecommendedOrNew", false);
 
     m_relocation_ai_notify_delay = sConfig.GetIntDefault("Visibility.AIRelocationNotifyDelay", 1000u);
     m_relocation_lower_limit_sq  = pow(sConfig.GetFloatDefault("Visibility.RelocationLowerLimit", 10), 2);
@@ -1028,12 +1044,13 @@ void World::LoadConfigSettings(bool reload)
     MMAP::MMapFactory::preventPathfindingOnMaps(ignoreMapIds.c_str());
     sLog.outString("WORLD: MMap pathfinding %sabled", getConfig(CONFIG_BOOL_MMAP_ENABLED) ? "en" : "dis");
 
-    setConfig(CONFIG_BOOL_ELUNA_ENABLED, "Eluna.Enabled", true);
-
 #ifdef ENABLE_ELUNA
     if (reload)
     {
-        sEluna->OnConfigLoad(reload);
+        if (Eluna* e = GetEluna())
+        {
+            e->OnConfigLoad(reload);
+        }
     }
 #endif /* ENABLE_ELUNA */
     sLog.outString();
@@ -1137,8 +1154,19 @@ void World::SetInitialWorldSettings()
 
 #ifdef ENABLE_ELUNA
     ///- Initialize Lua Engine
-    sLog.outString("Initialize Eluna Lua Engine...");
-    Eluna::Initialize();
+
+    // lua state begins uninitialized
+    eluna = nullptr;
+
+    sLog.outString("Loading Eluna config...");
+    sElunaConfig->Initialize();
+
+    if (sElunaConfig->IsElunaEnabled())
+    {
+        ///- Initialize Lua Engine
+        sLog.outString("Loading Lua scripts...");
+        sElunaLoader->LoadScripts();
+    }
 #endif /* ENABLE_ELUNA */
 
     sLog.outString("Loading Page Texts...");
@@ -1406,7 +1434,7 @@ void World::SetInitialWorldSettings()
     sObjectMgr.LoadPageTextLocales();                       // must be after PageText loading
     sObjectMgr.LoadGossipMenuItemsLocales();                // must be after gossip menu items loading
     sObjectMgr.LoadPointOfInterestLocales();                // must be after POI loading
-    sCommandMgr.LoadCommandHelpLocale();
+    //sCommandMgr.LoadCommandHelpLocale();                  TODO: Need to figure out why this crashes
     sLog.outString(">>> Localization strings loaded");
     sLog.outString();
 
@@ -1458,6 +1486,17 @@ void World::SetInitialWorldSettings()
     ///- Handle outdated emails (delete/return)
     sLog.outString("Returning old mails...");
     sObjectMgr.ReturnOrDeleteOldMails(false);
+
+#ifdef ENABLE_ELUNA
+    if (sElunaConfig->IsElunaEnabled())
+    {
+        ///- Run eluna scripts.
+        sLog.outString("Starting Eluna world state...");
+        // use map id -1 for the global Eluna state
+        eluna = new Eluna(nullptr, sElunaConfig->IsElunaCompatibilityMode());
+        sLog.outString();
+    }
+#endif /*ENABLE_ELUNA*/
 
     ///- Load and initialize DBScripts Engine
     sLog.outString("Loading DB-Scripts Engine...");
@@ -1615,6 +1654,10 @@ void World::SetInitialWorldSettings()
     //sObjectMgr.LoadActiveEntities(NULL);
     //sLog.outString();
 
+    sLog.outString("Loading grids for active creatures or transports...");
+    sObjectMgr.LoadActiveEntities(NULL);
+    sLog.outString();
+
     // Delete all characters which have been deleted X days before
     Player::DeleteOldCharacters();
 
@@ -1625,8 +1668,10 @@ void World::SetInitialWorldSettings()
 #ifdef ENABLE_ELUNA
     ///- Run eluna scripts.
     // in multithread foreach: run scripts
-    sEluna->RunScripts();
-    sEluna->OnConfigLoad(false); // Must be done after Eluna is initialized and scripts have run.
+    if (Eluna* e = GetEluna())
+    {
+        e->OnConfigLoad(false); // Must be done after Eluna is initialized and scripts have run.
+    }
 #endif
 
 #ifdef ENABLE_PLAYERBOTS
@@ -1718,14 +1763,15 @@ void World::showFooter()
         "_______________________________________________________\n"
         "\n"
         "        Server Version : %s\n"
-        "      Database Version : Rel%i.%i.%i\n"
+        "      Database Version : Rel%s.%s.%s\n"
         "\n"
         "    Supporting Clients : %s\n"
         "                Builds : %s\n"
         "\n"
         "         Module Status -\n%s\n"
         "_______________________________________________________\n"
-        , REVISION_NR, WORLD_DB_VERSION_NR, WORLD_DB_STRUCTURE_NR, WORLD_DB_CONTENT_NR, thisClientVersion.c_str(), thisClientBuilds.c_str(), sModules.c_str());
+        , GitRevision::GetProductVersionStr(), GitRevision::GetWorldDBVersion(), GitRevision::GetWorldDBStructure(), GitRevision::GetWorldDBContent(),
+            thisClientVersion.c_str(), thisClientBuilds.c_str(), sModules.c_str());
 }
 
 void World::DetectDBCLang()
@@ -1886,7 +1932,11 @@ void World::Update(uint32 diff)
 
     ///- Used by Eluna
 #ifdef ENABLE_ELUNA
-    sEluna->OnWorldUpdate(diff);
+    if (Eluna* e = GetEluna())
+    {
+        e->UpdateEluna(diff);
+        e->OnWorldUpdate(diff);
+    }
 #endif /* ENABLE_ELUNA */
 
     ///- Delete all characters which have been deleted X days before
@@ -2005,13 +2055,17 @@ void World::SendWorldText(int32 string_id, ...)
     va_end(ap);
 }
 
-/// Sends a packet to all players with optional team and instance restrictions
-void World::SendGlobalMessage(WorldPacket* packet)
+/// Sends a packet to all players with optional account access level restrictions
+void World::SendGlobalMessage(WorldPacket* packet, AccountTypes minSec)
 {
     for (SessionMap::const_iterator itr = m_sessions.begin(); itr != m_sessions.end(); ++itr)
     {
         if (WorldSession* session = itr->second)
         {
+            if (session->GetSecurity() < minSec)
+            {
+                continue;
+            }
             Player* player = session->GetPlayer();
             if (player && player->IsInWorld())
             {
@@ -2268,7 +2322,10 @@ void World::ShutdownServ(uint32 time, uint32 options, uint8 exitcode)
 
     ///- Used by Eluna
 #ifdef ENABLE_ELUNA
-    sEluna->OnShutdownInitiate(ShutdownExitCode(exitcode), ShutdownMask(options));
+    if (Eluna* e = GetEluna())
+    {
+        e->OnShutdownInitiate(ShutdownExitCode(exitcode), ShutdownMask(options));
+    }
 #endif /* ENABLE_ELUNA */
 }
 
@@ -2289,7 +2346,7 @@ void World::ShutdownMsg(bool show /*= false*/, Player* player /*= NULL*/)
         (m_ShutdownTimer < 12 * HOUR && (m_ShutdownTimer % HOUR) == 0) ||           // < 12 h; every 1 h
         (m_ShutdownTimer >= 12 * HOUR && (m_ShutdownTimer % (12 * HOUR)) == 0))     // >= 12 h; every 12 h
     {
-        std::string str = secsToTimeString(m_ShutdownTimer);
+        std::string str = secsToTimeString(m_ShutdownTimer, TimeFormat::Numeric);
 
         ServerMessageType msgid = (m_ShutdownMask & SHUTDOWN_MASK_RESTART) ? SERVER_MSG_RESTART_TIME : SERVER_MSG_SHUTDOWN_TIME;
 
@@ -2318,7 +2375,10 @@ void World::ShutdownCancel()
 
     ///- Used by Eluna
 #ifdef ENABLE_ELUNA
-    sEluna->OnShutdownCancel();
+    if (Eluna* e = GetEluna())
+    {
+        e->OnShutdownCancel();
+    }
 #endif /* ENABLE_ELUNA */
 }
 
@@ -2423,7 +2483,8 @@ void World::InitWeeklyQuestResetTime()
 
     // generate time by config
     time_t curTime = time(NULL);
-    tm localTm = *localtime(&curTime);
+    tm localTm;
+    localtime_r(&curTime, &localTm);
 
     int week_day_offset = localTm.tm_wday - int(getConfig(CONFIG_UINT32_QUEST_WEEKLY_RESET_WEEK_DAY));
 
@@ -2467,7 +2528,9 @@ void World::InitDailyQuestResetTime()
 
     // generate time by config
     time_t curTime = time(NULL);
-    tm localTm = *localtime(&curTime);
+    tm localTm;
+    localtime_r(&curTime, &localTm);
+
     localTm.tm_hour = getConfig(CONFIG_UINT32_QUEST_DAILY_RESET_HOUR);
     localTm.tm_min  = 0;
     localTm.tm_sec  = 0;
@@ -2514,7 +2577,8 @@ void World::SetMonthlyQuestResetTime(bool initialize)
 
     // generate time
     time_t currentTime = time(NULL);
-    tm localTm = *localtime(&currentTime);
+    tm localTm;
+    localtime_r(&currentTime, &localTm);
 
     int month = localTm.tm_mon;
     int year = localTm.tm_year;
@@ -2561,7 +2625,8 @@ void World::InitCurrencyResetTime()
     {
         // generate time by config
         time_t curTime = time(NULL);
-        tm localTm = *localtime(&curTime);
+        tm localTm;
+        localtime_r(&curTime, &localTm);
 
         int week_day_offset = localTm.tm_wday - int(getConfig(CONFIG_UINT32_CURRENCY_RESET_TIME_WEEK_DAY));
 
@@ -2606,7 +2671,9 @@ void World::InitRandomBGResetTime()
 
     // generate time by config
     time_t curTime = time(NULL);
-    tm localTm = *localtime(&curTime);
+    tm localTm;
+    localtime_r(&curTime, &localTm);
+
     localTm.tm_hour = getConfig(CONFIG_UINT32_RANDOM_BG_RESET_HOUR);
     localTm.tm_min = 0;
     localTm.tm_sec = 0;
@@ -3046,7 +3113,7 @@ void World::LoadBroadcastStrings()
     }
     else
     {
-        sLog.outString(">> Loaded " SIZEFMTD " broadcast strings.", m_broadcastList.size());
+        sLog.outString(">> Loaded %zu broadcast strings.", m_broadcastList.size());
     }
 }
 

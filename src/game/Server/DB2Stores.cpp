@@ -2,7 +2,7 @@
  * MaNGOS is a full featured server for World of Warcraft, supporting
  * the following clients: 1.12.x, 2.4.3, 3.3.5a, 4.3.4a and 5.4.8
  *
- * Copyright (C) 2005-2021 MaNGOS <https://getmangos.eu>
+ * Copyright (C) 2005-2025 MaNGOS <https://www.getmangos.eu>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -92,7 +92,7 @@ inline void LoadDB2(LocalDB2Data& localeData, StoreProblemList1& errors, DB2Stor
         if (FILE* f = fopen(db2Filename.c_str(), "rb"))
         {
             char buf[100];
-            snprintf(buf, 100, " (exist, but have %d fields instead " SIZEFMTD ") Wrong client version DB2 file?", storage.GetFieldCount(), strlen(storage.GetFormat()));
+            snprintf(buf, 100, " (exist, but have %d fields instead %zu) Wrong client version DB2 file?", storage.GetFieldCount(), strlen(storage.GetFormat()));
             errors.push_back(db2Filename + buf);
             fclose(f);
         }

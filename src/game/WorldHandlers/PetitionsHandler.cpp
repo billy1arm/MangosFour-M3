@@ -2,7 +2,7 @@
  * MaNGOS is a full featured server for World of Warcraft, supporting
  * the following clients: 1.12.x, 2.4.3, 3.3.5a, 4.3.4a and 5.4.8
  *
- * Copyright (C) 2005-2021 MaNGOS <https://getmangos.eu>
+ * Copyright (C) 2005-2025 MaNGOS <https://www.getmangos.eu>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -44,7 +44,6 @@
 
 // Charters ID in item_template
 #define GUILD_CHARTER               5863
-#define GUILD_CHARTER_COST          1000                    // 10 S
 #define CHARTER_DISPLAY_ID          16161
 
 void WorldSession::HandlePetitionBuyOpcode(WorldPacket& recv_data)
@@ -114,7 +113,7 @@ void WorldSession::HandlePetitionBuyOpcode(WorldPacket& recv_data)
         return;
     }
 
-    if (_player->GetMoney() < GUILD_CHARTER_COST)
+    if (_player->GetMoney() < sWorld.getConfig(CONFIG_UNIT32_GUILD_PETITION_COST))
     {
         // player hasn't got enough money
         _player->SendBuyError(BUY_ERR_NOT_ENOUGHT_MONEY, pCreature, GUILD_CHARTER, 0);
@@ -129,7 +128,7 @@ void WorldSession::HandlePetitionBuyOpcode(WorldPacket& recv_data)
         return;
     }
 
-    _player->ModifyMoney(-(int64)GUILD_CHARTER_COST);
+    _player->ModifyMoney(-int64(sWorld.getConfig(CONFIG_UNIT32_GUILD_PETITION_COST)));
     Item* charter = _player->StoreNewItem(dest, GUILD_CHARTER, true);
     if (!charter)
     {
@@ -399,7 +398,8 @@ void WorldSession::HandlePetitionSignOpcode(WorldPacket& recv_data)
         return;
     }
 
-    if (++signs > 4)                                        // client signs maximum
+    /* todo: this needs to be handled properly */
+    if (++signs > sWorld.getConfig(CONFIG_UINT32_MIN_PETITION_SIGNS))
     {
         // close at signer side
         _player->SendPetitionSignResult(petitionGuid, _player, PETITION_SIGN_PETITION_FULL);
@@ -504,7 +504,7 @@ void WorldSession::HandleOfferPetitionOpcode(WorldPacket& recv_data)
     recv_data >> petitionGuid;                              // petition guid
     recv_data >> playerGuid;                                // player guid
 
-    Player* player = ObjectAccessor::FindPlayer(playerGuid);
+    Player* player = sObjectAccessor.FindPlayer(playerGuid);
     if (!player)
     {
         return;
@@ -701,31 +701,20 @@ void WorldSession::SendPetitionShowList(ObjectGuid guid)
         return;
     }
 
-    // only guild petitions currently used
-    if (!pCreature->IsTabardDesigner())
+    WorldPacket data(SMSG_PETITION_SHOWLIST, 8 + 1 + 4 * 6);
+    data << guid;                           // npc guid
+
+    if (pCreature->IsTabardDesigner())
     {
-        DEBUG_LOG("WORLD: HandlePetitionShowListOpcode - %s is not supported npc type.", guid.GetString().c_str());
-        return;
+        data << uint8(1);                   // count
+        data << uint32(1);                  // index
+        data << uint32(GUILD_CHARTER);      // charter entry
+        data << uint32(CHARTER_DISPLAY_ID); // charter display id
+        data << uint32(sWorld.getConfig(CONFIG_UNIT32_GUILD_PETITION_COST)); // charter cost
+        data << uint32(0);                  // unknown
+        data << uint32(sWorld.getConfig(CONFIG_UINT32_MIN_PETITION_SIGNS));  // required signs
     }
 
-    WorldPacket data(SMSG_PETITION_SHOWLIST, 8 + 1 + 4 * 6);
-    data << guid;                                           // npc guid
-    data << uint32(1);                                      // index
-    data << uint32(GUILD_CHARTER);                          // charter entry
-    data << uint32(CHARTER_DISPLAY_ID);                     // charter display id
-    data << uint32(GUILD_CHARTER_COST);                     // charter cost
-    data << uint32(0);                                      // unknown
-    data << uint32(4);                                      // required signs
-
-    // for(uint8 i = 0; i < count; ++i)
-    //{
-    //    data << uint32(i);                        // index
-    //    data << uint32(GUILD_CHARTER);            // charter entry
-    //    data << uint32(CHARTER_DISPLAY_ID);       // charter display id
-    //    data << uint32(GUILD_CHARTER_COST+i);     // charter cost
-    //    data << uint32(0);                        // unknown
-    //    data << uint32(9);                        // required signs
-    //}
     SendPacket(&data);
     DEBUG_LOG("Sent SMSG_PETITION_SHOWLIST");
 }

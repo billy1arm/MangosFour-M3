@@ -2,7 +2,7 @@
  * MaNGOS is a full featured server for World of Warcraft, supporting
  * the following clients: 1.12.x, 2.4.3, 3.3.5a, 4.3.4a and 5.4.8
  *
- * Copyright (C) 2005-2021 MaNGOS <https://getmangos.eu>
+ * Copyright (C) 2005-2025 MaNGOS <https://www.getmangos.eu>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,11 +23,14 @@
  */
 
 #include "Chat.h"
+#include "DBCStores.h"
 #include "Language.h"
-#include "World.h"
-#include "Weather.h"
+#include "ObjectAccessor.h"
+#include "Player.h"
 #include "SpellMgr.h"
-
+#include "Util.h"
+#include "Weather.h"
+#include "World.h"
 
  /**********************************************************************
      CommandTable : commandTable
@@ -129,7 +132,7 @@ bool ChatHandler::HandlePInfoCommand(char* args)
 
     PSendSysMessage(LANG_PINFO_ACCOUNT, (target ? "" : GetMangosString(LANG_OFFLINE)), nameLink.c_str(), target_guid.GetCounter(), username.c_str(), accId, security, email.c_str(), last_ip.c_str(), last_login.c_str(), latency);
 
-    std::string timeStr = secsToTimeString(total_player_time, true, true);
+    std::string timeStr = secsToTimeString(total_player_time, TimeFormat::ShortText, true);
     uint32 gold = money / GOLD;
     uint32 silv = (money % GOLD) / SILVER;
     uint32 copp = (money % GOLD) % SILVER;
@@ -297,21 +300,15 @@ bool ChatHandler::HandleGMFlyCommand(char* args)
 bool ChatHandler::HandleGMListIngameCommand(char* /*args*/)
 {
     std::list< std::pair<std::string, bool> > names;
-
+    sObjectAccessor.DoForAllPlayers([&names, this](Player *player)
     {
-        HashMapHolder<Player>::ReadGuard g(HashMapHolder<Player>::GetLock());
-        HashMapHolder<Player>::MapType& m = sObjectAccessor.GetPlayers();
-        for (HashMapHolder<Player>::MapType::const_iterator itr = m.begin(); itr != m.end(); ++itr)
+        AccountTypes security = player->GetSession()->GetSecurity();
+        if ((player->isGameMaster() || (security > SEC_PLAYER && security <= (AccountTypes)sWorld.getConfig(CONFIG_UINT32_GM_LEVEL_IN_GM_LIST))) &&
+            (!m_session || player->IsVisibleGloballyFor(m_session->GetPlayer())))
         {
-            Player* player = itr->second;
-            AccountTypes security = player->GetSession()->GetSecurity();
-            if ((player->isGameMaster() || (security > SEC_PLAYER && security <= (AccountTypes)sWorld.getConfig(CONFIG_UINT32_GM_LEVEL_IN_GM_LIST))) &&
-                (!m_session || player->IsVisibleGloballyFor(m_session->GetPlayer())))
-            {
-                names.push_back(std::make_pair<std::string, bool>(GetNameLink(player), player->isAcceptWhispers()));
-            }
+            names.push_back(std::make_pair<std::string, bool>(GetNameLink(player), player->isAcceptWhispers()));
         }
-    }
+    });
 
     if (!names.empty())
     {
@@ -381,7 +378,6 @@ bool ChatHandler::HandleModifyStandStateCommand(char* args)
     return true;
 }
 
-
 bool ChatHandler::HandleChangeWeatherCommand(char* args)
 {
     // Weather is OFF
@@ -427,3 +423,125 @@ bool ChatHandler::HandleChangeWeatherCommand(char* args)
 
     return true;
 }
+
+// Internal shortcut function to freeze a player
+bool freezePlayer(Player* player, WorldObject* caster)
+{
+    SpellEntry const* spellInfo = sSpellStore.LookupEntry(SPELL_GM_FREEZE);
+    return AddAuraToPlayer(spellInfo, player, caster);
+}
+
+// Internal shortcut function to freeze a player
+void unFreezePlayer(Player* player)
+{
+    player->RemoveAurasDueToSpell(SPELL_GM_FREEZE);
+}
+
+
+bool ChatHandler::HandleFreezePlayerCommand(char* args)
+{
+    Player* targetPlayer = nullptr;
+
+    // 1. Try to extract player name from args if not empty
+    if (*args)
+    {
+        char* playerName = ExtractLiteralArg(&args);
+
+        if (!ExtractPlayerTarget(&playerName, &targetPlayer))
+        {
+            SendSysMessage(LANG_COMMAND_FREEZE_PLAYER_PLAYER_NOT_FOUND);
+            SetSentErrorMessage(true);
+            return false;
+        }
+    }
+
+    // 2. If arg is empty, gets the current selected target (returns current player if no unit selected)
+    if (!targetPlayer)
+    {
+        Unit* selectedTtarget = getSelectedPlayer();
+
+        if (!selectedTtarget)
+        {
+            SendSysMessage(LANG_NO_CHAR_SELECTED);
+            SetSentErrorMessage(true);
+            return false;
+        }
+        targetPlayer = (Player*)selectedTtarget;
+    }
+
+
+    const char* targetName = targetPlayer->GetName();
+    Player * currentGM = m_session->GetPlayer();
+
+    // Prevent freezing yourself !
+    if (targetPlayer == currentGM)
+    {
+        SendSysMessage(LANG_NO_CHAR_SELECTED);
+        SendSysMessage(LANG_COMMAND_FREEZE_PLAYER_CANNOT_FREEZE_YOURSELF);
+        SetSentErrorMessage(true);
+        return false;
+    }
+
+    // Check if target can be freezed
+    if (targetPlayer->GetSession()->GetSecurity() > m_session->GetSecurity())
+    {
+        PSendSysMessage(LANG_COMMAND_FREEZE_PLAYER_CANNOT_FREEZE_HIGHER_SECLEVEL, targetName);
+        SetSentErrorMessage(true);
+        return false;
+    }
+
+    freezePlayer(targetPlayer, currentGM);
+
+    // Notif GM
+    PSendSysMessage(LANG_COMMAND_FREEZE_PLAYER, targetName);
+
+    // Send message to player to prevent he has been frozen
+    ChatHandler(targetPlayer).SendSysMessage(LANG_COMMAND_FREEZE_PLAYER_YOU_HAVE_BEEN_FROZEN);
+
+    return true;
+}
+
+
+bool ChatHandler::HandleUnfreezePlayerCommand(char* args)
+{
+
+    Player* targetPlayer = nullptr;
+
+    // 1. Try to extract player name from args if not empty
+    if (*args)
+    {
+        char* playerName = ExtractLiteralArg(&args);
+
+        if (!ExtractPlayerTarget(&playerName, &targetPlayer))
+        {
+            SendSysMessage(LANG_COMMAND_UNFREEZE_PLAYER_PLAYER_NOT_FOUND);
+            SetSentErrorMessage(true);
+            return false;
+        }
+    }
+
+    // 2. If arg is empty, gets the current selected target (returns current player if no unit selected)
+    if (!targetPlayer)
+    {
+        Unit* selectedTtarget = getSelectedPlayer();
+
+        if (!selectedTtarget)
+        {
+            SendSysMessage(LANG_NO_CHAR_SELECTED);
+            SetSentErrorMessage(true);
+            return false;
+        }
+        targetPlayer = (Player*)selectedTtarget;
+    }
+
+    unFreezePlayer(targetPlayer);
+
+    // Notif GM
+    PSendSysMessage(LANG_COMMAND_UNFREEZE_PLAYER, targetPlayer->GetName());
+
+    // Send message to player to prevent he has been unfrozen
+    ChatHandler(targetPlayer).SendSysMessage(LANG_COMMAND_FREEZE_PLAYER_YOU_HAVE_BEEN_UNFROZEN);
+
+    return true;
+}
+

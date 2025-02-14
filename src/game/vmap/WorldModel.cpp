@@ -2,7 +2,7 @@
  * MaNGOS is a full featured server for World of Warcraft, supporting
  * the following clients: 1.12.x, 2.4.3, 3.3.5a, 4.3.4a and 5.4.8
  *
- * Copyright (C) 2005-2021 MaNGOS <https://getmangos.eu>
+ * Copyright (C) 2005-2025 MaNGOS <https://www.getmangos.eu>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -543,7 +543,7 @@ namespace VMAP
             return false;
         }
         GModelRayCallback callback(triangles, vertices);
-        meshTree.intersectRay(ray, callback, distance, stopAtFirstHit);
+        meshTree.IntersectRay(ray, callback, distance, stopAtFirstHit);
         return callback.hit;
     }
 
@@ -622,7 +622,7 @@ namespace VMAP
         }
 
         WModelRayCallBack isc(groupModels);
-        groupTree.intersectRay(ray, isc, distance, stopAtFirstHit);
+        groupTree.IntersectRay(ray, isc, distance, stopAtFirstHit);
         return isc.hit;
     }
 

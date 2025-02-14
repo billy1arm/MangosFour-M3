@@ -2,7 +2,7 @@
  * MaNGOS is a full featured server for World of Warcraft, supporting
  * the following clients: 1.12.x, 2.4.3, 3.3.5a, 4.3.4a and 5.4.8
  *
- * Copyright (C) 2005-2021 MaNGOS <https://getmangos.eu>
+ * Copyright (C) 2005-2025 MaNGOS <https://www.getmangos.eu>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,8 +22,8 @@
  * and lore are copyrighted by Blizzard Entertainment, Inc.
  */
 
-#ifndef _SPELLMGR_H
-#define _SPELLMGR_H
+#ifndef MANGOS_H_SPELLMGR
+#define MANGOS_H_SPELLMGR
 
 // For static or at-server-startup loaded spell data
 // For more high level function for sSpellStore data
@@ -32,8 +32,6 @@
 #include "SharedDefines.h"
 #include "SpellAuraDefines.h"
 #include "DBCStructure.h"
-
-#include "Utilities/UnorderedMapSet.h"
 
 #include <map>
 
@@ -50,7 +48,10 @@ enum SpellCategories
     SPELLCATEGORY_JUDGEMENT           = 1210,               // Judgement (seal trigger)
 };
 
-// Spell clasification
+/**
+ * Spell clasification (Taken from comments)
+ * \todo Properly document this
+ */
 enum SpellSpecific
 {
     SPELL_NORMAL            = 0,
@@ -110,16 +111,16 @@ inline uint32 GetSpellRecoveryTime(SpellEntry const *spellInfo)
     }
     return 0;
 }
-int32 GetSpellDuration(SpellEntry const *spellInfo);
-int32 GetSpellMaxDuration(SpellEntry const *spellInfo);
-int32 CalculateSpellDuration(SpellEntry const *spellInfo, Unit const* caster = NULL);
+int32 GetSpellDuration(SpellEntry const* spellInfo);
+int32 GetSpellMaxDuration(SpellEntry const* spellInfo);
+int32 CalculateSpellDuration(SpellEntry const* spellInfo, Unit const* caster = NULL);
 uint16 GetSpellAuraMaxTicks(SpellEntry const* spellInfo);
 uint16 GetSpellAuraMaxTicks(uint32 spellId);
 WeaponAttackType GetWeaponAttackType(SpellEntry const* spellInfo);
 
 inline bool IsSpellHaveEffect(SpellEntry const* spellInfo, SpellEffects effect)
 {
-    for(int i = 0; i < MAX_EFFECT_INDEX; ++i)
+    for (int i = 0; i < MAX_EFFECT_INDEX; ++i)
     {
         if(SpellEffectEntry const* effectEntry = spellInfo->GetSpellEffect(SpellEffectIndex(i)))
             if(SpellEffects(effectEntry->Effect) == effect)
@@ -219,7 +220,7 @@ inline bool IsSpellHaveAura(SpellEntry const* spellInfo, AuraType aura, uint32 e
 
 inline bool IsSpellLastAuraEffect(SpellEntry const* spellInfo, SpellEffectIndex effecIdx)
 {
-    for(int i = effecIdx+1; i < MAX_EFFECT_INDEX; ++i)
+    for (int i = effecIdx + 1; i < MAX_EFFECT_INDEX; ++i)
     {
         if(SpellEffectEntry const* effectEntry = spellInfo->GetSpellEffect(SpellEffectIndex(i)))
             if(effectEntry->EffectApplyAuraName)
@@ -376,13 +377,13 @@ inline bool IsSpellWithCasterSourceTargetsOnly(SpellEntry const* spellInfo)
         }
 
         uint32 targetA = effectEntry->EffectImplicitTargetA;
-        if(targetA && !IsCasterSourceTarget(targetA))
+        if (targetA && !IsCasterSourceTarget(targetA))
         {
             return false;
         }
 
         uint32 targetB = effectEntry->EffectImplicitTargetB;
-        if(targetB && !IsCasterSourceTarget(targetB))
+        if (targetB && !IsCasterSourceTarget(targetB))
         {
             return false;
         }
@@ -484,7 +485,6 @@ inline bool IsAreaOfEffectSpell(SpellEntry const* spellInfo)
     {
         return true;
     }
-
     return false;
 }
 
@@ -496,7 +496,9 @@ inline bool IsAreaAuraEffect(uint32 effect)
             effect == SPELL_EFFECT_APPLY_AREA_AURA_ENEMY    ||
             effect == SPELL_EFFECT_APPLY_AREA_AURA_PET      ||
             effect == SPELL_EFFECT_APPLY_AREA_AURA_OWNER)
-        return true;
+            {
+                return true;
+            }
     return false;
 }
 
@@ -632,7 +634,6 @@ inline SpellSchoolMask GetSpellSchoolMask(SpellEntry const* spellInfo)
 inline uint32 GetSpellMechanicMask(SpellEntry const* spellInfo, uint32 effectMask)
 {
     uint32 mask = 0;
-
     if (uint32 mech = spellInfo->GetMechanic())
     {
         mask |= 1 << (mech - 1);
@@ -669,7 +670,7 @@ inline uint32 GetAllSpellMechanicMask(SpellEntry const* spellInfo)
         mask |= 1 << (spellCategory->Mechanic - 1);
     }
 
-    for (int i=0; i< MAX_EFFECT_INDEX; ++i)
+    for (int i = 0; i < MAX_EFFECT_INDEX; ++i)
     {
         SpellEffectEntry const* effectEntry = spellInfo->GetSpellEffect(SpellEffectIndex(i));
         if (effectEntry && effectEntry->EffectMechanic)
@@ -718,8 +719,9 @@ int32 GetDiminishingReturnsLimitDuration(DiminishingGroup group, SpellEntry cons
 SpellEntry const* GetSpellEntryByDifficulty(uint32 id, Difficulty difficulty, bool isRaid);
 
 int32 GetMasteryCoefficient(SpellEntry const * spellProto);
-
-// Spell proc event related declarations (accessed using SpellMgr functions)
+/**
+ * Spell proc event related declarations (accessed using SpellMgr functions) (Taken from comments)
+ */
 enum ProcFlags
 {
     PROC_FLAG_NONE                          = 0x00000000,
@@ -773,6 +775,7 @@ enum ProcFlags
     PROC_FLAG_UNK31                         = 0x80000000,   // 31 not used
 };
 
+/// Proc flags for a melee based trigger
 #define MELEE_BASED_TRIGGER_MASK (PROC_FLAG_SUCCESSFUL_MELEE_HIT        | \
                                   PROC_FLAG_TAKEN_MELEE_HIT             | \
                                   PROC_FLAG_SUCCESSFUL_MELEE_SPELL_HIT  | \
@@ -782,6 +785,10 @@ enum ProcFlags
                                   PROC_FLAG_SUCCESSFUL_RANGED_SPELL_HIT | \
                                   PROC_FLAG_TAKEN_RANGED_SPELL_HIT)
 
+/**
+ * Proc flags mask for a negative trigger
+ * \todo What is negative in this case?
+ */
 #define NEGATIVE_TRIGGER_MASK (MELEE_BASED_TRIGGER_MASK                | \
                                PROC_FLAG_SUCCESSFUL_AOE_SPELL_HIT      | \
                                PROC_FLAG_TAKEN_AOE_SPELL_HIT           | \
@@ -797,7 +804,7 @@ enum ProcFlags
                                  PROC_FLAG_SUCCESSFUL_NEGATIVE_SPELL_HIT)
 enum ProcFlagsEx
 {
-    /// If none can tigger on Hit/Crit only (passive spells MUST defined by SpellFamily flag)
+    /// If none can trigger on Hit/Crit only (passive spells MUST defined by SpellFamily flag)
     PROC_EX_NONE                = 0x0000000,
     /// If set only from normal hit (only damage spells)
     PROC_EX_NORMAL_HIT          = 0x0000001,
@@ -846,8 +853,8 @@ struct SpellBonusEntry
     float  ap_dot_bonus;
 };
 
-typedef UNORDERED_MAP<uint32, SpellProcEventEntry> SpellProcEventMap;
-typedef UNORDERED_MAP<uint32, SpellBonusEntry>     SpellBonusMap;
+typedef std::unordered_map<uint32, SpellProcEventEntry> SpellProcEventMap;
+typedef std::unordered_map<uint32, SpellBonusEntry>     SpellBonusMap;
 
 #define ELIXIR_BATTLE_MASK    0x01
 #define ELIXIR_GUARDIAN_MASK  0x02
@@ -898,7 +905,7 @@ struct SpellTargetPosition
     float  target_Orientation;
 };
 
-typedef UNORDERED_MAP<uint32, SpellTargetPosition> SpellTargetPositionMap;
+typedef std::unordered_map<uint32, SpellTargetPosition> SpellTargetPositionMap;
 
 // Spell pet auras
 class PetAura
@@ -977,9 +984,9 @@ struct SpellArea
     void ApplyOrRemoveSpellIfCan(Player* player, uint32 newZone, uint32 newArea, bool onlyApply) const;
 };
 
-typedef std::multimap<uint32 /*applySpellId*/, SpellArea> SpellAreaMap;
-typedef std::multimap<uint32 /*auraSpellId*/, SpellArea const*> SpellAreaForAuraMap;
-typedef std::multimap<uint32 /*areaOrZoneId*/, SpellArea const*> SpellAreaForAreaMap;
+typedef std::multimap < uint32 /*applySpellId*/, SpellArea > SpellAreaMap;
+typedef std::multimap < uint32 /*auraSpellId*/, SpellArea const* > SpellAreaForAuraMap;
+typedef std::multimap < uint32 /*areaOrZoneId*/, SpellArea const* > SpellAreaForAreaMap;
 typedef std::pair<SpellAreaMap::const_iterator, SpellAreaMap::const_iterator> SpellAreaMapBounds;
 typedef std::pair<SpellAreaForAuraMap::const_iterator, SpellAreaForAuraMap::const_iterator>  SpellAreaForAuraMapBounds;
 typedef std::pair<SpellAreaForAreaMap::const_iterator, SpellAreaForAreaMap::const_iterator>  SpellAreaForAreaMapBounds;
@@ -994,7 +1001,7 @@ struct SpellChainNode
     uint8  rank;
 };
 
-typedef UNORDERED_MAP<uint32, SpellChainNode> SpellChainMap;
+typedef std::unordered_map<uint32, SpellChainNode> SpellChainMap;
 typedef std::multimap<uint32, uint32> SpellChainMapNext;
 
 // Spell learning properties (accessed using SpellMgr functions)

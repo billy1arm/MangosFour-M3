@@ -1,7 +1,7 @@
 # MaNGOS is a full featured server for World of Warcraft, supporting
 # the following clients: 1.12.x, 2.4.3, 3.3.5a, 4.3.4a and 5.4.8
 #
-# Copyright (C) 2005-2021 MaNGOS <https://getmangos.eu>
+# Copyright (C) 2005-2025 MaNGOS <https://www.getmangos.eu>
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-cmake_minimum_required(VERSION 3.8 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
@@ -27,9 +27,12 @@ cmake_policy(SET CMP0042 NEW)
 cmake_policy(SET CMP0048 NEW)
 cmake_policy(SET CMP0063 NEW)
 
-set(CMAKE_CXX_STANDARD          11)
+set(CMAKE_CXX_STANDARD          17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS        OFF)
+
+set(CMAKE_C_STANDARD          11)
+set(CMAKE_C_STANDARD_REQUIRED ON)
 
 set_property(GLOBAL
     PROPERTY USE_FOLDERS ON
@@ -98,6 +101,10 @@ else()
     endif()
 endif()
 
+if(NOT WITHOUT_GIT)
+  find_package(Git)
+endif()
+
 find_package(Threads REQUIRED)
 find_package(MySQL   REQUIRED)
 find_package(DL      REQUIRED)
@@ -107,6 +114,7 @@ find_package(BZip2 QUIET)
 
 find_package(OpenSSL REQUIRED)
 
+include(${CMAKE_SOURCE_DIR}/cmake/GenRevision.cmake)
 include(${CMAKE_SOURCE_DIR}/cmake/EnsureVersion.cmake)
 
 include(${CMAKE_SOURCE_DIR}/cmake/MangosParams.cmake)

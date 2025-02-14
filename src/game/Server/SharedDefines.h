@@ -2,7 +2,7 @@
  * MaNGOS is a full featured server for World of Warcraft, supporting
  * the following clients: 1.12.x, 2.4.3, 3.3.5a, 4.3.4a and 5.4.8
  *
- * Copyright (C) 2005-2021 MaNGOS <https://getmangos.eu>
+ * Copyright (C) 2005-2025 MaNGOS <https://www.getmangos.eu>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -73,8 +73,8 @@ enum Races
 
 #define RACEMASK_ALL_PLAYABLE \
     ((1<<(RACE_HUMAN-1))    |(1<<(RACE_ORC-1))      |(1<<(RACE_DWARF-1))   | \
-    (1<<(RACE_NIGHTELF-1))  |(1<<(RACE_UNDEAD-1))   |(1<<(RACE_TAUREN-1))  | \
-    (1<<(RACE_GNOME-1))     |(1<<(RACE_TROLL-1))    |(1<<(RACE_BLOODELF-1))| \
+     (1<<(RACE_NIGHTELF-1))  |(1<<(RACE_UNDEAD-1))   |(1<<(RACE_TAUREN-1))  | \
+     (1<<(RACE_GNOME-1))     |(1<<(RACE_TROLL-1))    |(1<<(RACE_BLOODELF-1))| \
     (1<<(RACE_DRAENEI-1))   |(1<<(RACE_GOBLIN-1))   |(1<<(RACE_WORGEN-1)))
 
 // for most cases batter use ChrRace data for team check as more safe, but when need full mask of team can be use this defines.
@@ -107,9 +107,9 @@ enum Classes
 
 #define CLASSMASK_ALL_PLAYABLE \
     ((1<<(CLASS_WARRIOR-1))|(1<<(CLASS_PALADIN-1))|(1<<(CLASS_HUNTER-1))| \
-    (1<<(CLASS_ROGUE-1))  |(1<<(CLASS_PRIEST-1)) |(1<<(CLASS_SHAMAN-1))| \
-    (1<<(CLASS_MAGE-1))   |(1<<(CLASS_WARLOCK-1))|(1<<(CLASS_DRUID-1)) | \
-    (1<<(CLASS_DEATH_KNIGHT-1)) )
+     (1<<(CLASS_ROGUE-1))  |(1<<(CLASS_PRIEST-1)) |(1<<(CLASS_SHAMAN-1))| \
+     (1<<(CLASS_MAGE-1))   |(1<<(CLASS_WARLOCK-1))|(1<<(CLASS_DRUID-1)) | \
+     (1<<(CLASS_DEATH_KNIGHT-1)) )
 
 #define CLASSMASK_ALL_CREATURES ((1<<(CLASS_WARRIOR-1)) | (1<<(CLASS_PALADIN-1)) | (1<<(CLASS_ROGUE-1)) | (1<<(CLASS_MAGE-1)) )
 #define MAX_CREATURE_CLASS 4
@@ -163,19 +163,19 @@ enum Stats
  */
 enum Powers
 {
-    POWER_MANA                          = 0,
-    POWER_RAGE                          = 1,
-    POWER_FOCUS                         = 2,
-    POWER_ENERGY                        = 3,
-    //POWER_HAPPINESS                     = 4,  unused 4.x.x
-    POWER_RUNE                          = 5,
-    POWER_RUNIC_POWER                   = 6,
+    POWER_MANA                          = 0,         ///< The most common one, mobs usually have this or rage
+    POWER_RAGE                          = 1,         ///< This is what warriors use to cast their spells
+    POWER_FOCUS                         = 2,         ///< Used by hunters after Cataclysm (4.x)
+    POWER_ENERGY                        = 3,         ///< Used by rouges to do their spells
+    //POWER_HAPPINESS                   = 4,         ///< unused 4.x.x
+    POWER_RUNE                          = 5,         ///< UNIT_FIELD_POWER6
+    POWER_RUNIC_POWER                   = 6,         ///< UNIT_FIELD_POWER7
     POWER_SOUL_SHARDS                   = 7,
     POWER_ECLIPSE                       = 8,
     POWER_HOLY_POWER                    = 9,
     POWER_ALTERNATIVE                   = 10,
     MAX_POWERS                          = 11,
-    POWER_HEALTH                        = 0xFFFFFFFE    // (-2 as signed value)
+    POWER_HEALTH                        = 0xFFFFFFFE ///< Health, everyone has this (-2 as signed value)
 };
 
 #define MAX_STORED_POWERS               5
@@ -185,15 +185,16 @@ enum Powers
 
 /**
  * The different spell schools that are available, used in both damage calculation
- * and spell casting to decide what should be affected, the SPELL_SCHOOL_NORMAL
+ * and spell casting to decide what should be affected, the \ref SpellSchools::SPELL_SCHOOL_NORMAL
  * is the armor, others should be self explanatory.
  *
  * Note that these are the values to use for changing ie, the armor via a
- * Modifier, and it is the Modifier::m_miscValue that should be set.
+ * \ref Modifier, and it is the \ref Modifier::m_miscValue that should be set.
  */
 enum SpellSchools
 {
-    SPELL_SCHOOL_NORMAL                 = 0,                // Physical, Armor
+    /// Physical, Armor
+    SPELL_SCHOOL_NORMAL                 = 0,
     SPELL_SCHOOL_HOLY                   = 1,
     SPELL_SCHOOL_FIRE                   = 2,
     SPELL_SCHOOL_NATURE                 = 3,
@@ -281,7 +282,7 @@ enum SpellAttributes
     SPELL_ATTR_RANGED                          = 0x00000002,// 1 All ranged abilites have this flag
     SPELL_ATTR_ON_NEXT_SWING_1                 = 0x00000004,// 2 on next swing
     SPELL_ATTR_UNK3                            = 0x00000008,// 3 not set in 3.0.3
-    SPELL_ATTR_UNK4                            = 0x00000010,// 4 isAbility
+    SPELL_ATTR_ABILITY                            = 0x00000010,// 4 isAbility
     SPELL_ATTR_TRADESPELL                      = 0x00000020,// 5 trade spells, will be added by client to a sublist of profession spell
     SPELL_ATTR_PASSIVE                         = 0x00000040,// 6 Passive spell
     SPELL_ATTR_UNK7                            = 0x00000080,// 7 can't be linked in chat?
@@ -295,7 +296,7 @@ enum SpellAttributes
     SPELL_ATTR_OUTDOORS_ONLY                   = 0x00008000,// 15 Only useable outdoors.
     SPELL_ATTR_NOT_SHAPESHIFT                  = 0x00010000,// 16 Not while shapeshifted
     SPELL_ATTR_ONLY_STEALTHED                  = 0x00020000,// 17 Must be in stealth
-    SPELL_ATTR_UNK18                           = 0x00040000,// 18
+    SPELL_ATTR_DONT_AFFECT_SHEATH_STATE        = 0x00040000,// 18
     SPELL_ATTR_LEVEL_DAMAGE_CALCULATION        = 0x00080000,// 19 spelldamage depends on caster level
     SPELL_ATTR_STOP_ATTACK_TARGET              = 0x00100000,// 20 Stop attack after use this spell (and not begin attack if use)
     SPELL_ATTR_IMPOSSIBLE_DODGE_PARRY_BLOCK    = 0x00200000,// 21 Cannot be dodged/parried/blocked
@@ -322,7 +323,7 @@ enum SpellAttributesEx
     SPELL_ATTR_EX_CHANNELED_2                  = 0x00000040,// 6 channeled 2
     SPELL_ATTR_EX_UNK7                         = 0x00000080,// 7
     SPELL_ATTR_EX_NOT_IN_COMBAT_TARGET         = 0x00000100,// 8 Spell req target not to be in combat state
-    SPELL_ATTR_EX_UNK9                         = 0x00000200,// 9
+    SPELL_ATTR_EX_FACING_TARGET                = 0x00000200,// 9
     SPELL_ATTR_EX_NO_THREAT                    = 0x00000400,// 10 no generates threat on cast 100%
     SPELL_ATTR_EX_UNK11                        = 0x00000800,// 11
     SPELL_ATTR_EX_UNK12                        = 0x00001000,// 12
@@ -369,7 +370,7 @@ enum SpellAttributesEx2
     SPELL_ATTR_EX2_UNK17                       = 0x00020000,// 17 suspend weapon timer instead of resetting it, (?Hunters Shot and Stings only have this flag?)
     SPELL_ATTR_EX2_UNK18                       = 0x00040000,// 18 Only Revive pet - possible req dead pet
     SPELL_ATTR_EX2_NOT_NEED_SHAPESHIFT         = 0x00080000,// 19 does not necessarily need shapeshift (pre-3.x not have passive spells with this attribute)
-    SPELL_ATTR_EX2_UNK20                       = 0x00100000,// 20
+    SPELL_ATTR_EX2_FACING_TARGETS_BACK         = 0x00100000,// 20
     SPELL_ATTR_EX2_DAMAGE_REDUCED_SHIELD       = 0x00200000,// 21 for ice blocks, pala immunity buffs, priest absorb shields, but used also for other spells -> not sure!
     SPELL_ATTR_EX2_UNK22                       = 0x00400000,// 22
     SPELL_ATTR_EX2_UNK23                       = 0x00800000,// 23 Only mage Arcane Concentration have this flag
@@ -759,6 +760,10 @@ enum PvpTeamIndex
 
 #define PVP_TEAM_COUNT    2
 
+/**
+ * This are the different things that a spell can have as it's spell effect, see
+ * \ref SpellEntry::Effect for where in the DBC this is stored. Also see \ref HowSpellsWork
+ */
 enum SpellEffects
 {
     SPELL_EFFECT_NONE                      = 0,
@@ -1362,7 +1367,8 @@ enum Mechanics
     (1<<(MECHANIC_BANISH-1))|(1<<(MECHANIC_SHACKLE    -1))|(1<<(MECHANIC_HORROR-1))| \
     (1<<(MECHANIC_TURN  -1))|(1<<(MECHANIC_DAZE       -1))|(1<<(MECHANIC_SAPPED-1)))
 
-// Spell dispell type
+/// Different types of \ref Spell s that can be dispelled and what the reason for the dispel is.
+/// Also coupled with \ref Aura s as \ref Spell s have \ref Aura s.
 enum DispelType
 {
     DISPEL_NONE         = 0,
@@ -3806,8 +3812,8 @@ static const MaxLevel maxLevelForExpansion[MAX_EXPANSION + 1] = { MAX_LEVEL_CLAS
 
 enum TeleportLocation
 {
-    TELEPORT_LOCATION_HOMEBIND          = 0,
-    TELEPORT_LOCATION_BG_ENTRY_POINT    = 1,
+    TELEPORT_LOCATION_HOMEBIND       = 0,
+    TELEPORT_LOCATION_BG_ENTRY_POINT = 1,
 };
 
 // For Loot system
@@ -3820,4 +3826,61 @@ enum CreatureLootStatus
     CREATURE_LOOT_STATUS_SKINNED        = 4
 };
 
+/**
+ * Some statuses that can be sent with the \ref OpcodesList::SMSG_GM_TICKET_STATUS_UPDATE opcode
+ * to change what the client is currently showing about your open ticket.
+ * \see WorldSession::SendGMTicketStatusUpdate
+ */
+enum GMTicketStatus
+{
+    /**
+     * This code is used when the client closed the ticket itself and we shouldn't send an update
+     * message to it */
+    GM_TICKET_STATUS_DO_NOTHING = -1,
+    /** On this client responds by CMSG_GMTICKET_GETTICKET, updating the local ticket copy
+    */
+    GM_TICKET_STATUS_ASK_UPDATE = 1,
+    /** Should close the window in the top right corner telling you that you have a
+     * ticket open */
+    GM_TICKET_STATUS_CLOSE = 2,
+    /** Should close the window telling you you have an open ticket and query you for
+     * answers on a survey, how good did the GM perform?
+     * \see GMTicket::SaveSurveyData
+     */
+    GM_TICKET_STATUS_SURVEY = 3
+};
+
+/**
+ * This denotes the different levels of whisper logging that can be active via configuration, the
+ * string for this in the config file is LogWhispers, the config enum is
+ * \ref eConfigUInt32Values::CONFIG_UINT32_LOG_WHISPERS and the default value is 1, ie: we only
+ * log whispers related to tickets.
+ *
+ * The database table that everything is logged to is character.character_whispers
+ * \see Player::LogWhisper
+ */
+enum WhisperLoggingLevels
+{
+    /**
+     * When this is the level used no logging of whispers at all is done
+     */
+    WHISPER_LOGGING_NONE = 0,
+    /**
+     * When this level is used we log everything related to GM-tickets, ie: when a GM first whispers
+     * the holder of a ticket until that ticket is closed
+     */
+    WHISPER_LOGGING_TICKETS = 1,
+    /**
+     * This will log all whispers made between players, GM-tickets included
+     */
+    WHISPER_LOGGING_EVERYTHING = 2
+};
+
+enum SpellEntriesConsts
+{
+    SPELL_FILLING_EMPTY_JAR__CURSED_OOZE    = 15698,
+    SPELL_FILLING_EMPTY_JAR__TAINTED_OOZE   = 15699,
+    SPELL_FILLING_EMPTY_JAR__PURE_OOZE      = 15702, // (Works on  Primal, Muculent and Glutonous Ooze)
+    SPELL_GM_FREEZE                         = 9454,
+};
 #endif

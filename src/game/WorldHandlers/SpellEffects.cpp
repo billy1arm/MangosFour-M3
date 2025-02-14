@@ -2,7 +2,7 @@
  * MaNGOS is a full featured server for World of Warcraft, supporting
  * the following clients: 1.12.x, 2.4.3, 3.3.5a, 4.3.4a and 5.4.8
  *
- * Copyright (C) 2005-2021 MaNGOS <https://getmangos.eu>
+ * Copyright (C) 2005-2025 MaNGOS <https://www.getmangos.eu>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -66,6 +66,8 @@
 #include "Vehicle.h"
 #include "G3D/Vector3.h"
 #include "LootMgr.h"
+#include <random>
+
 #ifdef ENABLE_ELUNA
 #include "LuaEngine.h"
 #endif /* ENABLE_ELUNA */
@@ -1439,20 +1441,30 @@ void Spell::EffectDummy(SpellEffectEntry const* effect)
 
                     // 5 different spells used depending on mounted speed and if mount can fly or not
                     if (flyspeed >= 4.1f)
+                    {
                         // Flying Reindeer
                         m_caster->CastSpell(m_caster, 44827, true); // 310% flying Reindeer
+                    }
                     else if (flyspeed >= 3.8f)
+                    {
                         // Flying Reindeer
                         m_caster->CastSpell(m_caster, 44825, true); // 280% flying Reindeer
+                    }
                     else if (flyspeed >= 1.6f)
+                    {
                         // Flying Reindeer
                         m_caster->CastSpell(m_caster, 44824, true); // 60% flying Reindeer
+                    }
                     else if (speed >= 2.0f)
+                    {
                         // Reindeer
-                        m_caster->CastSpell(m_caster, 25859, true); // 100% ground Reindeer
+                        m_caster->CastSpell(m_caster, 25859, true);  // 100% ground Reindeer
+                    }
                     else
+                    {
                         // Reindeer
-                        m_caster->CastSpell(m_caster, 25858, true); // 60% ground Reindeer
+                        m_caster->CastSpell(m_caster, 25858, true);  // 60% ground Reindeer
+                    }
 
                     return;
                 }
@@ -1659,7 +1671,10 @@ void Spell::EffectDummy(SpellEffectEntry const* effect)
 
                     uint32 possibleSpells[] = {36693, 36694, 36695, 36696, 36697, 36698, 36699, 36700} ;
                     std::vector<uint32> spellPool(possibleSpells, possibleSpells + countof(possibleSpells));
-                    std::random_shuffle(spellPool.begin(), spellPool.end());
+
+                    //std::random_shuffle(spellPool.begin(), spellPool.end());
+                    std::mt19937 rng(std::time(nullptr));
+                    std::shuffle(spellPool.begin(), spellPool.end(), rng);
 
                     for (uint8 i = 0; i < (m_caster->GetMap()->IsRegularDifficulty() ? 2 : 4); ++i)
                     {
@@ -3754,6 +3769,50 @@ void Spell::EffectDummy(SpellEffectEntry const* effect)
 
                     return;
                 }
+                case 42955:                                 // Conjure Refreshment
+                {
+                    uint32 item = 0;
+
+                    uint32 level = unitTarget->getLevel();
+
+                    if (level < 44)
+                    {
+                        item = 65500;                                 // Conjured Mana Cookie (lvl 34)
+                    }
+                    else if (level < 54)
+                    {
+                        item = 65515;                            // Conjured Mana Brownie (lvl 44)
+                    }
+                    else if (level < 64)
+                    {
+                        item = 65516;                            // Conjured Mana Cupcake (lvl 54)
+                    }
+                    else if (level < 65)
+                    {
+                        item = 65517;                            // Conjured Mana Lollipop (lvl 64)
+                    }
+                    else if (level < 74)
+                    {
+                        item = 34062;                            // Conjured Mana Biscuit (lvl 65)
+                    }
+                    else if (level < 80)
+                    {
+                        item = 43518;                            // Conjured Mana Pie (lvl 74)
+                    }
+                    else if (level < 85)
+                    {
+                        item = 43523;                            // Conjured Mana Strudel (lvl 80)
+                    }
+                    else
+                    {
+                        item = 65499;                                            // Conjured Mana Cake (lvl 85)
+                    }
+
+                    damage = 20; // Used to set stack size.
+                    DoCreateItem(effect,item);
+
+                    return;
+                }
             }
 
             // Conjure Mana Gem
@@ -3937,11 +3996,12 @@ void Spell::EffectDummy(SpellEffectEntry const* effect)
                     // Improved Life Tap mod
                     Unit::AuraList const& auraDummy = m_caster->GetAurasByType(SPELL_AURA_DUMMY);
                     for(Unit::AuraList::const_iterator itr = auraDummy.begin(); itr != auraDummy.end(); ++itr)
+                    {
                         if((*itr)->GetSpellProto()->GetSpellFamilyName()==SPELLFAMILY_WARLOCK && (*itr)->GetSpellProto()->SpellIconID == 208)
                         {
                             mana = ((*itr)->GetModifier()->m_amount + 100)* mana / 100;
                         }
-
+                    }
                     m_caster->CastCustomSpell(unitTarget, 31818, &mana, NULL, NULL, true);
 
                     // Mana Feed
@@ -4410,11 +4470,13 @@ void Spell::EffectDummy(SpellEffectEntry const* effect)
                         // Restorative Totems
                         Unit::AuraList const& mDummyAuras = owner->GetAurasByType(SPELL_AURA_DUMMY);
                         for (Unit::AuraList::const_iterator i = mDummyAuras.begin(); i != mDummyAuras.end(); ++i)
+                        {
                             // only its have dummy with specific icon
                             if ((*i)->GetSpellProto()->GetSpellFamilyName() == SPELLFAMILY_SHAMAN && (*i)->GetSpellProto()->SpellIconID == 338)
                             {
                                 damage += (*i)->GetModifier()->m_amount * damage / 100;
                             }
+                        }
 
                         // Glyph of Healing Stream Totem
                         if (Aura* dummy = owner->GetDummyAura(55456))
@@ -4923,8 +4985,10 @@ void Spell::EffectTriggerMissileSpell(SpellEffectEntry const* effect)
             m_caster->GetMap()->ScriptsStart(DBS_ON_SPELL, m_spellInfo->Id, m_caster, unitTarget);
         }
         else
+        {
             sLog.outError("EffectTriggerMissileSpell of spell %u (eff: %u): triggering unknown spell id %u",
                       m_spellInfo->Id, effect->EffectIndex, triggered_spell_id);
+        }
         return;
     }
 
@@ -6243,7 +6307,7 @@ void Spell::EffectSummonType(SpellEffectEntry const* effect)
     uint32 amount = damage > 0 ? damage : 1;
 
     // basepoints of SUMMON_PROP_GROUP_VEHICLE is often a spellId, set amount to 1
-    if (summon_prop->Group == SUMMON_PROP_GROUP_VEHICLE || summon_prop->Group == SUMMON_PROP_GROUP_UNCONTROLLABLE_VEHICLE || summon_prop->Group == SUMMON_PROP_GROUP_CONTROLLABLE)
+    if ((summon_prop->Group == SUMMON_PROP_GROUP_VEHICLE || (prop_id == 1961)) || summon_prop->Group == SUMMON_PROP_GROUP_UNCONTROLLABLE_VEHICLE || summon_prop->Group == SUMMON_PROP_GROUP_CONTROLLABLE)
     {
         amount = 1;
     }
@@ -6485,6 +6549,27 @@ void Spell::EffectSummonType(SpellEffectEntry const* effect)
             {
                 ((Creature*)m_originalCaster)->AI()->JustSummoned(itr->creature);
             }
+
+            // used by eluna
+#ifdef ENABLE_ELUNA
+            if (Unit* summoner = m_caster->ToUnit())
+            {
+                if (Eluna* e = summoner->GetEluna())
+                {
+                    e->OnSummoned(itr->creature, summoner);
+                }
+            }
+            else if (m_originalCaster)
+            {
+                if (Unit* summoner = m_originalCaster->ToUnit())
+                {
+                    if (Eluna* e = summoner->GetEluna())
+                    {
+                        e->OnSummoned(itr->creature, summoner);
+                    }
+                }
+            }
+#endif
         }
     }
 }
@@ -6518,6 +6603,15 @@ bool Spell::DoSummonWild(CreatureSummonPositions& list, SummonPropertiesEntry co
             if (m_originalCaster && m_originalCaster != m_caster && m_originalCaster->GetTypeId() == TYPEID_UNIT && ((Creature*)m_originalCaster)->AI())
             {
                 ((Creature*)m_originalCaster)->AI()->JustSummoned(summon);
+#ifdef ENABLE_ELUNA
+                if (Unit* summoner = m_originalCaster->ToUnit())
+                {
+                    if (Eluna* e = summoner->GetEluna())
+                    {
+                        e->OnSummoned(summon, summoner);
+                    }
+                }
+#endif
             }
         }
         else
@@ -6593,6 +6687,24 @@ bool Spell::DoSummonCritter(CreatureSummonPositions& list, SummonPropertiesEntry
     }
 
     m_caster->SetMiniPet(critter);
+
+#ifdef ENABLE_ELUNA
+    if (Unit* summoner = m_caster->ToUnit())
+    {
+        if (Eluna* e = summoner->GetEluna())
+        {
+            e->OnSummoned(critter, summoner);
+        }
+    }
+    if (m_originalCaster)
+        if (Unit* summoner = m_originalCaster->ToUnit())
+        {
+            if (Eluna* e = summoner->GetEluna())
+            {
+                e->OnSummoned(critter, summoner);
+            }
+        }
+#endif
 
     return true;
 }
@@ -6691,6 +6803,26 @@ bool Spell::DoSummonGuardian(CreatureSummonPositions& list, SummonPropertiesEntr
         }
 
         m_caster->AddGuardian(spawnCreature);
+
+#ifdef ENABLE_ELUNA
+        if (Unit* summoner = m_caster->ToUnit())
+        {
+            if (Eluna* e = summoner->GetEluna())
+            {
+                e->OnSummoned(spawnCreature, summoner);
+            }
+        }
+        if (m_originalCaster)
+        {
+            if (Unit* summoner = m_originalCaster->ToUnit())
+            {
+                if (Eluna* e = summoner->GetEluna())
+                {
+                    e->OnSummoned(spawnCreature, summoner);
+                }
+            }
+        }
+#endif
     }
 
     return true;
@@ -6800,6 +6932,16 @@ bool Spell::DoSummonPossessed(CreatureSummonPositions& list, SummonPropertiesEnt
     if (m_originalCaster && m_originalCaster != m_caster && m_originalCaster->GetTypeId() == TYPEID_UNIT && ((Creature*)m_originalCaster)->AI())
     {
         ((Creature*)m_originalCaster)->AI()->JustSummoned(list[0].creature);
+
+#ifdef ENABLE_ELUNA
+        if (Unit* summoner = m_originalCaster->ToUnit())
+        {
+            if (Eluna* e = summoner->GetEluna())
+            {
+                e->OnSummoned(list[0].creature, summoner);
+            }
+        }
+#endif
     }
 
     return true;
@@ -6922,6 +7064,25 @@ bool Spell::DoSummonPet(SpellEffectEntry const* effect)
         }
     }
 
+#ifdef ENABLE_ELUNA
+    if (Unit* summoner = m_caster->ToUnit())
+    {
+        if (Eluna* e = summoner->GetEluna())
+        {
+            e->OnSummoned(spawnCreature, summoner);
+        }
+    }
+    if (m_originalCaster)
+    {
+        if (Unit* summoner = m_originalCaster->ToUnit())
+        {
+            if (Eluna* e = summoner->GetEluna())
+            {
+                e->OnSummoned(spawnCreature, summoner);
+            }
+        }
+    }
+#endif
     return true;
 }
 
@@ -6979,12 +7140,18 @@ bool Spell::DoSummonVehicle(CreatureSummonPositions& list, SummonPropertiesEntry
 #ifdef ENABLE_ELUNA
     if (Unit* summoner = m_caster->ToUnit())
     {
-        sEluna->OnSummoned(spawnCreature, summoner);
+        if (Eluna* e = summoner->GetEluna())
+        {
+            e->OnSummoned(spawnCreature, summoner);
+        }
     }
     else if (m_originalCaster)
         if (Unit* summoner = m_originalCaster->ToUnit())
         {
-            sEluna->OnSummoned(spawnCreature, summoner);
+            if (Eluna* e = summoner->GetEluna())
+            {
+                e->OnSummoned(spawnCreature, summoner);
+            }
         }
 #endif /* ENABLE_ELUNA */
     return true;
@@ -11947,7 +12114,10 @@ void Spell::EffectDuel(SpellEffectEntry const* effect)
 
     // Used by Eluna
 #ifdef ENABLE_ELUNA
-    sEluna->OnDuelRequest(target, caster);
+    if (Eluna* e = caster->GetEluna())
+    {
+        e->OnDuelRequest(target, caster);
+    }
 #endif /* ENABLE_ELUNA */
 }
 
@@ -12221,10 +12391,17 @@ void Spell::EffectApplyGlyph(SpellEffectEntry const* effect)
             player->SendTalentsInfoData(false);
         }
     }
+// TODO: ELUNAFIX NEEDED
 //#ifdef ENABLE_ELUNA
 //    if (Unit* summoner = m_originalCaster->ToUnit())
-//        sEluna->OnSummoned(spawnCreature, summoner);
+//    {
+//        if (Eluna* e = player->GetEluna())
+//        {
+//            e->OnSummoned(spawnCreature, summoner);
+//        }
+//    }
 //#endif /* ENABLE_ELUNA */
+
 }
 
 void Spell::EffectEnchantHeldItem(SpellEffectEntry const* effect)
@@ -12528,7 +12705,7 @@ void Spell::EffectBlock(SpellEffectEntry const* /*effect*/)
 
 void Spell::EffectLeapForward(SpellEffectEntry const* effect)
 {
-    float dist = GetSpellRadius(sSpellRadiusStore.LookupEntry(m_spellInfo->rangeIndex));
+    float dist = GetSpellRadius(sSpellRadiusStore.LookupEntry(effect->GetRadiusIndex()));
     const float IN_OR_UNDER_LIQUID_RANGE = 0.8f;                // range to make player under liquid or on liquid surface from liquid level
 
     G3D::Vector3 prevPos, nextPos;

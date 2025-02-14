@@ -2,7 +2,7 @@
  * MaNGOS is a full featured server for World of Warcraft, supporting
  * the following clients: 1.12.x, 2.4.3, 3.3.5a, 4.3.4a and 5.4.8
  *
- * Copyright (C) 2005-2021 MaNGOS <https://getmangos.eu>
+ * Copyright (C) 2005-2025 MaNGOS <https://www.getmangos.eu>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,6 +45,13 @@ template<> struct BoundsTrait< GameObjectModel>
     static void getBounds2(const GameObjectModel* g, G3D::AABox& out) { out = g->GetBounds();}
 };
 
+/*
+static bool operator == (const GameObjectModel& mdl, const GameObjectModel& mdl2){
+    return &mdl == &mdl2;
+}
+*/
+
+// int valuesPerNode = 5, numMeanSplits = 3;
 
 //int UNBALANCED_TIMES_LIMIT = 5;
 int CHECK_TREE_PERIOD = 200;
@@ -186,7 +193,7 @@ bool DynamicMapTree::getIntersectionTime(const uint32 phasemask, const G3D::Ray&
 {
     float distance = pMaxDist;
     DynamicTreeIntersectionCallback callback(phasemask);
-    impl.intersectRay(ray, callback, distance, endPos);
+    impl.IntersectRay(ray, callback, distance, endPos);
     if (callback.didHit())
     {
         pMaxDist = distance;
@@ -268,7 +275,7 @@ bool DynamicMapTree::isInLineOfSight(float x1, float y1, float z1, float x2, flo
 
     G3D::Ray r(v1, (v2 - v1) / maxDist);
     DynamicTreeIntersectionCallback callback(phasemask);
-    impl.intersectRay(r, callback, maxDist, v2);
+    impl.IntersectRay(r, callback, maxDist, v2);
 
     return !callback.did_hit;
 }

@@ -2,7 +2,7 @@
  * MaNGOS is a full featured server for World of Warcraft, supporting
  * the following clients: 1.12.x, 2.4.3, 3.3.5a, 4.3.4a and 5.4.8
  *
- * Copyright (C) 2005-2021 MaNGOS <https://getmangos.eu>
+ * Copyright (C) 2005-2025 MaNGOS <https://www.getmangos.eu>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -129,10 +129,12 @@ Group::~Group()
     // will be unloaded first so we must be prepared for both cases
     // this may unload some dungeon persistent state
     for (uint8 i = 0; i < MAX_DIFFICULTY; ++i)
+    {
         for (BoundInstancesMap::iterator itr2 = m_boundInstances[i].begin(); itr2 != m_boundInstances[i].end(); ++itr2)
         {
             itr2->second.state->RemoveGroup(this);
         }
+    }
 
     // Sub group counters clean up
     delete[] m_subGroupsCounts;
@@ -200,7 +202,10 @@ bool Group::Create(ObjectGuid guid, const char* name)
 
     // Used by Eluna
 #ifdef ENABLE_ELUNA
-    sEluna->OnCreate(this, m_leaderGuid, m_groupType);
+    if (Eluna* e = sWorld.GetEluna())
+    {
+        e->OnCreate(this, m_leaderGuid, m_groupType);
+    }
 #endif /* ENABLE_ELUNA */
 
     return true;
@@ -319,7 +324,10 @@ bool Group::AddInvite(Player* player)
 
     // Used by Eluna
 #ifdef ENABLE_ELUNA
-    sEluna->OnInviteMember(this, player->GetObjectGuid());
+    if (Eluna* e = sWorld.GetEluna())
+    {
+        e->OnInviteMember(this, player->GetObjectGuid());
+    }
 #endif /* ENABLE_ELUNA */
 
     return true;
@@ -417,7 +425,10 @@ bool Group::AddMember(ObjectGuid guid, const char* name)
 
         // Used by Eluna
 #ifdef ENABLE_ELUNA
-        sEluna->OnAddMember(this, player->GetObjectGuid());
+        if (Eluna* e = sWorld.GetEluna())
+        {
+            e->OnAddMember(this, player->GetObjectGuid());
+        }
 #endif /* ENABLE_ELUNA */
 
         // quest related GO state dependent from raid membership
@@ -430,7 +441,7 @@ bool Group::AddMember(ObjectGuid guid, const char* name)
     return true;
 }
 
-uint32 Group::RemoveMember(ObjectGuid guid, uint8 method)
+uint32 Group::RemoveMember(ObjectGuid guid, uint8 removeMethod)
 {
     // remove member and change leader (if need) only if strong more 2 members _before_ member remove
     if (GetMembersCount() > uint32(isBGGroup() ? 1 : 2))    // in BG group case allow 1 members group
@@ -447,7 +458,7 @@ uint32 Group::RemoveMember(ObjectGuid guid, uint8 method)
 
             WorldPacket data;
 
-            if (method == 1)
+            if (removeMethod == 1)
             {
                 data.Initialize(SMSG_GROUP_UNINVITE, 0);
                 player->GetSession()->SendPacket(&data);
@@ -486,7 +497,10 @@ uint32 Group::RemoveMember(ObjectGuid guid, uint8 method)
 
     // Used by Eluna
 #ifdef ENABLE_ELUNA
-    sEluna->OnRemoveMember(this, guid, method); // Kicker and Reason not a part of Mangos, implement?
+    if (Eluna* e = sWorld.GetEluna())
+    {
+        e->OnRemoveMember(this, guid, removeMethod); // Kicker and Reason not a part of Mangos, implement?
+    }
 #endif /* ENABLE_ELUNA */
 
     return m_memberSlots.size();
@@ -502,7 +516,10 @@ void Group::ChangeLeader(ObjectGuid guid)
 
     // Used by Eluna
 #ifdef ENABLE_ELUNA
-    sEluna->OnChangeLeader(this, guid, GetLeaderGuid());
+    if (Eluna* e = sWorld.GetEluna())
+    {
+        e->OnChangeLeader(this, guid, GetLeaderGuid());
+    }
 #endif /* ENABLE_ELUNA */
 
     _setLeader(guid);
@@ -525,7 +542,7 @@ void Group::Disband(bool hideDestroy)
             continue;
         }
 
-        // we cannot call _removeMember because it would invalidate member iterator
+        // we can not call _removeMember because it would invalidate member iterator
         // if we are removing player from battleground raid
         if (isBGGroup())
         {
@@ -595,7 +612,10 @@ void Group::Disband(bool hideDestroy)
     _updateLeaderFlag(true);
     // Used by Eluna
 #ifdef ENABLE_ELUNA
-    sEluna->OnDisband(this);
+    if (Eluna* e = sWorld.GetEluna())
+    {
+        e->OnDisband(this);
+    }
 #endif /* ENABLE_ELUNA */
 
     m_leaderGuid.Clear();
@@ -868,7 +888,9 @@ bool Group::CountRollVote(ObjectGuid const& playerGUID, Rolls::iterator& rollI, 
     Roll::PlayerVote::iterator itr = roll->playerVote.find(playerGUID);
     // this condition means that player joins to the party after roll begins
     if (itr == roll->playerVote.end())
-        return true;                                        // result used for need iterator ++, so avoid for end of list
+    {
+        return true;                                         // result used for need iterator ++, so avoid for end of list
+    }
 
     if (roll->getLoot())
         if (roll->getLoot()->items.empty())
@@ -997,6 +1019,7 @@ void Group::EndRoll()
 void Group::CountTheRoll(Rolls::iterator& rollI)
 {
     Roll* roll = *rollI;
+
     if (!roll->isValid())                                   // is loot already deleted ?
     {
         rollI = RollId.erase(rollI);
@@ -1127,8 +1150,12 @@ void Group::CountTheRoll(Rolls::iterator& rollI)
     {
         SendLootAllPassed(*roll);
         LootItem* item = &(roll->getLoot()->items[roll->itemSlot]);
-        if (item) item->is_blocked = false;
+        if (item)
+        {
+            item->is_blocked = false;
+        }
     }
+
     rollI = RollId.erase(rollI);
     delete roll;
 }
@@ -1158,7 +1185,7 @@ void Group::SetTargetIcon(uint8 id, ObjectGuid whoGuid, ObjectGuid targetGuid)
     BroadcastPacket(&data, true);
 }
 
-static void GetDataForXPAtKill_helper(Player* player, Unit const* victim, uint32& sum_level, Player* & member_with_max_level, Player* & not_gray_member_with_max_level)
+static void GetDataForXPAtKill_helper(Player* player, Unit const* victim, uint32& sum_level, Player*& member_with_max_level, Player*& not_gray_member_with_max_level)
 {
     sum_level += player->getLevel();
     if (!member_with_max_level || member_with_max_level->getLevel() < player->getLevel())
@@ -1169,10 +1196,12 @@ static void GetDataForXPAtKill_helper(Player* player, Unit const* victim, uint32
     uint32 gray_level = MaNGOS::XP::GetGrayLevel(player->getLevel());
     if (victim->getLevel() > gray_level && (!not_gray_member_with_max_level
                                             || not_gray_member_with_max_level->getLevel() < player->getLevel()))
+    {
         not_gray_member_with_max_level = player;
+    }
 }
 
-void Group::GetDataForXPAtKill(Unit const* victim, uint32& count, uint32& sum_level, Player* & member_with_max_level, Player* & not_gray_member_with_max_level, Player* additional)
+void Group::GetDataForXPAtKill(Unit const* victim, uint32& count, uint32& sum_level, Player*& member_with_max_level, Player*& not_gray_member_with_max_level, Player* additional)
 {
     for (GroupReference* itr = GetFirstMember(); itr != NULL; itr = itr->next())
     {
@@ -1764,7 +1793,9 @@ void Group::ChangeMembersGroup(ObjectGuid guid, uint8 group)
     }
     else
         // This methods handles itself groupcounter decrease
+    {
         ChangeMembersGroup(player, group);
+    }
 }
 
 // only for online members
@@ -1840,7 +1871,7 @@ void Group::UpdateLooterGuid(WorldObject* pSource, bool ifneed)
         if (ifneed)
         {
             // not update if only update if need and ok
-            Player* looter = ObjectAccessor::FindPlayer(guid_itr->guid);
+            Player* looter = sObjectAccessor.FindPlayer(guid_itr->guid);
             if (looter && looter->IsWithinDist(pSource, sWorld.getConfig(CONFIG_FLOAT_GROUP_XP_DISTANCE), false))
             {
                 return;
@@ -1854,7 +1885,7 @@ void Group::UpdateLooterGuid(WorldObject* pSource, bool ifneed)
     {
         for (member_citerator itr = guid_itr; itr != m_memberSlots.end(); ++itr)
         {
-            if (Player* pl = ObjectAccessor::FindPlayer(itr->guid))
+            if (Player* pl = sObjectAccessor.FindPlayer(itr->guid))
             {
                 if (pl->IsWithinDist(pSource, sWorld.getConfig(CONFIG_FLOAT_GROUP_XP_DISTANCE), false))
                 {
@@ -1877,7 +1908,7 @@ void Group::UpdateLooterGuid(WorldObject* pSource, bool ifneed)
     // search from start
     for (member_citerator itr = m_memberSlots.begin(); itr != guid_itr; ++itr)
     {
-        if (Player* pl = ObjectAccessor::FindPlayer(itr->guid))
+        if (Player* pl = sObjectAccessor.FindPlayer(itr->guid))
         {
             if (pl->IsWithinDist(pSource, sWorld.getConfig(CONFIG_FLOAT_GROUP_XP_DISTANCE), false))
             {
@@ -2068,7 +2099,7 @@ void Group::ResetInstances(InstanceResetMethod method, bool isRaid, Player* Send
         // Store maps in which are offline members for instance reset check.
         for (member_citerator itr = m_memberSlots.begin(); itr != m_memberSlots.end(); ++itr)
         {
-            if (!ObjectAccessor::FindPlayer(itr->guid))
+            if (!sObjectAccessor.FindPlayer(itr->guid))
             {
                 mapsWithOfflinePlayer.insert(itr->lastMap); // add last map from offline player
             }
@@ -2242,7 +2273,7 @@ void Group::UnbindInstance(uint32 mapid, uint8 difficulty, bool unload)
         if (!unload)
             CharacterDatabase.PExecute("DELETE FROM `group_instance` WHERE `leaderGuid` = '%u' AND `instance` = '%u'",
                                        GetLeaderGuid().GetCounter(), itr->second.state->GetInstanceId());
-        itr->second.state->RemoveGroup(this);               // state can become invalid
+        itr->second.state->RemoveGroup(this);               // save can become invalid
         m_boundInstances[difficulty].erase(itr);
     }
 }
@@ -2284,7 +2315,7 @@ static void RewardGroupAtKill_helper(Player* pGroupGuy, Unit* pVictim, uint32 co
 
         // XP updated only for alive group member
         if (pGroupGuy->IsAlive() && not_gray_member_with_max_level &&
-                pGroupGuy->getLevel() <= not_gray_member_with_max_level->getLevel())
+            pGroupGuy->getLevel() <= not_gray_member_with_max_level->getLevel())
         {
             uint32 itr_xp = (member_with_max_level == not_gray_member_with_max_level) ? uint32(xp * rate) : uint32((xp * rate / 2) + 1);
 
@@ -2355,7 +2386,7 @@ void Group::RewardGroupAtKill(Unit* pVictim, Player* player_tap)
 
             if (!pGroupGuy->IsAtGroupRewardDistance(pVictim))
             {
-                continue;                               // member (alive or dead) or his corpse at req. distance
+                continue;                                // member (alive or dead) or his corpse at req. distance
             }
 
             RewardGroupAtKill_helper(pGroupGuy, pVictim, count, PvP, group_rate, sum_level, is_dungeon, not_gray_member_with_max_level, member_with_max_level, xp);

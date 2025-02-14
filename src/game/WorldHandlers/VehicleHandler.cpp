@@ -2,7 +2,7 @@
  * MaNGOS is a full featured server for World of Warcraft, supporting
  * the following clients: 1.12.x, 2.4.3, 3.3.5a, 4.3.4a and 5.4.8
  *
- * Copyright (C) 2005-2021 MaNGOS <https://getmangos.eu>
+ * Copyright (C) 2005-2025 MaNGOS <https://www.getmangos.eu>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -221,10 +221,12 @@ void WorldSession::HandleEjectPassenger(WorldPacket& recvPacket)
 
     // Check for eject flag
     if (VehicleSeatEntry const* seatEntry = vehicleInfo->GetSeatEntry(passenger->GetTransportInfo()->GetTransportSeat()))
+    {
         if (seatEntry->m_flagsB & SEAT_FLAG_B_EJECTABLE)
         {
             _player->RemoveSpellsCausingAura(SPELL_AURA_CONTROL_VEHICLE, passengerGuid);
         }
+    }
 }
 
 void WorldSession::HandleRequestVehiclePrevSeat(WorldPacket& recv_data)

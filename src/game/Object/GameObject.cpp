@@ -2,7 +2,7 @@
  * MaNGOS is a full featured server for World of Warcraft, supporting
  * the following clients: 1.12.x, 2.4.3, 3.3.5a, 4.3.4a and 5.4.8
  *
- * Copyright (C) 2005-2021 MaNGOS <https://getmangos.eu>
+ * Copyright (C) 2005-2025 MaNGOS <https://www.getmangos.eu>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -49,16 +49,24 @@
 #include "vmap/GameObjectModel.h"
 #include "CreatureAISelector.h"
 #include "SQLStorages.h"
+#include "GameObjectAI.h"
+#include <memory>
 #ifdef ENABLE_ELUNA
 #include "LuaEngine.h"
 #endif /* ENABLE_ELUNA */
 
+enum
+{
+    GO_DIRE_MAUL_FIXED_TRAP = 179512,
+    NPC_SLIPKIK_GUARD = 14323
+};
 
 GameObject::GameObject() : WorldObject(),
     loot(this),
     m_model(NULL),
+    m_displayInfo(NULL),
     m_goInfo(NULL),
-    m_displayInfo(NULL)
+    m_AI_locked(false)
 {
     m_objectType |= TYPEMASK_GAMEOBJECT;
     m_objectTypeId = TYPEID_GAMEOBJECT;
@@ -83,7 +91,10 @@ GameObject::GameObject() : WorldObject(),
 
     m_isInUse = false;
     m_reStockTimer = 0;
+    m_rearmTimer = 0;
     m_despawnTimer = 0;
+
+    m_AI_locked;
 }
 
 GameObject::~GameObject()
@@ -116,7 +127,10 @@ void GameObject::AddToWorld()
 #ifdef ENABLE_ELUNA
     if (!inWorld)
     {
-        sEluna->OnAddToWorld(this);
+        if (Eluna* e = GetEluna())
+        {
+            e->OnAddToWorld(this);
+        }
     }
 #endif /* ENABLE_ELUNA */
 }
@@ -127,7 +141,10 @@ void GameObject::RemoveFromWorld()
     if (IsInWorld())
     {
 #ifdef ENABLE_ELUNA
-        sEluna->OnRemoveFromWorld(this);
+        if (Eluna* e = GetEluna())
+        {
+            e->OnRemoveFromWorld(this);
+        }
 #endif /* ENABLE_ELUNA */
 
         // Notify the outdoor pvp script
@@ -139,7 +156,7 @@ void GameObject::RemoveFromWorld()
         // Remove GO from owner
         if (ObjectGuid owner_guid = GetOwnerGuid())
         {
-            if (Unit* owner = ObjectAccessor::GetUnit(*this, owner_guid))
+            if (Unit* owner = sObjectAccessor.GetUnit(*this, owner_guid))
             {
                 owner->RemoveGameObject(this, false);
             }
@@ -225,6 +242,11 @@ bool GameObject::Create(uint32 guidlow, uint32 name_id, Map* map, uint32 phaseMa
     SetUInt32Value(GAMEOBJECT_FACTION, goinfo->faction);
     SetUInt32Value(GAMEOBJECT_FLAGS, goinfo->flags);
 
+    if (goinfo->type == GAMEOBJECT_TYPE_TRANSPORT)
+    {
+        SetFlag(GAMEOBJECT_FLAGS, (GO_FLAG_TRANSPORT | GO_FLAG_NODESPAWN));
+    }
+
     SetEntry(goinfo->id);
     SetDisplayId(goinfo->displayId);
 
@@ -233,11 +255,6 @@ bool GameObject::Create(uint32 guidlow, uint32 name_id, Map* map, uint32 phaseMa
     SetGoType(GameobjectTypes(goinfo->type));
     SetGoArtKit(0);                                         // unknown what this is
     SetGoAnimProgress(animprogress);
-
-    if (goinfo->type == GAMEOBJECT_TYPE_TRANSPORT)
-    {
-        SetFlag(GAMEOBJECT_FLAGS, (GO_FLAG_TRANSPORT | GO_FLAG_NODESPAWN));
-    }
 
     switch (GetGoType())
     {
@@ -249,7 +266,7 @@ bool GameObject::Create(uint32 guidlow, uint32 name_id, Map* map, uint32 phaseMa
             ForceGameObjectHealth(GetMaxHealth(), NULL);
             SetUInt32Value(GAMEOBJECT_PARENTROTATION, m_goInfo->destructibleBuilding.destructibleData);
         case GAMEOBJECT_TYPE_TRANSPORT:
-            SetUInt32Value(GAMEOBJECT_LEVEL, GameTime::GetGameTimeMS());
+            SetUInt32Value(GAMEOBJECT_LEVEL, getMSTime());
             if (goinfo->transport.startOpen)
             {
                 SetGoState(GO_STATE_ACTIVE);
@@ -261,7 +278,10 @@ bool GameObject::Create(uint32 guidlow, uint32 name_id, Map* map, uint32 phaseMa
 
     // Used by Eluna
 #ifdef ENABLE_ELUNA
-    sEluna->OnSpawn(this);
+    if (Eluna* e = GetEluna())
+    {
+        e->OnSpawn(this);
+    }
 #endif /* ENABLE_ELUNA */
 
     // Notify the battleground or outdoor pvp script
@@ -295,7 +315,10 @@ void GameObject::Update(uint32 update_diff, uint32 p_time)
 
     // Used by Eluna
 #ifdef ENABLE_ELUNA
-    sEluna->UpdateAI(this, update_diff);
+    if (Eluna* e = GetEluna())
+    {
+        e->UpdateAI(this, update_diff);
+    }
 #endif /* ENABLE_ELUNA */
 
     switch (m_lootState)
@@ -600,6 +623,14 @@ void GameObject::Update(uint32 update_diff, uint32 p_time)
             break;
         }
     }
+
+    if (AI())
+    {
+        // do not allow the AI to be changed during update
+        m_AI_locked = true;
+        AI()->UpdateAI(update_diff);   // AI not react good at real update delays (while freeze in non-active part of map)
+        m_AI_locked = false;
+    }
 }
 
 void GameObject::Refresh()
@@ -771,6 +802,8 @@ bool GameObject::LoadFromDB(uint32 guid, Map* map)
         }
     }
 
+    AIM_Initialize();
+
     return true;
 }
 
@@ -802,6 +835,11 @@ void GameObject::DeleteFromDB()
     WorldDatabase.PExecuteLog("DELETE FROM `gameobject` WHERE `guid` = '%u'", GetGUIDLow());
     WorldDatabase.PExecuteLog("DELETE FROM `game_event_gameobject` WHERE `guid` = '%u'", GetGUIDLow());
     WorldDatabase.PExecuteLog("DELETE FROM `gameobject_battleground` WHERE `guid` = '%u'", GetGUIDLow());
+}
+
+GameObjectInfo const* GameObject::GetGOInfo() const
+{
+    return m_goInfo;
 }
 
 /*********************************************************/
@@ -846,7 +884,7 @@ bool GameObject::IsTransport() const
 
 Unit* GameObject::GetOwner() const
 {
-    return ObjectAccessor::GetUnit(*this, GetOwnerGuid());
+    return sObjectAccessor.GetUnit(*this, GetOwnerGuid());
 }
 
 void GameObject::SaveRespawnTime()
@@ -1077,6 +1115,7 @@ void GameObject::SummonLinkedTrapIfAny()
         linkedGO->SetUInt32Value(GAMEOBJECT_LEVEL, GetUInt32Value(GAMEOBJECT_LEVEL));
     }
 
+    linkedGO->AIM_Initialize();
     GetMap()->Add(linkedGO);
 }
 
@@ -1149,7 +1188,8 @@ bool GameObject::IsCollisionEnabled() const
         case GAMEOBJECT_TYPE_DOOR:
         case GAMEOBJECT_TYPE_DESTRUCTIBLE_BUILDING:
             return GetGoState() != GO_STATE_ACTIVE && GetGoState() != GO_STATE_ACTIVE_ALTERNATIVE;
-
+        case GAMEOBJECT_TYPE_TRAP:
+            return false;
         default:
             return true;
     }
@@ -1352,6 +1392,11 @@ void GameObject::Use(Unit* user)
             if (GetDisplayId() == 4392 || GetDisplayId() == 4472 || GetDisplayId() == 4491 || GetDisplayId() == 6785 || GetDisplayId() == 3073 || GetDisplayId() == 7998)
             {
                 SendGameObjectCustomAnim(GetObjectGuid());
+            }
+
+            if (!scriptReturnValue && user->GetTypeId() == TYPEID_UNIT)
+            {
+                sScriptMgr.OnGameObjectUse(user, this);
             }
 
             // TODO: Despawning of traps? (Also related to code in ::Update)
@@ -1813,7 +1858,7 @@ void GameObject::Use(Unit* user)
 
             Player* player = (Player*)user;
 
-            Player* targetPlayer = ObjectAccessor::FindPlayer(player->GetSelectionGuid());
+            Player* targetPlayer = sObjectAccessor.FindPlayer(player->GetSelectionGuid());
 
             // accept only use by player from same group for caster except caster itself
             if (!targetPlayer || targetPlayer == player || !targetPlayer->IsInSameGroupWith(player))
@@ -2191,7 +2236,10 @@ void GameObject::SetLootState(LootState state)
 {
     m_lootState = state;
 #ifdef ENABLE_ELUNA
-    sEluna->OnLootStateChanged(this, state);
+    if (Eluna* e = GetEluna())
+    {
+        e->OnLootStateChanged(this, state);
+    }
 #endif /* ENABLE_ELUNA */
     UpdateCollisionState();
 }
@@ -2200,7 +2248,10 @@ void GameObject::SetGoState(GOState state)
 {
     SetByteValue(GAMEOBJECT_BYTES_1, 0, state);
 #ifdef ENABLE_ELUNA
-    sEluna->OnGameObjectStateChanged(this, state);
+    if (Eluna* e = GetEluna())
+    {
+        e->OnGameObjectStateChanged(this, state);
+    }
 #endif /* ENABLE_ELUNA */
     UpdateCollisionState();
 }
@@ -2267,7 +2318,7 @@ void GameObject::StopGroupLoot()
 
 Player* GameObject::GetOriginalLootRecipient() const
 {
-    return m_lootRecipientGuid ? ObjectAccessor::FindPlayer(m_lootRecipientGuid) : NULL;
+    return m_lootRecipientGuid ? sObjectAccessor.FindPlayer(m_lootRecipientGuid) : NULL;
 }
 
 Group* GameObject::GetGroupLootRecipient() const
@@ -2318,7 +2369,7 @@ void GameObject::SetLootRecipient(Unit* pUnit)
     {
         m_lootRecipientGuid.Clear();
         m_lootGroupRecipientId = 0;
-        ForceValuesUpdateAtIndex(UNIT_DYNAMIC_FLAGS);       // needed to be sure tapping status is updated
+        //ForceValuesUpdateAtIndex(UNIT_DYNAMIC_FLAGS);       // needed to be sure tapping status is updated
         return;
     }
 
@@ -2337,7 +2388,7 @@ void GameObject::SetLootRecipient(Unit* pUnit)
         m_lootGroupRecipientId = group->GetId();
     }
 
-    ForceValuesUpdateAtIndex(UNIT_DYNAMIC_FLAGS);           // needed to be sure tapping status is updated
+    //ForceValuesUpdateAtIndex(UNIT_DYNAMIC_FLAGS);           // needed to be sure tapping status is updated
 }
 
 float GameObject::GetObjectBoundingRadius() const
@@ -2713,7 +2764,10 @@ void GameObject::ForceGameObjectHealth(int32 diff, Unit* caster)
 #ifdef ENABLE_ELUNA
         if (caster && caster->ToPlayer())
         {
-            sEluna->OnDamaged(this, caster->ToPlayer());
+            if (Eluna* e = caster->GetEluna())
+            {
+                e->OnDamaged(this, caster->ToPlayer());
+            }
         }
 #endif
         if (m_useTimes > uint32(-diff))
@@ -2766,7 +2820,10 @@ void GameObject::ForceGameObjectHealth(int32 diff, Unit* caster)
 #ifdef ENABLE_ELUNA
             if(caster && caster->ToPlayer())
             {
-                sEluna->OnDestroyed(this, caster->ToPlayer());
+                if (Eluna* e = caster->GetEluna())
+                {
+                    e->OnDestroyed(this, caster->ToPlayer());
+                }
             }
 #endif
             RemoveFlag(GAMEOBJECT_FLAGS, GO_FLAG_UNK_9 | GO_FLAG_UNK_10);
@@ -2853,6 +2910,21 @@ void GameObject::SetInUse(bool use)
 uint32 GameObject::GetScriptId()
 {
     return sScriptMgr.GetBoundScriptId(SCRIPTED_GAMEOBJECT, -int32(GetGUIDLow())) ? sScriptMgr.GetBoundScriptId(SCRIPTED_GAMEOBJECT, -int32(GetGUIDLow())) : sScriptMgr.GetBoundScriptId(SCRIPTED_GAMEOBJECT, GetEntry());
+}
+
+bool  GameObject::AIM_Initialize()
+{
+
+    // make sure nothing can change the AI during AI update
+    if (m_AI_locked)
+    {
+        DEBUG_FILTER_LOG(LOG_FILTER_AI_AND_MOVEGENSS, "AIM_Initialize: failed to init, locked.");
+        return false;
+    }
+
+    m_AI.reset(sScriptMgr.GetGameObjectAI(this));
+
+    return true;
 }
 
 float GameObject::GetInteractionDistance()

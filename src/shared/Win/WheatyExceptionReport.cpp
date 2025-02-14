@@ -14,7 +14,7 @@
 #define _NO_CVCONST_H
 #include <dbghelp.h>
 #include "WheatyExceptionReport.h"
-#include "revision.h"
+#include "GitRevision.h"
 #define CrashFolder _T("Crashes")
 //#pragma comment(linker, "/defaultlib:dbghelp.lib")
 
@@ -336,7 +336,7 @@ void WheatyExceptionReport::GenerateExceptionReport(
     GetLocalTime(&systime);
 
     // Start out with a banner
-    _tprintf(_T("Revision: %s\r\n"), REVISION_NR);
+    _tprintf(_T("Revision: %s\r\n"), GitRevision::GetProjectRevision());
     _tprintf(_T("Date %u:%u:%u. Time %u:%u \r\n"), systime.wDay, systime.wMonth, systime.wYear, systime.wHour, systime.wMinute);
     PEXCEPTION_RECORD pExceptionRecord = pExceptionInfo->ExceptionRecord;
 
@@ -361,6 +361,7 @@ void WheatyExceptionReport::GenerateExceptionReport(
              pExceptionRecord->ExceptionAddress,
              section, offset, szFaultingModule);
 #endif
+
 #ifdef _M_X64
     _tprintf(_T("Fault address:  %016I64X %02X:%016I64X %s\r\n"),
              pExceptionRecord->ExceptionAddress,
@@ -639,9 +640,11 @@ void WheatyExceptionReport::WriteStackDetails(
 #ifdef _M_IX86
             _tprintf(_T("%04X:%08X %s"), section, offset, szModule);
 #endif
+
 #ifdef _M_X64
             _tprintf(_T("%04X:%016I64X %s"), section, offset, szModule);
 #endif
+
         }
 
         // Get the source line for this stack frame entry

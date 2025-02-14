@@ -2,7 +2,7 @@
  * MaNGOS is a full featured server for World of Warcraft, supporting
  * the following clients: 1.12.x, 2.4.3, 3.3.5a, 4.3.4a and 5.4.8
  *
- * Copyright (C) 2005-2021 MaNGOS <https://getmangos.eu>
+ * Copyright (C) 2005-2025 MaNGOS <https://www.getmangos.eu>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -50,6 +50,10 @@
 
 class ObjectGuid;
 
+/**
+ * @brief
+ *
+ */
 class ByteBufferException
 {
     public:
@@ -83,8 +87,8 @@ class ByteBufferException
 #endif
 
             sLog.outError(
-                "Attempted to %s in ByteBuffer (pos: " SIZEFMTD " size: " SIZEFMTD ") "
-                "value with size: " SIZEFMTD "%s%s",
+                "Attempted to %s in ByteBuffer (pos: %zu size: %zu) "
+                "value with size: %zu%s%s",
                 (add ? "put" : "get"), pos, size, esize,
                 traceStr ? "\n" : "", traceStr ? traceStr : "");
         }
@@ -721,6 +725,11 @@ class ByteBuffer
             _rpos = wpos();
         }
 
+        /**
+         * @brief
+         *
+         * @return size_t
+         */
         size_t wpos() const { return _wpos; }
 
         /**
@@ -779,7 +788,14 @@ class ByteBuffer
             {
                 throw ByteBufferException(false, pos, sizeof(T), size());
             }
+#if defined(__arm__)
+            // ARM has alignment issues, we need to use memcpy to avoid them
+            T val;
+            memcpy((void*)&val, (void*)&_storage[pos], sizeof(T));
+#else
             T val = *((T const*)&_storage[pos]);
+#endif
+
             EndianConvert(val);
             return val;
         }
@@ -920,6 +936,11 @@ class ByteBuffer
             return f;
         }
 
+        /**
+         * @brief
+         *
+         * @return const uint8
+         */
         const uint8* contents() const { return &_storage[0]; }
 
         /**

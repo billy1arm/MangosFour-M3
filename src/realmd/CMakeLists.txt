@@ -2,7 +2,7 @@
 # * MaNGOS is a full featured server for World of Warcraft, supporting
 # * the following clients: 1.12.x, 2.4.3, 3.3.5a, 4.3.4a and 5.4.8
 # *
-# * Copyright (C) 2005-2021 MaNGOS <https://getmangos.eu>
+# * Copyright (C) 2005-2025 MaNGOS <https://www.getmangos.eu>
 # *
 # * This program is free software; you can redistribute it and/or modify
 # * it under the terms of the GNU General Public License as published by
@@ -60,17 +60,24 @@ add_executable(realmd
     >
 )
 
+target_compile_features(realmd PUBLIC cxx_std_17)
+set_target_properties(realmd PROPERTIES CXX_EXTENSIONS OFF)
+
 target_include_directories(realmd
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${CMAKE_CURRENT_BINARY_DIR}/VersionInfo.h
+        ${OPENSSL_INCLUDE_DIR}
 )
 
 target_link_libraries(realmd
     PUBLIC
         shared
         Threads::Threads
-        DL::DL
+        ${OPENSSL_LIBRARIES}
+#if (defined(OPENSSL_VERSION_MAJOR) && OPENSSL_VERSION_MAJOR >= 3)
+        OpenSSL::Crypto
+#endif()
 )
 
 install(

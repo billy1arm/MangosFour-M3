@@ -2,7 +2,7 @@
  * MaNGOS is a full featured server for World of Warcraft, supporting
  * the following clients: 1.12.x, 2.4.3, 3.3.5a, 4.3.4a and 5.4.8
  *
- * Copyright (C) 2005-2021 MaNGOS <https://getmangos.eu>
+ * Copyright (C) 2005-2025 MaNGOS <https://www.getmangos.eu>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -148,7 +148,7 @@ namespace VMAP
          * @param path
          * @return bool
          */
-        bool Read(const char* path, const char *RAW_VMAP_MAGIC);
+        bool Read(const char* path);
     };
 
     /**
@@ -191,7 +191,7 @@ namespace VMAP
              *
              * @return bool
              */
-            bool convertWorld2(const char *RAW_VMAP_MAGIC);
+            bool convertWorld2();
             /**
              * @brief
              *
@@ -204,20 +204,20 @@ namespace VMAP
              * @param spawn
              * @return bool
              */
-            bool calculateTransformedBound(ModelSpawn& spawn, const char *RAW_VMAP_MAGIC);
+            bool calculateTransformedBound(ModelSpawn& spawn);
 
             /**
              * @brief
              *
              */
-            void exportGameobjectModels(const char *RAW_VMAP_MAGIC);
+            void exportGameobjectModels();
             /**
              * @brief
              *
              * @param pModelFilename
              * @return bool
              */
-            bool convertRawFile(const std::string& pModelFilename, const char *RAW_VMAP_MAGIC);
+            bool convertRawFile(const std::string& pModelFilename);
             /**
              * @brief
              *

@@ -3,8 +3,8 @@
  * area triggers, creatures, game objects, instances, items, and spells beyond
  * the default database scripting in mangos.
  *
- * Copyright (C) 2006-2013  ScriptDev2 <http://www.scriptdev2.com/>
- * Copyright (C) 2014-2021 MaNGOS <https://getmangos.eu>
+ * Copyright (C) 2006-2013 ScriptDev2 <http://www.scriptdev2.com/>
+ * Copyright (C) 2014-2025 MaNGOS <https://www.getmangos.eu>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,6 +33,7 @@ EndScriptData */
 
 #include "precompiled.h"
 #include "karazhan.h"
+#include <random>
 
 enum
 {
@@ -178,7 +179,9 @@ struct boss_moroes : public CreatureScript
                     m_vGuestsEntryList[i] = auiGuests[i];
                 }
 
-                std::random_shuffle(m_vGuestsEntryList.begin(), m_vGuestsEntryList.end());
+                //std::random_shuffle(m_vGuestsEntryList.begin(), m_vGuestsEntryList.end());
+                std::mt19937 rng(std::time(nullptr));
+                std::shuffle(m_vGuestsEntryList.begin(), m_vGuestsEntryList.end(), rng);
 
                 // Summon the 4 entries
                 for (uint8 i = 0; i < MAX_ACTIVE_GUESTS; ++i)

@@ -3,8 +3,8 @@
  * area triggers, creatures, game objects, instances, items, and spells beyond
  * the default database scripting in mangos.
  *
- * Copyright (C) 2006-2013  ScriptDev2 <http://www.scriptdev2.com/>
- * Copyright (C) 2014-2021 MaNGOS <https://getmangos.eu>
+ * Copyright (C) 2006-2013 ScriptDev2 <http://www.scriptdev2.com/>
+ * Copyright (C) 2014-2025 MaNGOS <https://www.getmangos.eu>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,6 +39,7 @@ class InstanceData;
 class Quest;
 class Item;
 class GameObject;
+class GameObjectAI;
 class SpellCastTargets;
 class Map;
 class Unit;
@@ -58,14 +59,18 @@ public:
     static char const* GetScriptLibraryVersion();
 
     static CreatureAI* GetCreatureAI(Creature* pCreature);
+    static GameObjectAI* GetGameObjectAI(GameObject* pGo);
     static InstanceData* CreateInstanceData(Map* pMap);
 
     static bool GossipHello(Player*, Creature*);
     static bool GOGossipHello(Player*, GameObject*);
+    static bool ItemGossipHello(Player*, Item*);
     static bool GossipSelect(Player*, Creature*, uint32, uint32);
     static bool GOGossipSelect(Player*, GameObject*, uint32, uint32);
+    static bool ItemGossipSelect(Player*, Item*, uint32, uint32);
     static bool GossipSelectWithCode(Player*, Creature*, uint32, uint32, const char*);
     static bool GOGossipSelectWithCode(Player*, GameObject*, uint32, uint32, const char*);
+    static bool ItemGossipSelectWithCode(Player*, Item*, uint32, uint32, const char*);
     static bool QuestAccept(Player*, Creature*, Quest const*);
     static bool GOQuestAccept(Player*, GameObject*, Quest const*);
     static bool ItemQuestAccept(Player*, Item*, Quest const*);
@@ -74,13 +79,12 @@ public:
     static uint32 GetNPCDialogStatus(Player*, Creature*);
     static uint32 GetGODialogStatus(Player*, GameObject*);
     static bool GOUse(Player*, GameObject*);
+    static bool GOUse(Unit*, GameObject*);
     static bool ItemUse(Player*, Item*, SpellCastTargets const&);
     static bool ItemEquip(Player*, Item*, bool);    //new TODO
     static bool ItemDelete(Player*, Item*);         //new TODO
     static bool AreaTrigger(Player*, AreaTriggerEntry const*);
-#if defined (WOTLK) || defined (CATA) || defined(MISTS)
     static bool NpcSpellClick(Player* pPlayer, Creature* pClickedCreature, uint32 uiSpellId);
-#endif
     static bool ProcessEvent(uint32, Object*, Object*, bool);
     static bool EffectDummyUnit(Unit*, uint32, SpellEffectIndex, Unit*, ObjectGuid);
     static bool EffectDummyGameObject(Unit*, uint32, SpellEffectIndex, GameObject*, ObjectGuid);
@@ -175,9 +179,7 @@ struct CreatureScript : public Script
     virtual uint32 OnDialogEnd(Player*, Creature*) { return DIALOG_STATUS_UNDEFINED; }
     virtual bool OnQuestAccept(Player*, Creature*, Quest const*) { return false; }
     virtual bool OnQuestRewarded(Player*, Creature*, Quest const*) { return false; }
-#if defined (WOTLK) || defined (CATA) || defined(MISTS)
     virtual bool OnSpellClick(Player*, Creature*, uint32) { return false; }
-#endif
 
     virtual CreatureAI* GetAI(Creature*) { return nullptr; }
 };
@@ -193,6 +195,9 @@ struct GameObjectScript : public Script
     virtual bool OnQuestAccept(Player*, GameObject*, Quest const*) { return false; }
     virtual bool OnQuestRewarded(Player*, GameObject*, Quest const*) { return false; }
     virtual bool OnUse(Player*, GameObject*) { return false; }
+    virtual bool OnUse(Unit*, GameObject*) { return false; }
+
+    virtual GameObjectAI* GetAI(GameObject*) { return nullptr; }
 };
 
 struct ItemScript : public Script
@@ -203,6 +208,9 @@ struct ItemScript : public Script
     virtual bool OnUse(Player*, Item*, SpellCastTargets const&) { return false; }
     virtual bool OnEquip(Player*, Item*, bool on) { return false; }
     virtual bool OnDelete(Player*, Item*) { return false; }
+    virtual bool OnGossipHello(Player*, Item*) { return false; }
+    virtual bool OnGossipSelect(Player*, Item*, uint32, uint32) { return false; }
+    virtual bool OnGossipSelectWithCode(Player*, Item*, uint32, uint32, const char*) { return false; }
 };
 
 struct AreaTriggerScript : public Script

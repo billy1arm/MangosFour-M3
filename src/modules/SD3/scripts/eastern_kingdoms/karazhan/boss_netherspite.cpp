@@ -3,8 +3,8 @@
  * area triggers, creatures, game objects, instances, items, and spells beyond
  * the default database scripting in mangos.
  *
- * Copyright (C) 2006-2013  ScriptDev2 <http://www.scriptdev2.com/>
- * Copyright (C) 2014-2021 MaNGOS <https://getmangos.eu>
+ * Copyright (C) 2006-2013 ScriptDev2 <http://www.scriptdev2.com/>
+ * Copyright (C) 2014-2025 MaNGOS <https://www.getmangos.eu>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,6 +35,7 @@
 
 #include "precompiled.h"
 #include "karazhan.h"
+#include <random>
 
 enum
 {
@@ -277,7 +278,9 @@ struct boss_netherspite : public CreatureScript
             }
 
             // randomize the portals after the first summon
-            std::random_shuffle(m_vPortalEntryList.begin(), m_vPortalEntryList.end());
+            //std::random_shuffle(m_vPortalEntryList.begin(), m_vPortalEntryList.end());
+            std::mt19937 rng(std::time(nullptr));
+            std::shuffle(m_vPortalEntryList.begin(), m_vPortalEntryList.end(), rng);
         }
 
         void DoDespawnPortalsImmediately()

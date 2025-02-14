@@ -2,7 +2,7 @@
  * MaNGOS is a full featured server for World of Warcraft, supporting
  * the following clients: 1.12.x, 2.4.3, 3.3.5a, 4.3.4a and 5.4.8
  *
- * Copyright (C) 2005-2021 MaNGOS <https://getmangos.eu>
+ * Copyright (C) 2005-2025 MaNGOS <https://www.getmangos.eu>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,6 +32,8 @@
 #include <iomanip>
 #include <limits>
 
+#include <unordered_map>
+
 using G3D::Vector3;
 
 namespace VMAP
@@ -42,7 +44,7 @@ namespace VMAP
             MapRayCallback(ModelInstance* val): prims(val), hit(false) {}
             bool operator()(const G3D::Ray& ray, uint32 entry, float& distance, bool pStopAtFirstHit = true)
             {
-                bool result = prims[entry].intersectRay(ray, distance, pStopAtFirstHit);
+                bool result = prims[entry].IntersectRay(ray, distance, pStopAtFirstHit);
                 if (result)
                 {
                     hit = true;
@@ -153,7 +155,7 @@ namespace VMAP
     {
         float distance = pMaxDist;
         MapRayCallback intersectionCallBack(iTreeValues);
-        iTree.intersectRay(pRay, intersectionCallBack, distance, pStopAtFirstHit);
+        iTree.IntersectRay(pRay, intersectionCallBack, distance, pStopAtFirstHit);
         if (intersectionCallBack.didHit())
         {
             pMaxDist = distance;

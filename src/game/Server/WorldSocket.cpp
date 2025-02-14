@@ -2,7 +2,7 @@
  * MaNGOS is a full featured server for World of Warcraft, supporting
  * the following clients: 1.12.x, 2.4.3, 3.3.5a, 4.3.4a and 5.4.8
  *
- * Copyright (C) 2005-2021 MaNGOS <https://getmangos.eu>
+ * Copyright (C) 2005-2025 MaNGOS <https://www.getmangos.eu>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -145,23 +145,17 @@ bool WorldSocket::IsClosed(void) const
 
 void WorldSocket::CloseSocket(void)
 {
+    ACE_GUARD(LockType, Guard, m_OutBufferLock);
+
+    if (closing_)
     {
-        ACE_GUARD(LockType, Guard, m_OutBufferLock);
-
-        if (closing_)
-        {
-            return;
-        }
-
-        closing_ = true;
-        peer().close_writer();
+        return;
     }
 
-    {
-        ACE_GUARD(LockType, Guard, m_SessionLock);
+    closing_ = true;
+    peer().close_writer();
 
-        m_Session = NULL;
-    }
+    m_Session = NULL;
 }
 
 const std::string& WorldSocket::GetRemoteAddress(void) const
@@ -181,10 +175,15 @@ int WorldSocket::SendPacket(const WorldPacket& pct)
     // Dump outgoing packet.
     sLog.outWorldPacketDump(uint32(get_handle()), pct.GetOpcode(), pct.GetOpcodeName(), &pct, false);
 
-//#ifdef ENABLE_ELUNA
-//    if (!sEluna->OnPacketSend(m_Session, pct))
-//        { return 0; }
-//#endif /* ENABLE_ELUNA */
+#ifdef ENABLE_ELUNA
+    if (Eluna* e = sWorld.GetEluna())
+    {
+        if (!e->OnPacketSend(m_Session, pct))
+        {
+            return 0;
+        }
+    }
+#endif
 
     ServerPktHeader header(pct.size() + 2, pct.GetOpcode());
     m_Crypt.EncryptSend((uint8*)header.header, header.getHeaderLength());
@@ -198,10 +197,12 @@ int WorldSocket::SendPacket(const WorldPacket& pct)
         }
 
         if (!pct.empty())
+        {
             if (m_OutBuffer->copy((char*) pct.contents(), pct.size()) == -1)
             {
                 MANGOS_ASSERT(false);
             }
+        }
     }
     else
     {
@@ -339,8 +340,7 @@ int WorldSocket::handle_input(ACE_HANDLE)
     {
         case -1 :
         {
-            if ((errno == EWOULDBLOCK) ||
-                (errno == EAGAIN))
+            if ((errno == EWOULDBLOCK) || (errno == EAGAIN))
             {
                 return Update();                            // interesting line ,isn't it ?
             }
@@ -541,7 +541,7 @@ int WorldSocket::handle_input_header(void)
     EndianConvertReverse(header.size);
     EndianConvert(header.cmd);
 
-    if ((header.size < 4) || (header.size > 10240) || (header.cmd  > 10240))
+    if ((header.size < 4) || (header.size > 10240))
     {
         sLog.outError("WorldSocket::handle_input_header: client sent malformed packet size = %d , cmd = %d",
                       header.size, header.cmd);
@@ -552,7 +552,7 @@ int WorldSocket::handle_input_header(void)
 
     header.size -= 4;
 
-    ACE_NEW_RETURN(m_RecvWPct, WorldPacket(Opcodes(header.cmd), header.size), -1);
+    ACE_NEW_RETURN(m_RecvWPct, WorldPacket(OpcodesList(header.cmd), header.size), -1);
 
     if (header.size > 0)
     {
@@ -765,17 +765,23 @@ int WorldSocket::ProcessIncoming(WorldPacket* new_pct)
                 }
 
 #ifdef ENABLE_ELUNA
-                if (!sEluna->OnPacketReceive(m_Session, *new_pct))
+                if (Eluna* e = sWorld.GetEluna())
                 {
-                    return 0;
+                    if (!e->OnPacketReceive(m_Session, *new_pct))
+                    {
+                        return 0;
+                    }
                 }
 #endif /* ENABLE_ELUNA */
                 return HandleAuthSession(*new_pct);
             case CMSG_KEEP_ALIVE:
-                DEBUG_LOG("CMSG_KEEP_ALIVE ,size: " SIZEFMTD " ", new_pct->size());
+                DEBUG_LOG("CMSG_KEEP_ALIVE ,size: %zu ", new_pct->size());
 
 #ifdef ENABLE_ELUNA
-                sEluna->OnPacketReceive(m_Session, *new_pct);
+                if (Eluna* e = sWorld.GetEluna())
+                {
+                    e->OnPacketReceive(m_Session, *new_pct);
+                }
 #endif /* ENABLE_ELUNA */
                 return 0;
             default:

@@ -2,7 +2,7 @@
  * MaNGOS is a full featured server for World of Warcraft, supporting
  * the following clients: 1.12.x, 2.4.3, 3.3.5a, 4.3.4a and 5.4.8
  *
- * Copyright (C) 2005-2021 MaNGOS <https://getmangos.eu>
+ * Copyright (C) 2005-2025 MaNGOS <https://www.getmangos.eu>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,6 +39,9 @@
 #include <list>
 #include <mutex>
 
+#ifdef ENABLE_ELUNA
+class Eluna;
+#endif /* ENABLE_ELUNA */
 class Object;
 class ObjectGuid;
 class WorldPacket;
@@ -147,19 +150,18 @@ enum eConfigUInt32Values
     CONFIG_UINT32_BIRTHDAY_TIME,
     CONFIG_UINT32_RABBIT_DAY,
     CONFIG_UINT32_MAX_PRIMARY_TRADE_SKILL,
-    CONFIG_UINT32_TRADE_SKILL_GMIGNORE_MAX_PRIMARY_COUNT,
-    CONFIG_UINT32_TRADE_SKILL_GMIGNORE_LEVEL,
-    CONFIG_UINT32_TRADE_SKILL_GMIGNORE_SKILL,
     CONFIG_UINT32_MIN_PETITION_SIGNS,
     CONFIG_UINT32_GM_LOGIN_STATE,
     CONFIG_UINT32_GM_VISIBLE_STATE,
     CONFIG_UINT32_GM_ACCEPT_TICKETS,
+    CONFIG_UINT32_GM_TICKET_LIST_SIZE,
     CONFIG_UINT32_GM_CHAT,
     CONFIG_UINT32_GM_WISPERING_TO,
     CONFIG_UINT32_GM_LEVEL_IN_GM_LIST,
     CONFIG_UINT32_GM_LEVEL_IN_WHO_LIST,
     CONFIG_UINT32_START_GM_LEVEL,
     CONFIG_UINT32_GM_INVISIBLE_AURA,
+    CONFIG_UINT32_GM_MAX_SPEED_FACTOR,
     CONFIG_UINT32_GROUP_VISIBILITY,
     CONFIG_UINT32_MAIL_DELIVERY_DELAY,
     CONFIG_UINT32_MASS_MAILER_SEND_PER_TICK,
@@ -202,6 +204,7 @@ enum eConfigUInt32Values
     CONFIG_UINT32_ARENA_SEASON_ID,
     CONFIG_UINT32_ARENA_SEASON_PREVIOUS_ID,
     CONFIG_UINT32_CLIENTCACHE_VERSION,
+    CONFIG_UNIT32_GUILD_PETITION_COST,
     CONFIG_UINT32_GUILD_EVENT_LOG_COUNT,
     CONFIG_UINT32_GUILD_BANK_EVENT_LOG_COUNT,
     CONGIG_UINT32_GUILD_UNDELETABLE_LEVEL,
@@ -215,12 +218,15 @@ enum eConfigUInt32Values
     CONFIG_UINT32_CHARDELETE_KEEP_DAYS,
     CONFIG_UINT32_CHARDELETE_METHOD,
     CONFIG_UINT32_CHARDELETE_MIN_LEVEL,
+    CONFIG_UINT32_NUMTHREADS,
     CONFIG_UINT32_GUID_RESERVE_SIZE_CREATURE,
     CONFIG_UINT32_GUID_RESERVE_SIZE_GAMEOBJECT,
     CONFIG_UINT32_MIN_LEVEL_FOR_RAID,
     CONFIG_UINT32_CREATURE_RESPAWN_AGGRO_DELAY,
     CONFIG_UINT32_RANDOM_BG_RESET_HOUR,
     CONFIG_UINT32_MAX_WHOLIST_RETURNS,
+    CONFIG_UINT32_LOG_WHISPERS,
+
     // Warden
     CONFIG_UINT32_WARDEN_CLIENT_RESPONSE_DELAY,
     CONFIG_UINT32_WARDEN_CLIENT_CHECK_HOLDOFF,
@@ -346,6 +352,7 @@ enum eConfigBoolValues
     CONFIG_BOOL_GM_LOG_TRADE,
     CONFIG_BOOL_GM_LOWER_SECURITY,
     CONFIG_BOOL_GM_ALLOW_ACHIEVEMENT_GAINS,
+    CONFIG_BOOL_GM_TICKET_OFFLINE_CLOSING,
     CONFIG_BOOL_SKILL_PROSPECTING,
     CONFIG_BOOL_WEATHER,
     CONFIG_BOOL_EVENT_ANNOUNCE,
@@ -388,12 +395,17 @@ enum eConfigBoolValues
     CONFIG_BOOL_VMAP_INDOOR_CHECK,
     CONFIG_BOOL_PET_UNSUMMON_AT_MOUNT,
     CONFIG_BOOL_MMAP_ENABLED,
-    CONFIG_BOOL_ELUNA_ENABLED,
     CONFIG_BOOL_PLAYER_COMMANDS,
     CONFIG_BOOL_GUILD_LEVELING_ENABLED,
+    CONFIG_BOOL_ENABLE_QUEST_TRACKER,
+
     // Warden
     CONFIG_BOOL_WARDEN_WIN_ENABLED,
     CONFIG_BOOL_WARDEN_OSX_ENABLED,
+
+    // Recommended Or New Flag
+    CONFIG_BOOL_REALM_RECOMMENDED_OR_NEW_ENABLED,
+    CONFIG_BOOL_REALM_RECOMMENDED_OR_NEW,
     CONFIG_BOOL_VALUE_COUNT
 };
 
@@ -493,7 +505,7 @@ struct CliCommandHolder
 
 /// The World
 
-typedef UNORDERED_MAP<uint32, WorldSession*> SessionMap;
+typedef std::unordered_map<uint32, WorldSession*> SessionMap;
 
 class World
 {
@@ -510,6 +522,7 @@ class World
         bool RemoveSession(uint32 id);
         /// Get the number of current active sessions
         void UpdateMaxSessionCounters();
+        const SessionMap& GetAllSessions() const { return m_sessions; }
         uint32 GetActiveAndQueuedSessionCount() const { return m_sessions.size(); }
         uint32 GetActiveSessionCount() const { return m_sessions.size() - m_QueuedSessions.size(); }
         uint32 GetQueuedSessionCount() const { return m_QueuedSessions.size(); }
@@ -569,7 +582,7 @@ class World
         void LoadConfigSettings(bool reload = false);
 
         void SendWorldText(int32 string_id, ...);
-        void SendGlobalMessage(WorldPacket* packet);
+        void SendGlobalMessage(WorldPacket* packet, AccountTypes minSec = SEC_PLAYER);
         void SendServerMessage(ServerMessageType type, const char* text = "", Player* player = NULL);
         void SendZoneUnderAttackMessage(uint32 zoneId, Team team);
         void SendDefenseMessage(uint32 zoneId, int32 textId);
@@ -668,6 +681,11 @@ class World
         * Access: public
         **/
         void InvalidatePlayerDataToAllClient(ObjectGuid guid);
+
+#ifdef ENABLE_ELUNA
+        Eluna* GetEluna() const { return eluna; }
+        Eluna* eluna;
+#endif /* ENABLE_ELUNA */
 
     protected:
         void _UpdateGameTime();

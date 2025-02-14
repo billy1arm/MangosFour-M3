@@ -56,6 +56,7 @@ callgrind.out.*
 .tmproj
 nbproject
 Thumbs.db
+.vscode
 
 # Configuration files to be customized
 
@@ -64,6 +65,8 @@ Thumbs.db
 _build
 build
 /dep/libmpq/autom4te.cache/
+/ACE_wrappers/*
+/ACE*.tar.bz2
 
 # Generated files
 *.ncb
@@ -119,6 +122,10 @@ msbuild.cmd
 /src/scripts/ScriptDev2__x64_Release/
 
 /src/tools/Extractor_Binaries/*.exe
+
+# Skip Git Revision created file
+/src/shared/revision_data.h
+
 
 # File generated during compile
 /dep/libmpq/compile

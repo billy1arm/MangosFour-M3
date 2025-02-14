@@ -2,7 +2,7 @@
  * MaNGOS is a full featured server for World of Warcraft, supporting
  * the following clients: 1.12.x, 2.4.3, 3.3.5a, 4.3.4a and 5.4.8
  *
- * Copyright (C) 2005-2021 MaNGOS <https://getmangos.eu>
+ * Copyright (C) 2005-2025 MaNGOS <https://www.getmangos.eu>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -54,31 +54,31 @@ class Unit;
 class ChatCommand
 {
     public:
-    uint32             Id;
-    const char* Name;
-    uint32             SecurityLevel;                   // function pointer required correct align (use uint32)
-    bool               AllowConsole;
-    bool (ChatHandler::* Handler)(char* args);
-    std::string        Help;
-    ChatCommand* ChildCommands;
+        uint32             Id;
+        const char* Name;
+        uint32             SecurityLevel;                   // function pointer required correct align (use uint32)
+        bool               AllowConsole;
+        bool (ChatHandler::* Handler)(char* args);
+        std::string        Help;
+        ChatCommand* ChildCommands;
 
-      ChatCommand(
+        ChatCommand(
           const char* pName,
           uint32 pSecurityLevel,
           bool pAllowConsole,
           bool (ChatHandler::* pHandler)(char* args),
           std::string pHelp,
           ChatCommand* pChildCommands
-      )
+        )
          : Id(-1)
-      {
+        {
           Name = pName;
           SecurityLevel = pSecurityLevel;
           AllowConsole = pAllowConsole;
           Handler = pHandler;
           Help = pHelp;
           ChildCommands = pChildCommands;
-      }
+        }
 };
 
 enum ChatCommandSearchResult
@@ -90,16 +90,16 @@ enum ChatCommandSearchResult
 
 enum PlayerChatTag
 {
-    CHAT_TAG_NONE = 0x00,
-    CHAT_TAG_AFK = 0x01,
-    CHAT_TAG_DND = 0x02,
-    CHAT_TAG_GM = 0x04,
-    CHAT_TAG_COM = 0x08,                     // Commentator
-    CHAT_TAG_DEV = 0x10,                     // Developer
+    CHAT_TAG_NONE               = 0x00,
+    CHAT_TAG_AFK                = 0x01,
+    CHAT_TAG_DND                = 0x02,
+    CHAT_TAG_GM                 = 0x04,
+    CHAT_TAG_COM                = 0x08,                     // Commentator
+    CHAT_TAG_DEV                = 0x10,                     // Developer
 };
 typedef uint32 ChatTagFlags;
 
-class  ChatHandler
+class ChatHandler
 {
     public:
         explicit ChatHandler(WorldSession* session);
@@ -117,12 +117,13 @@ class  ChatHandler
         void SendSysMessage(int32     entry);
         void PSendSysMessage(const char* format, ...) ATTR_PRINTF(2, 3);
         void PSendSysMessage(int32     entry, ...);
+        void PSendSysMessageMultiline(int32 entry, ...);
 
         bool ParseCommands(const char* text);
         ChatCommand const* FindCommand(char const* text);
 
         bool isValidChatMessage(const char* msg);
-        bool HasSentErrorMessage() { return sentErrorMessage; }
+        bool HasSentErrorMessage() { return sentErrorMessage;}
 
         /**
         * \brief Prepare SMSG_GM_MESSAGECHAT/SMSG_MESSAGECHAT
@@ -145,7 +146,8 @@ class  ChatHandler
         * \param uint32 achievementId          : Required only for *ACHIEVEMENT
         * \param const char* addonPrefix       : Required only for *CHAT_MSG_ADDON
         **/
-        static void BuildChatPacket(WorldPacket& data, ChatMsg msgtype, char const* message, Language language = LANG_UNIVERSAL, ChatTagFlags chatTag = CHAT_TAG_NONE,
+        static void BuildChatPacket(
+            WorldPacket& data, ChatMsg msgtype, char const* message, Language language = LANG_UNIVERSAL, ChatTagFlags chatTag = CHAT_TAG_NONE,
             ObjectGuid const& senderGuid = ObjectGuid(), char const* senderName = NULL,
             ObjectGuid const& targetGuid = ObjectGuid(), char const* targetName = NULL,
             char const* channelName = NULL, uint32 achievementId = 0, const char* addonPrefix = NULL);
@@ -167,7 +169,7 @@ class  ChatHandler
         bool HasLowerSecurity(Player* target, ObjectGuid guid = ObjectGuid(), bool strong = false);
         bool HasLowerSecurityAccount(WorldSession* target, uint32 account, bool strong = false);
 
-        void SendGlobalSysMessage(const char* str);
+        void SendGlobalSysMessage(const char* str, AccountTypes minSec = SEC_PLAYER);
 
         bool SetDataForCommandInTable(ChatCommand* table, uint32 id, const char* text, uint32 security, std::string const& help);
         void ExecuteCommand(const char* text);
@@ -359,7 +361,6 @@ class  ChatHandler
         bool HandleLookupPlayerEmailCommand(char* args);
         bool HandleLookupPoolCommand(char* args);
         bool HandleLookupQuestCommand(char* args);
-        bool HandleReloadLocalesCommandHelpCommand(char* args);
         bool HandleLookupSkillCommand(char* args);
         bool HandleLookupSpellCommand(char* args);
         bool HandleLookupTaxiNodeCommand(char* args);
@@ -455,11 +456,11 @@ class  ChatHandler
         bool HandleReloadAreaTriggerTeleportCommand(char* args);
         bool HandleReloadAutoBroadcastCommand(char* args);
         bool HandleReloadBattleEventCommand(char* args);
-        bool HandleReloadCreaturesStatsCommand(char* args);
         bool HandleReloadCommandCommand(char* args);
         bool HandleReloadConditionsCommand(char* args);
         bool HandleReloadCreatureQuestRelationsCommand(char* args);
         bool HandleReloadCreatureQuestInvRelationsCommand(char* args);
+        bool HandleReloadCreaturesStatsCommand(char* args);
         bool HandleReloadDbScriptStringCommand(char* args);
         bool HandleReloadDBScriptsOnCreatureDeathCommand(char* args);
         bool HandleReloadDBScriptsOnEventCommand(char* args);
@@ -490,6 +491,7 @@ class  ChatHandler
         bool HandleReloadLocalesPageTextCommand(char* args);
         bool HandleReloadLocalesPointsOfInterestCommand(char* args);
         bool HandleReloadLocalesQuestCommand(char* args);
+        bool HandleReloadLocalesCommandHelpCommand(char* args);
         bool HandleReloadLootTemplatesCreatureCommand(char* args);
         bool HandleReloadLootTemplatesDisenchantCommand(char* args);
         bool HandleReloadLootTemplatesFishingCommand(char* args);
@@ -517,6 +519,7 @@ class  ChatHandler
         bool HandleReloadReservedNameCommand(char* args);
         bool HandleReloadReputationRewardRateCommand(char* args);
         bool HandleReloadReputationSpilloverTemplateCommand(char* args);
+        bool HandleReloadScriptBindingCommand(char* args);
         bool HandleReloadSkillDiscoveryTemplateCommand(char* args);
         bool HandleReloadSkillExtraItemTemplateCommand(char* args);
         bool HandleReloadSkillFishingBaseLevelCommand(char* args);
@@ -599,6 +602,8 @@ class  ChatHandler
         bool HandleSummonCommand(char* args);
         bool HandleAppearCommand(char* args);
         bool HandleGroupgoCommand(char* args);
+        bool HandleAuraGroupCommand(char* args);
+        bool HandleUnAuraGroupCommand(char* args);
         bool HandleRecallCommand(char* args);
         bool HandleAnnounceCommand(char* args);
         bool HandleNotifyCommand(char* args);
@@ -642,8 +647,17 @@ class  ChatHandler
         bool HandleKickPlayerCommand(char* args);
         bool HandleMailBoxCommand(char* args);
 
-        bool HandleTicketCommand(char* args);
-        bool HandleDelTicketCommand(char* args);
+        bool HandleTicketAcceptCommand(char* args);
+        bool HandleTicketCloseCommand(char* args);
+        bool HandleTicketDeleteCommand(char* args);
+        bool HandleTicketInfoCommand(char* args);
+        bool HandleTicketListCommand(char* args);
+        bool HandleTicketMeAcceptCommand(char* args);
+        bool HandleTicketOnlineListCommand(char* args);
+        bool HandleTicketRespondCommand(char* args);
+        bool HandleTicketShowCommand(char* args);
+        bool HandleTickerSurveyClose(char* args);
+
         bool HandleMaxSkillCommand(char* args);
         bool HandleSetSkillCommand(char* args);
         bool HandleRespawnCommand(char* args);
@@ -662,6 +676,9 @@ class  ChatHandler
         bool HandleMmap(char* args);
         bool HandleMmapTestArea(char* args);
         bool HandleMmapTestHeight(char* args);
+
+        bool HandleFreezePlayerCommand(char* args);
+        bool HandleUnfreezePlayerCommand(char* args);
 
         //! Development Commands
         bool HandleSaveAllCommand(char* args);
@@ -799,7 +816,6 @@ class CliHandler : public ChatHandler
         Print* m_print;
 };
 
-
-
+bool AddAuraToPlayer(const SpellEntry* spellInfo, Unit* target, WorldObject* caster);
 
 #endif

@@ -2,7 +2,7 @@
  * MaNGOS is a full featured server for World of Warcraft, supporting
  * the following clients: 1.12.x, 2.4.3, 3.3.5a, 4.3.4a and 5.4.8
  *
- * Copyright (C) 2005-2021 MaNGOS <https://getmangos.eu>
+ * Copyright (C) 2005-2025 MaNGOS <https://www.getmangos.eu>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -302,12 +302,18 @@ int ReadDBCLocale(const std::string sDataPath)
     std::string sDBCpath = sDataPath + "dbc/";
     std::string sFilename;
 
-    for (int uLocaleIndex = 0; uLocaleIndex < MAX_LOCALE; ++uLocaleIndex)
+    sLog.outString ("%i Locales defined in core", MAX_LOCALE);
+    for (int uLocaleIndex = 0; uLocaleIndex <= MAX_LOCALE; ++uLocaleIndex)
     {
         sFilename  = sDBCpath + "component.wow-" + fullLocaleNameList[uLocaleIndex].name + ".txt";
         if (FILE* file = fopen(sFilename.c_str(), "rb"))
         {
-            return uLocaleIndex; // Successfully located the locale
+            if(uLocaleIndex==0)
+            {
+                uLocaleIndex=1;  // Map enus and engb to 0
+            }
+
+            return uLocaleIndex-1; // Successfully located the locale
         }
     }
 
@@ -434,7 +440,7 @@ inline void LoadDBC(LocalData& localeData, BarGoLink& bar, StoreProblemList& err
         if (f)
         {
             char buf[100];
-            snprintf(buf, 100, " (exist, but have %u fields instead " SIZEFMTD ") Wrong client version DBC file?", storage.GetFieldCount(), strlen(storage.GetFormat()));
+            snprintf(buf, 100, " (exist, but have %u fields instead %zu) Wrong client version DBC file?", storage.GetFieldCount(), strlen(storage.GetFormat()));
             errlist.push_back(dbc_filename + buf);
             fclose(f);
         }
@@ -717,7 +723,7 @@ void LoadDBCStores(const std::string& dataPath)
         }
 
         SpellEntry const* spellInfo = sSpellStore.LookupEntry(skillLine->spellId);
-        if (spellInfo && (spellInfo->Attributes & (SPELL_ATTR_UNK4 | SPELL_ATTR_PASSIVE | SPELL_ATTR_UNK7 | SPELL_ATTR_UNK8)) == (SPELL_ATTR_UNK4 | SPELL_ATTR_PASSIVE | SPELL_ATTR_UNK7 | SPELL_ATTR_UNK8))
+        if (spellInfo && (spellInfo->Attributes & (SPELL_ATTR_ABILITY | SPELL_ATTR_PASSIVE | SPELL_ATTR_UNK7 | SPELL_ATTR_UNK8)) == (SPELL_ATTR_ABILITY | SPELL_ATTR_PASSIVE | SPELL_ATTR_UNK7 | SPELL_ATTR_UNK8))
         {
             for (unsigned int i = 1; i < sCreatureFamilyStore.GetNumRows(); ++i)
             {

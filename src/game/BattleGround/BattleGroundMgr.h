@@ -2,7 +2,7 @@
  * MaNGOS is a full featured server for World of Warcraft, supporting
  * the following clients: 1.12.x, 2.4.3, 3.3.5a, 4.3.4a and 5.4.8
  *
- * Copyright (C) 2005-2021 MaNGOS <https://getmangos.eu>
+ * Copyright (C) 2005-2025 MaNGOS <https://www.getmangos.eu>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,6 +31,9 @@
 #include "DBCEnums.h"
 #include "BattleGround.h"
 
+// Ace metux not defined, this header is required
+#include "ace/Recursive_Thread_Mutex.h"
+
 #include <mutex>
 
 /**
@@ -49,17 +52,17 @@ typedef std::list<BattleGround*> BGFreeSlotQueueType;
  * @brief
  *
  */
-typedef UNORDERED_MAP<uint32, BattleGroundTypeId> BattleMastersMap;
+typedef std::unordered_map<uint32, BattleGroundTypeId> BattleMastersMap;
 /**
  * @brief
  *
  */
-typedef UNORDERED_MAP<uint32, BattleGroundEventIdx> CreatureBattleEventIndexesMap;
+typedef std::unordered_map<uint32, BattleGroundEventIdx> CreatureBattleEventIndexesMap;
 /**
  * @brief
  *
  */
-typedef UNORDERED_MAP<uint32, BattleGroundEventIdx> GameObjectBattleEventIndexesMap;
+typedef std::unordered_map<uint32, BattleGroundEventIdx> GameObjectBattleEventIndexesMap;
 
 #define BATTLEGROUND_ARENA_POINT_DISTRIBUTION_DAY 86400     // seconds in a day
 #define COUNT_OF_PLAYERS_TO_AVERAGE_WAIT_TIME 10
@@ -344,13 +347,13 @@ class BGQueueInviteEvent : public BasicEvent
          * @param p_time
          * @return bool
          */
-        virtual bool Execute(uint64 e_time, uint32 p_time) override;
+        bool Execute(uint64 e_time, uint32 p_time) override;
         /**
          * @brief
          *
          * @param e_time
          */
-        virtual void Abort(uint64 e_time) override;
+        void Abort(uint64 e_time) override;
     private:
         ObjectGuid m_PlayerGuid; /**< TODO */
         uint32 m_BgInstanceGUID; /**< TODO */
@@ -395,13 +398,13 @@ class BGQueueRemoveEvent : public BasicEvent
          * @param p_time
          * @return bool
          */
-        virtual bool Execute(uint64 e_time, uint32 p_time) override;
+        bool Execute(uint64 e_time, uint32 p_time) override;
         /**
          * @brief
          *
          * @param e_time
          */
-        virtual void Abort(uint64 e_time) override;
+        void Abort(uint64 e_time) override;
     private:
         ObjectGuid m_PlayerGuid; /**< TODO */
         uint32 m_BgInstanceGUID; /**< TODO */
@@ -473,6 +476,19 @@ class BattleGroundMgr
          * @param bg
          */
         void BuildPvpLogDataPacket(WorldPacket* data, BattleGround* bg);
+        /**
+         * @brief
+         *
+         * @param data
+         * @param bg
+         * @param player
+         * @param QueueSlot
+         * @param StatusID
+         * @param Time1
+         * @param Time2
+         * @param arenaType
+         * @param arenaTeam
+         */
         void BuildBattleGroundStatusPacket(WorldPacket* data, BattleGround* bg, Player* player, uint8 QueueSlot, uint8 StatusID, uint32 Time1, uint32 Time2, ArenaType arenatype);
         void BuildBattleGroundStatusFailedPacket(WorldPacket* data, BattleGround* bg, Player* player, uint8 QueueSlot, GroupJoinBattlegroundResult result);
         /**

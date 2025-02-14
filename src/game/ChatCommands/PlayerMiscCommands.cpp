@@ -2,7 +2,7 @@
  * MaNGOS is a full featured server for World of Warcraft, supporting
  * the following clients: 1.12.x, 2.4.3, 3.3.5a, 4.3.4a and 5.4.8
  *
- * Copyright (C) 2005-2021 MaNGOS <https://getmangos.eu>
+ * Copyright (C) 2005-2025 MaNGOS <https://www.getmangos.eu>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,8 +23,12 @@
  */
 
 #include "Chat.h"
+#include "DBCStores.h"
 #include "Language.h"
+#include "ObjectAccessor.h"
+#include "Player.h"
 #include "World.h"
+#include "WorldSession.h"
 
  /**********************************************************************
      CommandTable : commandTable
@@ -346,11 +350,10 @@ bool ChatHandler::HandleResetAllCommand(char* args)
     }
 
     CharacterDatabase.PExecute("UPDATE `characters` SET `at_login` = `at_login` | '%u' WHERE (`at_login` & '%u') = '0'", atLogin, atLogin);
-    HashMapHolder<Player>::MapType const& plist = sObjectAccessor.GetPlayers();
-    for (HashMapHolder<Player>::MapType::const_iterator itr = plist.begin(); itr != plist.end(); ++itr)
+    sObjectAccessor.DoForAllPlayers([&atLogin](Player* plr)
     {
-        itr->second->SetAtLoginFlag(atLogin);
-    }
+        plr->SetAtLoginFlag(atLogin);
+    });
 
     return true;
 }

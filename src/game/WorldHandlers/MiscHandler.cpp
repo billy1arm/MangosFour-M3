@@ -2,7 +2,7 @@
  * MaNGOS is a full featured server for World of Warcraft, supporting
  * the following clients: 1.12.x, 2.4.3, 3.3.5a, 4.3.4a and 5.4.8
  *
- * Copyright (C) 2005-2021 MaNGOS <https://getmangos.eu>
+ * Copyright (C) 2005-2025 MaNGOS <https://www.getmangos.eu>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -82,7 +82,10 @@ void WorldSession::HandleRepopRequestOpcode(WorldPacket& recv_data)
 
     // Used by Eluna
 #ifdef ENABLE_ELUNA
-    sEluna->OnRepop(GetPlayer());
+    if (Eluna* e = GetPlayer()->GetEluna())
+    {
+        e->OnRepop(GetPlayer());
+    }
 #endif /* ENABLE_ELUNA */
 
     // this is spirit release confirm?
@@ -95,6 +98,8 @@ void WorldSession::HandleWhoOpcode(WorldPacket& recv_data)
 {
     DEBUG_LOG("WORLD: Received opcode CMSG_WHO");
     // recv_data.hexlike();
+
+    uint32 clientcount = 0;
 
     uint32 level_min, level_max, racemask, classmask, zones_count, str_count;
     uint32 zoneids[10];                                     // 10 is client limit
@@ -154,6 +159,7 @@ void WorldSession::HandleWhoOpcode(WorldPacket& recv_data)
     {
         return;
     }
+
     wstrToLower(wplayer_name);
     wstrToLower(wguild_name);
 
@@ -173,61 +179,65 @@ void WorldSession::HandleWhoOpcode(WorldPacket& recv_data)
     uint32 displaycount = 0;
 
     WorldPacket data(SMSG_WHO, 50);                         // guess size
-    data << uint32(matchcount);                             // clientcount place holder, listed count
-    data << uint32(displaycount);                           // clientcount place holder, online count
+    data << uint32(clientcount);                            // clientcount place holder, listed count
+    data << uint32(clientcount);                            // clientcount place holder, online count
 
-    // TODO: Guard Player map
-    HashMapHolder<Player>::MapType& m = sObjectAccessor.GetPlayers();
-    for (HashMapHolder<Player>::MapType::const_iterator itr = m.begin(); itr != m.end(); ++itr)
+    uint32 count = 0;
+    sObjectAccessor.DoForAllPlayers([&](Player* pl)->void
     {
-        Player* pl = itr->second;
+        ++count;
+
+        if(clientcount == 50)
+        {
+            return;
+        }
 
         if (security == SEC_PLAYER)
         {
             // player can see member of other team only if CONFIG_BOOL_ALLOW_TWO_SIDE_WHO_LIST
             if (pl->GetTeam() != team && !allowTwoSideWhoList)
             {
-                continue;
+                return;
             }
 
             // player can see MODERATOR, GAME MASTER, ADMINISTRATOR only if CONFIG_GM_IN_WHO_LIST
             if (pl->GetSession()->GetSecurity() > gmLevelInWhoList)
             {
-                continue;
+                return;
             }
         }
 
         // do not process players which are not in world
         if (!pl->IsInWorld())
         {
-            continue;
+            return;
         }
 
         // check if target is globally visible for player
         if (!pl->IsVisibleGloballyFor(_player))
         {
-            continue;
+            return;
         }
 
         // check if target's level is in level range
         uint32 lvl = pl->getLevel();
         if (lvl < level_min || lvl > level_max)
         {
-            continue;
+            return;
         }
 
         // check if class matches classmask
         uint32 class_ = pl->getClass();
         if (!(classmask & (1 << class_)))
         {
-            continue;
+            return;
         }
 
         // check if race matches racemask
         uint32 race = pl->getRace();
         if (!(racemask & (1 << race)))
         {
-            continue;
+            return;
         }
 
         uint32 pzoneid = pl->GetZoneId();
@@ -244,35 +254,38 @@ void WorldSession::HandleWhoOpcode(WorldPacket& recv_data)
 
             z_show = false;
         }
+
         if (!z_show)
         {
-            continue;
+            return;
         }
 
         std::string pname = pl->GetName();
         std::wstring wpname;
         if (!Utf8toWStr(pname, wpname))
         {
-            continue;
+            return;
         }
+
         wstrToLower(wpname);
 
         if (!(wplayer_name.empty() || wpname.find(wplayer_name) != std::wstring::npos))
         {
-            continue;
+            return;
         }
 
         std::string gname = sGuildMgr.GetGuildNameById(pl->GetGuildId());
         std::wstring wgname;
         if (!Utf8toWStr(gname, wgname))
         {
-            continue;
+            return;
         }
+
         wstrToLower(wgname);
 
         if (!(wguild_name.empty() || wgname.find(wguild_name) != std::wstring::npos))
         {
-            continue;
+            return;
         }
 
         std::string aname;
@@ -287,8 +300,8 @@ void WorldSession::HandleWhoOpcode(WorldPacket& recv_data)
             if (!str[i].empty())
             {
                 if (wgname.find(str[i]) != std::wstring::npos ||
-                        wpname.find(str[i]) != std::wstring::npos ||
-                        Utf8FitTo(aname, str[i]))
+                    wpname.find(str[i]) != std::wstring::npos ||
+                    Utf8FitTo(aname, str[i]))
                 {
                     s_show = true;
                     break;
@@ -296,18 +309,11 @@ void WorldSession::HandleWhoOpcode(WorldPacket& recv_data)
                 s_show = false;
             }
         }
+
         if (!s_show)
         {
-            continue;
+            return;
         }
-
-        // 49 is maximum player count sent to client
-        if (++matchcount > 49)
-        {
-            continue;
-        }
-
-        ++displaycount;
 
         data << pname;                                      // player name
         data << gname;                                      // guild name
@@ -316,15 +322,13 @@ void WorldSession::HandleWhoOpcode(WorldPacket& recv_data)
         data << uint32(race);                               // player race
         data << uint8(gender);                              // player gender
         data << uint32(pzoneid);                            // player zone id
-    }
 
-    if (sWorld.getConfig(CONFIG_UINT32_MAX_WHOLIST_RETURNS) && matchcount > sWorld.getConfig(CONFIG_UINT32_MAX_WHOLIST_RETURNS))
-    {
-        matchcount = sWorld.getConfig(CONFIG_UINT32_MAX_WHOLIST_RETURNS);
-    }
+        ++clientcount;
+    });
 
-    data.put(0, displaycount);                              // insert right count, count displayed
-    data.put(4, matchcount);                                // insert right count, count of matches
+    data.put(0, clientcount);                               // insert right count, listed count
+    data.put(4, count > 50 ? count : clientcount);          // insert right count, online count
+
 
     SendPacket(&data);
     DEBUG_LOG("WORLD: Send SMSG_WHO Message");
@@ -339,22 +343,37 @@ void WorldSession::HandleLogoutRequestOpcode(WorldPacket & /*recv_data*/)
         DoLootRelease(lootGuid);
     }
 
-    // Can not logout if...
-    if (GetPlayer()->IsInCombat() ||                        //...is in combat
-            //...is jumping ...is falling
-            GetPlayer()->m_movementInfo.HasMovementFlag(MovementFlags(MOVEFLAG_FALLING | MOVEFLAG_FALLINGFAR)))
+    bool instantLogout = (GetPlayer()->HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_RESTING) || GetPlayer()->IsTaxiFlying() || GetSecurity() >= (AccountTypes)sWorld.getConfig(CONFIG_UINT32_INSTANT_LOGOUT));
+
+    bool canLogoutInCombat = GetPlayer()->HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_RESTING);
+
+    uint8 reason = 0;
+    if (GetPlayer()->IsInCombat() && !canLogoutInCombat)
     {
-        WorldPacket data(SMSG_LOGOUT_RESPONSE, 5);
-        data << uint32(1);
-        data << uint8(0);
-        SendPacket(&data);
-        LogoutRequest(0);
+        reason = 1;
+    }
+    else if (GetPlayer()->m_movementInfo.HasMovementFlag(MovementFlags(MOVEFLAG_FALLING | MOVEFLAG_FALLINGFAR)))
+    {
+        reason = 3;                                         // is jumping or falling
+    }
+    else if (GetPlayer()->duel || GetPlayer()->HasAura(9454)) // is dueling or frozen by GM via freeze command
+    {
+        reason = 2;                                         // FIXME - Need the correct value
+    }
+
+    WorldPacket data(SMSG_LOGOUT_RESPONSE, 1 + 4);
+    data << uint32(reason);
+    data << uint8(instantLogout);
+    SendPacket(&data);
+
+    if (reason)
+    {
+        LogoutRequest(time(0));
         return;
     }
 
     // instant logout in taverns/cities or on taxi or for admins, gm's, mod's if its enabled in mangosd.conf
-    if (GetPlayer()->HasFlag(PLAYER_FLAGS, PLAYER_FLAGS_RESTING) || GetPlayer()->IsTaxiFlying() ||
-            GetSecurity() >= (AccountTypes)sWorld.getConfig(CONFIG_UINT32_INSTANT_LOGOUT))
+    if (instantLogout)
     {
         LogoutPlayer(true);
         return;
@@ -373,10 +392,6 @@ void WorldSession::HandleLogoutRequestOpcode(WorldPacket & /*recv_data*/)
         GetPlayer()->SetFlag(UNIT_FIELD_FLAGS, UNIT_FLAG_STUNNED);
     }
 
-    WorldPacket data(SMSG_LOGOUT_RESPONSE, 5);
-    data << uint32(0);
-    data << uint8(0);
-    SendPacket(&data);
     LogoutRequest(time(NULL));
 }
 
@@ -464,7 +479,7 @@ void WorldSession::HandleSetTargetOpcode(WorldPacket& recv_data)
     _player->SetTargetGuid(guid);
 
     // update reputation list if need
-    Unit* unit = ObjectAccessor::GetUnit(*_player, guid);   // can select group members at diff maps
+    Unit* unit = sObjectAccessor.GetUnit(*_player, guid);   // can select group members at diff maps
     if (!unit)
     {
         return;
@@ -484,7 +499,7 @@ void WorldSession::HandleSetSelectionOpcode(WorldPacket& recv_data)
     _player->SetSelectionGuid(guid);
 
     // update reputation list if need
-    Unit* unit = ObjectAccessor::GetUnit(*_player, guid);   // can select group members at diff maps
+    Unit* unit = sObjectAccessor.GetUnit(*_player, guid);   // can select group members at diff maps
     if (!unit)
     {
         return;
@@ -574,7 +589,7 @@ void WorldSession::HandleAddFriendOpcodeCallBack(QueryResult* result, uint32 acc
         }
         else
         {
-            Player* pFriend = ObjectAccessor::FindPlayer(friendGuid);
+            Player* pFriend = sObjectAccessor.FindPlayer(friendGuid);
             if (pFriend && pFriend->IsInWorld() && pFriend->IsVisibleGloballyFor(session->GetPlayer()))
             {
                 friendResult = FRIEND_ADDED_ONLINE;
@@ -1311,7 +1326,7 @@ void WorldSession::HandleInspectHonorStatsOpcode(WorldPacket& recv_data)
     data << uint16(player->GetUInt16Value(PLAYER_FIELD_KILLS, 1));      // yesterday kills
     data << uint16(player->GetUInt16Value(PLAYER_FIELD_KILLS, 0));      // today kills
     data.WriteGuidBytes<2, 0, 6, 3, 4, 1, 5>(player->GetObjectGuid());
-    data << uint32(player->GetUInt32Value(PLAYER_FIELD_LIFETIME_HONORBALE_KILLS));
+    data << uint32(player->GetUInt32Value(PLAYER_FIELD_LIFETIME_HONORABLE_KILLS));
     data.WriteGuidBytes<7>(player->GetObjectGuid());
 
     SendPacket(&data);

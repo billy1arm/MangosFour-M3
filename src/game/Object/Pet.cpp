@@ -2,7 +2,7 @@
  * MaNGOS is a full featured server for World of Warcraft, supporting
  * the following clients: 1.12.x, 2.4.3, 3.3.5a, 4.3.4a and 5.4.8
  *
- * Copyright (C) 2005-2021 MaNGOS <https://getmangos.eu>
+ * Copyright (C) 2005-2025 MaNGOS <https://www.getmangos.eu>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1145,6 +1145,8 @@ void Pet::InitStatsForLevel(uint32 petlevel)
                     mana = (mMaxLevel - ((mMaxLevel - mMinLevel) / 2)) * petlevel;
                 }
 
+                armor = cInfo->Armor;
+
                 sLog.outErrorDb("Pet::InitStatsForLevel> Error trying to set stats for creature %s (entry: %u) using ClassLevelStats; not enough data to do it!", GetGuidStr().c_str(), cInfo->Entry);
 
                 SetBaseWeaponDamage(BASE_ATTACK, MINDAMAGE, float(cInfo->MinMeleeDmg));
@@ -1711,7 +1713,10 @@ bool Pet::addSpell(uint32 spell_id, ActiveStates active /*= ACT_DECIDE*/, PetSpe
     {
         for (PetSpellMap::const_iterator itr2 = m_spells.begin(); itr2 != m_spells.end(); ++itr2)
         {
-            if (itr2->second.state == PETSPELL_REMOVED) continue;
+            if (itr2->second.state == PETSPELL_REMOVED)
+            {
+                continue;
+            }
 
             if (sSpellMgr.IsRankSpellDueToSpell(spellInfo, itr2->first))
             {
@@ -1853,9 +1858,7 @@ bool Pet::unlearnSpell(uint32 spell_id, bool learn_prev, bool clear_ab)
                 }
             }
         }
-        {
-            return true;
-        }
+        return true;
     }
     return false;
 }
@@ -2373,9 +2376,18 @@ void Pet::CastOwnerTalentAuras()
     if (pOwner && pOwner->getClass() == CLASS_HUNTER)
     {
         // clear any existing Ferocious Inspiration auras
-        RemoveAurasDueToSpell(75593);
-        RemoveAurasDueToSpell(75446);
-        RemoveAurasDueToSpell(75447);
+        if (HasAura(75593))
+        {
+            RemoveAurasDueToSpell(75593);
+        }
+        if (HasAura(75446))
+        {
+            RemoveAurasDueToSpell(75446);
+        }
+        if (HasAura(75447))
+        {
+            RemoveAurasDueToSpell(75447);
+        }
 
         if (IsAlive())
         {

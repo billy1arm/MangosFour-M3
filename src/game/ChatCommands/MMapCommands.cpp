@@ -2,7 +2,7 @@
  * MaNGOS is a full featured server for World of Warcraft, supporting
  * the following clients: 1.12.x, 2.4.3, 3.3.5a, 4.3.4a and 5.4.8
  *
- * Copyright (C) 2005-2021 MaNGOS <https://getmangos.eu>
+ * Copyright (C) 2005-2025 MaNGOS <https://www.getmangos.eu>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,6 +31,7 @@
 #include "GridNotifiersImpl.h"          // for mmap manager
 #include "CellImpl.h"
 #include "movement/MoveSplineInit.h"
+#include "GameTime.h"
 #include <fstream>
 #include <map>
 #include <typeinfo>
@@ -111,7 +112,7 @@ bool ChatHandler::HandleMmapPathCommand(char* args)
     PointsArray pointPath = path.getPath();
     PSendSysMessage("%s's path to %s:", originUnit->GetName(), destinationUnit->GetName());
     PSendSysMessage("Building %s", useStraightPath ? "StraightPath" : "SmoothPath");
-    PSendSysMessage("length " SIZEFMTD " type %u", pointPath.size(), path.getPathType());
+    PSendSysMessage("length %zu type %u", pointPath.size(), path.getPathType());
 
     Vector3 start = path.getStartPosition();
     Vector3 end = path.getEndPosition();
@@ -319,7 +320,7 @@ bool ChatHandler::HandleMmapTestArea(char* args)
 
     if (!creatureList.empty())
     {
-        PSendSysMessage("Found " SIZEFMTD " Creatures.", creatureList.size());
+        PSendSysMessage("Found %zu Creatures.", creatureList.size());
 
         uint32 paths = 0;
         uint32 uStartTime = GameTime::GetGameTimeMS();

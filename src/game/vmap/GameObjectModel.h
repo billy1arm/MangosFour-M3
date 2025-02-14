@@ -2,7 +2,7 @@
  * MaNGOS is a full featured server for World of Warcraft, supporting
  * the following clients: 1.12.x, 2.4.3, 3.3.5a, 4.3.4a and 5.4.8
  *
- * Copyright (C) 2005-2021 MaNGOS <https://getmangos.eu>
+ * Copyright (C) 2005-2025 MaNGOS <https://www.getmangos.eu>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,8 +25,6 @@
 #ifndef MANGOSSERVER_GAMEOBJECTMODEL_H
 #define MANGOSSERVER_GAMEOBJECTMODEL_H
 
-#include "Platform/Define.h"
-
 #include <G3D/Matrix3.h>
 #include <G3D/Vector3.h>
 #include <G3D/AABox.h>
@@ -35,6 +33,7 @@
 #include "DBCStructure.h"
 #include "GameObject.h"
 
+#include "Platform/Define.h"
 
 namespace VMAP
 {
@@ -52,9 +51,8 @@ class GameObjectModel
         G3D::Matrix3 iInvRot; /**< TODO */
         G3D::Vector3 iPos; /**< TODO */
         //G3D::Vector3 iRot;
-
-        float iScale; /**< TODO */
         float iInvScale; /**< TODO */
+        float iScale; /**< TODO */
         VMAP::WorldModel* iModel; /**< TODO */
 
         /**

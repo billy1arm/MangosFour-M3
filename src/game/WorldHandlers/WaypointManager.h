@@ -2,7 +2,7 @@
  * MaNGOS is a full featured server for World of Warcraft, supporting
  * the following clients: 1.12.x, 2.4.3, 3.3.5a, 4.3.4a and 5.4.8
  *
- * Copyright (C) 2005-2021 MaNGOS <https://getmangos.eu>
+ * Copyright (C) 2005-2025 MaNGOS <https://www.getmangos.eu>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,7 +28,6 @@
 #include "Common.h"
 #include <vector>
 #include <string>
-#include "Utilities/UnorderedMapSet.h"
 #include "Policies/Singleton.h"
 
 enum WaypointPathOrigin
@@ -67,7 +66,7 @@ struct WaypointNode
         : x(_x), y(_y), z(_z), orientation(_o), delay(_delay), script_id(_script_id), behavior(_behavior) {}
 };
 
-typedef std::map<uint32 /*pointId*/, WaypointNode> WaypointPath;
+typedef std::map < uint32 /*pointId*/, WaypointNode > WaypointPath;
 
 class WaypointManager
 {
@@ -91,7 +90,7 @@ class WaypointManager
 
         WaypointPath* GetDefaultPath(uint32 entry, uint32 lowGuid, WaypointPathOrigin* wpOrigin = NULL)
         {
-            WaypointPath* path = GetPath(lowGuid);
+            WaypointPath* path = NULL;
             path = GetPath(lowGuid);
             if (path && wpOrigin)
             {
@@ -114,11 +113,13 @@ class WaypointManager
         // Helper function to get a path provided the required information
         WaypointPath* GetPathFromOrigin(uint32 entry, uint32 lowGuid, int32 pathId, WaypointPathOrigin wpOrigin)
         {
-            WaypointPathMap* wpMap;
-            uint32 key;
+            WaypointPathMap* wpMap = NULL;
+            uint32 key = 0;
 
             switch (wpOrigin)
             {
+                case PATH_NO_PATH:
+                    return NULL;
                 case PATH_FROM_GUID:
                     key = lowGuid;
                     wpMap = &m_pathMap;
@@ -139,7 +140,6 @@ class WaypointManager
                     key = (entry << 8) + pathId;
                     wpMap = &m_externalPathTemplateMap;
                     break;
-                case PATH_NO_PATH:
                 default:
                     return NULL;
             }
@@ -195,7 +195,7 @@ class WaypointManager
 
         void _clearPath(WaypointPath& path);
 
-        typedef UNORDERED_MAP<uint32 /*guidOrEntry*/, WaypointPath> WaypointPathMap;
+        typedef std::unordered_map<uint32 /*guidOrEntry*/, WaypointPath> WaypointPathMap;
         WaypointPathMap m_pathMap;
         WaypointPathMap m_pathTemplateMap;
         WaypointPathMap m_externalPathTemplateMap;

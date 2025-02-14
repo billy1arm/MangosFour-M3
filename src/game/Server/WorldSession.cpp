@@ -2,7 +2,7 @@
  * MaNGOS is a full featured server for World of Warcraft, supporting
  * the following clients: 1.12.x, 2.4.3, 3.3.5a, 4.3.4a and 5.4.8
  *
- * Copyright (C) 2005-2021 MaNGOS <https://getmangos.eu>
+ * Copyright (C) 2005-2025 MaNGOS <https://www.getmangos.eu>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,9 +43,12 @@
 #include "BattleGround/BattleGroundMgr.h"
 #include "MapManager.h"
 #include "SocialMgr.h"
+#include "Auth/AuthCrypt.h"
+#include "Auth/HMACSHA1.h"
+#include "zlib.h"
 #ifdef ENABLE_ELUNA
 #include "LuaEngine.h"
-#endif /* ENABLE_ELUNA */
+#endif /*ENABLE_ELUNA*/
 #ifdef ENABLE_PLAYERBOTS
 //#include "playerbot.h"
 #endif
@@ -53,11 +56,6 @@
 // Warden
 #include "WardenWin.h"
 #include "WardenMac.h"
-
-#include "Auth/AuthCrypt.h"
-#include "Auth/HMACSHA1.h"
-#include "zlib.h"
-
 #include <mutex>
 
 // select opcodes appropriate for processing in Map::Update context for current session state
@@ -154,7 +152,7 @@ WorldSession::~WorldSession()
 
 void WorldSession::SizeError(WorldPacket const& packet, uint32 size) const
 {
-    sLog.outError("Client (account %u) send packet %s (%u) with size " SIZEFMTD " but expected %u (attempt crash server?), skipped",
+    sLog.outError("Client (account %u) send packet %s (%u) with size %zu but expected %u (attempt crash server?), skipped",
                   GetAccountId(), packet.GetOpcodeName(), packet.GetOpcode(), packet.size(), size);
 }
 
@@ -253,7 +251,7 @@ void WorldSession::LogUnexpectedOpcode(WorldPacket* packet, const char* reason)
 /// Logging helper for unexpected opcodes
 void WorldSession::LogUnprocessedTail(WorldPacket* packet)
 {
-    sLog.outError("SESSION: opcode %s (0x%.4X) have unprocessed tail data (read stop at " SIZEFMTD " from " SIZEFMTD ")",
+    sLog.outError("SESSION: opcode %s (0x%.4X) have unprocessed tail data (read stop at %zu from %zu)",
                   packet->GetOpcodeName(),
                   packet->GetOpcode(),
                   packet->rpos(), packet->wpos());
@@ -633,7 +631,10 @@ void WorldSession::LogoutPlayer(bool Save)
 
         ///- Used by Eluna
 #ifdef ENABLE_ELUNA
-        sEluna->OnLogout(_player);
+        if (Eluna* e = sWorld.GetEluna())
+        {
+            e->OnLogout(_player);
+        }
 #endif /* ENABLE_ELUNA */
 
         ///- Remove the player from the world
@@ -877,12 +878,12 @@ void WorldSession::SendAuthWaitQue(uint32 position)
         WorldPacket packet( SMSG_AUTH_RESPONSE, 2 );
         packet.WriteBit(false);
         packet.WriteBit(false);
-        packet << uint8( AUTH_OK );
+        packet << uint8(AUTH_OK);
         SendPacket(&packet);
     }
     else
     {
-        WorldPacket packet( SMSG_AUTH_RESPONSE, 1+4+1 );
+        WorldPacket packet(SMSG_AUTH_RESPONSE, 1 + 4 + 1);
         packet.WriteBit(true);      // has queue
         packet.WriteBit(false);     // unk queue-related
         packet.WriteBit(false);     // has account info
@@ -992,10 +993,12 @@ void WorldSession::SendAccountDataTimes(uint32 mask)
     data << uint8(1);
     data << uint32(mask);                                   // type mask
     for (uint32 i = 0; i < NUM_ACCOUNT_DATA_TYPES; ++i)
+    {
         if (mask & (1 << i))
         {
             data << uint32(GetAccountData(AccountDataType(i))->Time);// also unix time
         }
+    }
     SendPacket(&data);
 }
 
@@ -1028,23 +1031,6 @@ void WorldSession::LoadTutorialsData()
     delete result;
 
     m_tutorialState = TUTORIALDATA_UNCHANGED;
-}
-
-// Send chat information about aborted transfer (mostly used by Player::SendTransferAbortedByLockstatus())
-void WorldSession::SendTransferAborted(uint32 mapid, uint8 reason, uint8 arg)
-{
-    WorldPacket data(SMSG_TRANSFER_ABORTED, 4 + 2);
-    data << uint32(mapid);
-    data << uint8(reason);                                  // transfer abort reason
-    switch (reason)
-    {
-        case TRANSFER_ABORT_INSUF_EXPAN_LVL:
-        case TRANSFER_ABORT_DIFFICULTY:
-        case TRANSFER_ABORT_UNIQUE_MESSAGE:
-            data << uint8(arg);
-            break;
-    }
-    SendPacket(&data);
 }
 
 void WorldSession::SendTutorialsData()
@@ -1097,6 +1083,23 @@ void WorldSession::SaveTutorialsData()
     m_tutorialState = TUTORIALDATA_UNCHANGED;
 }
 
+// Send chat information about aborted transfer (mostly used by Player::SendTransferAbortedByLockstatus())
+void WorldSession::SendTransferAborted(uint32 mapid, uint8 reason, uint8 arg)
+{
+    WorldPacket data(SMSG_TRANSFER_ABORTED, 4 + 2);
+    data << uint32(mapid);
+    data << uint8(reason);                                  // transfer abort reason
+    switch (reason)
+    {
+        case TRANSFER_ABORT_INSUF_EXPAN_LVL:
+        case TRANSFER_ABORT_DIFFICULTY:
+        case TRANSFER_ABORT_UNIQUE_MESSAGE:
+            data << uint8(arg);
+            break;
+    }
+    SendPacket(&data);
+}
+
 void WorldSession::ReadAddonsInfo(ByteBuffer &data)
 {
     if (data.rpos() + 4 > data.size())
@@ -1128,6 +1131,7 @@ void WorldSession::ReadAddonsInfo(ByteBuffer &data)
     {
         uint32 addonsCount;
         addonInfo >> addonsCount;                         // addons count
+        DEBUG_LOG("Addon count: %u", addonsCount);
 
         for (uint32 i = 0; i < addonsCount; ++i)
         {
@@ -1255,9 +1259,12 @@ void WorldSession::SendRedirectClient(std::string& ip, uint16 port)
 void WorldSession::ExecuteOpcode(OpcodeHandler const& opHandle, WorldPacket* packet)
 {
 #ifdef ENABLE_ELUNA
-    if (!sEluna->OnPacketReceive(this, *packet))
+    if (Eluna* e = sWorld.GetEluna())
     {
-        return;
+        if (!e->OnPacketReceive(this, *packet))
+        {
+            return;
+        }
     }
 #endif /* ENABLE_ELUNA */
 

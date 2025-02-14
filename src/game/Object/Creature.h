@@ -2,7 +2,7 @@
  * MaNGOS is a full featured server for World of Warcraft, supporting
  * the following clients: 1.12.x, 2.4.3, 3.3.5a, 4.3.4a and 5.4.8
  *
- * Copyright (C) 2005-2021 MaNGOS <https://getmangos.eu>
+ * Copyright (C) 2005-2025 MaNGOS <https://www.getmangos.eu>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,6 +26,7 @@
 #define MANGOSSERVER_CREATURE_H
 
 #include "Common.h"
+#include "GameTime.h"
 #include "Unit.h"
 #include "SharedDefines.h"
 #include "LootMgr.h"
@@ -442,7 +443,7 @@ struct TrainerSpell
     bool IsCastable() const { return learnedSpell != spell; }
 };
 
-typedef UNORDERED_MAP < uint32 /*spellid*/, TrainerSpell > TrainerSpellMap;
+typedef std::unordered_map < uint32 /*spellid*/, TrainerSpell > TrainerSpellMap;
 
 struct TrainerSpellData
 {
@@ -553,16 +554,23 @@ class Creature : public Unit
 
         bool IsCorpse() const { return GetDeathState() ==  CORPSE; }
         bool IsDespawned() const { return GetDeathState() ==  DEAD; }
-        void SetCorpseDelay(uint32 delay) { m_corpseDelay = delay; }
+        void SetCorpseDelay(uint32 delay, bool ignoreCorpseDecayRatio = false)
+        {
+            m_corpseDelay = delay;
+            if (ignoreCorpseDecayRatio)
+            {
+                m_ignoreCorpseDecayRatio = true;
+            }
+        }
         uint32 GetCorpseDelay() const { return m_corpseDelay; }
         bool IsRacialLeader() const { return GetCreatureInfo()->RacialLeader; }
         bool IsCivilian() const { return (GetCreatureInfo()->ExtraFlags & CREATURE_FLAG_EXTRA_CIVILIAN) != 0; }
         bool IsGuard() const { return (GetCreatureInfo()->ExtraFlags & CREATURE_FLAG_EXTRA_GUARD) != 0; }
 
         bool CanWalk() const { return (GetCreatureInfo()->InhabitType & INHABIT_GROUND) != 0; }
-        virtual bool CanSwim() const override { return (GetCreatureInfo()->InhabitType & INHABIT_WATER) != 0; }
+        bool CanSwim() const override { return (GetCreatureInfo()->InhabitType & INHABIT_WATER) != 0; }
         bool IsSwimming() const { return (m_movementInfo.HasMovementFlag((MovementFlags)(MOVEFLAG_SWIMMING))); }
-        virtual bool CanFly() const override { return (GetCreatureInfo()->InhabitType & INHABIT_AIR) || (GetByteValue(UNIT_FIELD_BYTES_1, 3) & UNIT_BYTE1_FLAG_FLY_ANIM) || m_movementInfo.HasMovementFlag((MovementFlags)(MOVEFLAG_LEVITATING | MOVEFLAG_CAN_FLY)); }
+        bool CanFly() const override { return (GetCreatureInfo()->InhabitType & INHABIT_AIR) || (GetByteValue(UNIT_FIELD_BYTES_1, 3) & UNIT_BYTE1_FLAG_FLY_ANIM) || m_movementInfo.HasMovementFlag((MovementFlags)(MOVEFLAG_LEVITATING | MOVEFLAG_CAN_FLY)); }
         bool IsFlying() const { return (m_movementInfo.HasMovementFlag((MovementFlags)(MOVEFLAG_FLYING | MOVEFLAG_LEVITATING))); }
 
         bool IsTrainerOf(Player* player, bool msg) const;
@@ -859,6 +867,7 @@ class Creature : public Unit
         uint32 m_respawnDelay;                              // (secs) delay between corpse disappearance and respawning
         uint32 m_corpseDelay;                               // (secs) delay between death and corpse disappearance
         uint32 m_aggroDelay;                                // (msecs)delay between respawn and aggro due to movement
+        bool m_ignoreCorpseDecayRatio;
         float m_respawnradius;
 
         CreatureSubtype m_subtype;                          // set in Creatures subclasses for fast it detect without dynamic_cast use

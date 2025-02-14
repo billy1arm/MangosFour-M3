@@ -1,14 +1,14 @@
 import os
 import shutil
-from types import FileType
+import typing
 from jinja2 import Environment, FileSystemLoader
 from typedecorator import params, returns
-from parser import ClassParser, MethodDoc
+from ElunaDoc.parser import ClassParser, MethodDoc
 import glob
 import time
 
 
-@returns([(str, FileType)])
+@returns([(str, typing.IO)])
 @params(search_path=str)
 def find_class_files(search_path):
     """Find and open all files containing Eluna class methods in `search_path`.
@@ -19,8 +19,8 @@ def find_class_files(search_path):
     # Get the current working dir and switch to the search path.
     old_dir = os.getcwd()
     os.chdir(search_path)
-    # Search for all files ending in "Methods.h".
-    method_file_names = glob.glob('*Methods.h')
+    # Search for all files ending in "Methods.h", and exclude CustomMethods.h
+    method_file_names = [file_name for file_name in glob.glob('*Methods.h') if file_name != 'CustomMethods.h']
     # Open each file.
     method_files = [open(file_name, 'r') for file_name in method_file_names]
     # Go back to where we were before.
@@ -32,7 +32,7 @@ def make_renderer(template_path, link_parser_factory):
     """Return a function that can be used to render Jinja2 templates from the `template_path` directory."""
 
     # Set up jinja2 environment to load templates from the templates folder.
-    env = Environment(loader=FileSystemLoader(template_path), extensions=['jinja2.ext.with_'])
+    env = Environment(loader=FileSystemLoader(template_path))
 
 
     def inner(template_name, output_path, level, **kwargs):
@@ -40,10 +40,9 @@ def make_renderer(template_path, link_parser_factory):
         template = env.get_template(template_name)
         static = make_static(level)
         root = make_root(level)
-        currdate = time.strftime("%d/%m/%Y")
 
         with open('build/' + output_path, 'w') as out:
-            out.write(template.render(level=level, static=static, root=root, currdate=currdate, **kwargs))
+            out.write(template.render(level=level, static=static, root=root, **kwargs))
 
     return inner
 
@@ -64,13 +63,14 @@ if __name__ == '__main__':
     shutil.copytree('ElunaDoc/static', 'build/static')
 
     # Load up all files with methods we need to parse.
-    print 'Finding Eluna method files...'
-    class_files = find_class_files('../')
+    # Hard-coded to the TC files for now. Will have to add core support later on.
+    print('Finding Eluna method files...')
+    class_files = find_class_files('../methods/TrinityCore/')
 
     # Parse all the method files.
     classes = []
     for f in class_files:
-        print 'Parsing file {}...'.format(f.name)
+        print(f'Parsing file {f.name}...')
         classes.append(ClassParser.parse_file(f))
         f.close()
 
@@ -152,16 +152,22 @@ if __name__ == '__main__':
     render('index.html', 'index.html', level=0, classes=classes)
     # Render the search index.
     render('search-index.js', 'search-index.js', level=0, classes=classes)
+    # Render the date.
+    render('date.js', 'date.js', level=0, currdate=time.strftime("%d/%m/%Y"))
 
     for class_ in classes:
-        print 'Rending pages for class {}...'.format(class_.name)
+        print(f'Rendering pages for class {class_.name}...')
 
         # Make a folder for the class.
         os.mkdir('build/' + class_.name)
         index_path = '{}/index.html'.format(class_.name)
+        sidebar_path = '{}/sidebar.js'.format(class_.name)
 
         # Render the class's index page.
         render('class.html', index_path, level=1, classes=classes, current_class=class_)
+
+        # Render the class's sidebar script.
+        render('sidebar.js', sidebar_path, level=1, classes=classes, current_class=class_)
 
         # Render each method's page.
         for method in class_.methods:

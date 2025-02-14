@@ -2,7 +2,7 @@
  * MaNGOS is a full featured server for World of Warcraft, supporting
  * the following clients: 1.12.x, 2.4.3, 3.3.5a, 4.3.4a and 5.4.8
  *
- * Copyright (C) 2005-2021 MaNGOS <https://getmangos.eu>
+ * Copyright (C) 2005-2025 MaNGOS <https://www.getmangos.eu>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,8 +25,9 @@
 #ifndef MANGOS_TIMER_H
 #define MANGOS_TIMER_H
 
-#include "Common.h"
+#include "Common/Common.h"
 #include "Duration.h"
+#include <ctime>
 
 // New Method
 inline std::chrono::steady_clock::time_point GetApplicationStartTime()
@@ -72,25 +73,48 @@ inline uint32 GetMSTimeDiffToNow(uint32 oldMSTime)
     return getMSTimeDiff(oldMSTime, getMSTime());
 }
 
+inline uint32 GetUnixTimeStamp()
+{
+    time_t nowMS = std::time(nullptr);
+
+    return nowMS;
+}
+
 struct IntervalTimer
 {
-public:
-    IntervalTimer() : _interval(0), _current(0) { }
+    public:
+        /**
+         * @brief
+         *
+         */
+        IntervalTimer() : _interval(0), _current(0) {}
 
-    void Update(time_t diff)
-    {
-        _current += diff;
-        if (_current < 0)
+        /**
+         * @brief
+         *
+         * @param diff
+         */
+        void Update(time_t diff)
         {
-            _current = 0;
+            _current += diff;
+            if (_current < 0)
+            {
+                _current = 0;
+            }
         }
-    }
-
+        /**
+         * @brief
+         *
+         * @return bool
+         */
     bool Passed()
     {
         return _current >= _interval;
     }
-
+        /**
+         * @brief
+         *
+         */
     void Reset()
     {
         if (_current >= _interval)
@@ -119,12 +143,15 @@ public:
         return _current;
     }
 
-private:
-
-    time_t _interval;
-    time_t _current;
+    private:
+        time_t _interval; /**< TODO */
+        time_t _current; /**< TODO */
 };
 
+/**
+ * @brief
+ *
+ */
 struct TimeTracker
 {
 public:

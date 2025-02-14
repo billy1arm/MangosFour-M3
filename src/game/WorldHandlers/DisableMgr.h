@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2015-2016 MaNGOS project <http://getmangos.eu>
+ * Copyright (C) 2015-2025 MaNGOS <https://www.getmangos.eu>
  * Copyright (C) 2008-2015 TrinityCore <http://www.trinitycore.org/>
- * Copyright (C) 2005-2009 MaNGOS <http://getmangos.com/>
+ * Copyright (C) 2005-2008 MaNGOS <http://getmangos.com/>
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the
@@ -21,6 +21,7 @@
 #define TRINITY_DISABLEMGR_H
 
 #include "VMapManager2.h"
+#include "ProgressBar.h"
 
 class Unit;
 

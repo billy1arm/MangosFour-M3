@@ -2,7 +2,7 @@
  * MaNGOS is a full featured server for World of Warcraft, supporting
  * the following clients: 1.12.x, 2.4.3, 3.3.5a, 4.3.4a and 5.4.8
  *
- * Copyright (C) 2005-2021 MaNGOS <https://getmangos.eu>
+ * Copyright (C) 2005-2025 MaNGOS <https://www.getmangos.eu>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,6 +32,7 @@
 #include "Config/Config.h"
 #include "WorldSocket.h"
 #include "WorldSocketMgr.h"
+#include "Opcodes.h"
 
 #include <ace/ACE.h>
 #include <ace/TP_Reactor.h>
@@ -52,9 +53,13 @@ WorldSocketMgr::WorldSocketMgr()
 
 WorldSocketMgr::~WorldSocketMgr()
 {
-    if (reactor_) delete reactor_;
+    if (reactor_)
     {
-        if (acceptor_) delete acceptor_;
+        delete reactor_;
+    }
+    if (acceptor_)
+    {
+        delete acceptor_;
     }
 }
 
@@ -141,9 +146,13 @@ int WorldSocketMgr::StartNetwork(ACE_INET_Addr& addr)
 
 void WorldSocketMgr::StopNetwork()
 {
-    if (acceptor_) acceptor_->close();
+    if (acceptor_)
     {
-        if (reactor_)  reactor_->end_reactor_event_loop();
+        acceptor_->close();
+    }
+    if (reactor_)
+    {
+        reactor_->end_reactor_event_loop();
     }
     wait();
 }

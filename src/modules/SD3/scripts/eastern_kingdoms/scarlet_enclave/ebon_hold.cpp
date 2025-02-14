@@ -1,4 +1,11 @@
-/* Copyright (C) 2006 - 2013 ScriptDev2 <http://www.scriptdev2.com/>
+/**
+ * ScriptDev3 is an extension for mangos providing enhanced features for
+ * area triggers, creatures, game objects, instances, items, and spells beyond
+ * the default database scripting in mangos.
+ *
+ * Copyright (C) 2006-2013 ScriptDev2 <http://www.scriptdev2.com/>
+ * Copyright (C) 2014-2025 MaNGOS <https://www.getmangos.eu>
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -1089,8 +1096,9 @@ struct npc_unworthy_initiate_anchor : public CreatureScript
                 RegisterCloseInitiate(sender);
                 break;
             case AI_EVENT_CUSTOM_C: // notify me; @TODO inplement normal ObjectGuid transfer between scripts
+                if (const GameObjectData* godata = sObjectMgr.GetGOData(data))
                 {
-                ObjectGuid guid = ObjectGuid(HIGHGUID_GAMEOBJECT, 0, data);
+                ObjectGuid guid = ObjectGuid(HIGHGUID_GAMEOBJECT, godata->id, data);
                 if (GameObject *pGo = m_creature->GetMap()->GetGameObject(guid))
                 {
                     NotifyMe(invoker, pGo);

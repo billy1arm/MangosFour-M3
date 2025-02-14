@@ -2,7 +2,7 @@
  * MaNGOS is a full featured server for World of Warcraft, supporting
  * the following clients: 1.12.x, 2.4.3, 3.3.5a, 4.3.4a and 5.4.8
  *
- * Copyright (C) 2005-2021 MaNGOS <https://getmangos.eu>
+ * Copyright (C) 2005-2025 MaNGOS <https://www.getmangos.eu>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,7 +27,51 @@
 
 #include "utf8.h"
 #include "RNGen.h"
+#include <ace/TSS_T.h>
+#include <ace/INET_Addr.h>
 #include "Log/Log.h"
+
+#include <iomanip>
+
+//static ACE_Time_Value g_SystemTickTime = ACE_OS::gettimeofday();
+
+//uint32 WorldTimer::m_iTime = 0;
+//uint32 WorldTimer::m_iPrevTime = 0;
+//
+//uint32 WorldTimer::tickTime() { return m_iTime; }
+//uint32 WorldTimer::tickPrevTime() { return m_iPrevTime; }
+//
+//uint32 WorldTimer::tick()
+//{
+//    // save previous world tick time
+//    m_iPrevTime = m_iTime;
+//
+//    // get the new one and don't forget to persist current system time in m_SystemTickTime
+//    m_iTime = WorldTimer::getMSTime_internal();
+//
+//    // return tick diff
+//    return getMSTimeDiff(m_iPrevTime, m_iTime);
+//}
+//
+//uint32 WorldTimer::getMSTime()
+//{
+//    return getMSTime_internal();
+//}
+//
+//uint32 WorldTimer::getMSTime_internal()
+//{
+//    // get current time
+//    const ACE_Time_Value currTime = ACE_OS::gettimeofday();
+//    // calculate time diff between two world ticks
+//    // special case: curr_time < old_time - we suppose that our time has not ticked at all
+//    // this should be constant value otherwise it is possible that our time can start ticking backwards until next world tick!!!
+//    uint64 diff = 0;
+//    (currTime - g_SystemTickTime).msec(diff);
+//
+//    // lets calculate current world time
+//    uint32 iRes = uint32(diff % UI64LIT(0x00000000FFFFFFFF));
+//    return iRes;
+//}
 
 //////////////////////////////////////////////////////////////////////////
 int32 irand(int32 min, int32 max)
@@ -167,18 +211,86 @@ void stripLineInvisibleChars(std::string& str)
     }
 }
 
-std::tm localtime_r(const time_t& time)
-{
-    std::tm tm_snapshot;
+/**
+ * It's a wrapper for the localtime_r function that works on Windows
+ *
+ * @param time The time to convert.
+ * @param result A pointer to a tm structure to receive the broken-down time.
+ *
+ * @return A pointer to the result.
+ */
 #if (defined(WIN32) || defined(_WIN32) || defined(__WIN32__))
-    localtime_s(&tm_snapshot, &time);
-#else
-    localtime_r(&time, &tm_snapshot); // POSIX
+struct tm* localtime_r(time_t const* time, struct tm *result)
+{
+    localtime_s(result, time);
+    return result;
+}
 #endif
-    return tm_snapshot;
+
+/**
+ * It takes a time_t value and returns a tm structure with the same time, but in local time
+ *
+ * @param time The time to break down.
+ *
+ * @return A struct tm
+ */
+tm TimeBreakdown(time_t time)
+{
+    tm timeLocal;
+    localtime_r(&time, &timeLocal);
+    return timeLocal;
 }
 
-std::string secsToTimeString(time_t timeInSecs, bool shortText, bool hoursOnly)
+/**
+ * Convert local time to UTC time.
+ *
+ * @param time The time to convert.
+ *
+ * @return The time in UTC.
+ */
+time_t LocalTimeToUTCTime(time_t time)
+{
+    #if (defined(WIN32) || defined(_WIN32) || defined(__WIN32__))
+        return time + _timezone;
+    #else
+        return time + timezone;
+    #endif
+}
+
+/**
+ * "Get the timestamp of the next time the given hour occurs in the local timezone."
+ *
+ * The function takes a timestamp, an hour, and a boolean. The timestamp is the time you want to find
+ * the next occurrence of the given hour. The hour is the hour you want to find the next occurrence of.
+ * The boolean is whether or not you want to find the next occurrence of the hour after the given
+ * timestamp
+ *
+ * @param time The time you want to get the hour timestamp for.
+ * @param hour The hour of the day you want to get the timestamp for.
+ * @param onlyAfterTime If true, the function will return the next hour after the current time. If
+ * false, it will return the current hour.
+ *
+ * @return A timestamp for the given hour of the day.
+ */
+time_t GetLocalHourTimestamp(time_t time, uint8 hour, bool onlyAfterTime)
+{
+    tm timeLocal = TimeBreakdown(time);
+    timeLocal.tm_hour = 0;
+    timeLocal.tm_min  = 0;
+    timeLocal.tm_sec  = 0;
+
+    time_t midnightLocal = mktime(&timeLocal);
+    time_t hourLocal = midnightLocal + hour * HOUR;
+
+    if (onlyAfterTime && hourLocal < time)
+    {
+        hourLocal += DAY;
+    }
+
+    return hourLocal;
+}
+
+std::string secsToTimeString(time_t timeInSecs, TimeFormat timeFormat, bool hoursOnly)
 {
     time_t secs    = timeInSecs % MINUTE;
     time_t minutes = timeInSecs % HOUR / MINUTE;
@@ -188,21 +300,107 @@ std::string secsToTimeString(time_t timeInSecs, bool shortText, bool hoursOnly)
     std::ostringstream ss;
     if (days)
     {
-        ss << days << (shortText ? "d" : " Day(s) ");
+        ss << days;
+        if (timeFormat == TimeFormat::Numeric)
+        {
+            ss << ":";
+        }
+        else if (timeFormat == TimeFormat::ShortText)
+        {
+            ss << "d";
+        }
+        else // if (timeFormat == TimeFormat::FullText)
+        {
+            if (days == 1)
+            {
+                ss << " Day ";
+            }
+            else
+            {
+                ss << " Days ";
+            }
+        }
     }
+
     if (hours || hoursOnly)
     {
-        ss << hours << (shortText ? "h" : " Hour(s) ");
+        ss << hours;
+        if (timeFormat == TimeFormat::Numeric)
+        {
+            ss << ":";
+        }
+        else if (timeFormat == TimeFormat::ShortText)
+        {
+            ss << "h";
+        }
+        else // if (timeFormat == TimeFormat::FullText)
+        {
+            if (hours <= 1)
+            {
+                ss << " Hour ";
+            }
+            else
+            {
+                ss << " Hours ";
+            }
+        }
     }
+
     if (!hoursOnly)
     {
-        if (minutes)
+        ss << minutes;
+        if (timeFormat == TimeFormat::Numeric)
         {
-            ss << minutes << (shortText ? "m" : " Minute(s) ");
+            ss << ":";
         }
-        if (secs || (!days && !hours && !minutes))
+        else if (timeFormat == TimeFormat::ShortText)
         {
-            ss << secs << (shortText ? "s" : " Second(s).");
+            ss << "m";
+        }
+        else // if (timeFormat == TimeFormat::FullText)
+        {
+            if (minutes == 1)
+            {
+                ss << " Minute ";
+            }
+            else
+            {
+                ss << " Minutes ";
+            }
+        }
+    }
+    else
+    {
+        if (timeFormat == TimeFormat::Numeric)
+        {
+            ss << "0:";
+        }
+    }
+
+    if (secs || (!days && !hours && !minutes))
+    {
+        ss << std::setw(2) << std::setfill('0') << secs;
+        if (timeFormat == TimeFormat::ShortText)
+        {
+            ss << "s";
+        }
+        else if (timeFormat == TimeFormat::FullText)
+        {
+            if (secs <= 1)
+            {
+                ss << " Second.";
+            }
+            else
+            {
+                ss << " Seconds.";
+            }
+        }
+    }
+    else
+    {
+        if (timeFormat == TimeFormat::Numeric)
+        {
+            ss << "00";
         }
     }
 
@@ -243,7 +441,8 @@ uint32 TimeStringToSecs(const std::string& timestring)
 
 std::string TimeToTimestampStr(time_t t)
 {
-    tm aTm = localtime_r(t);
+    tm aTm;
+    localtime_r(&t, &aTm);
     //       YYYY   year
     //       MM     month (2 digits 01-12)
     //       DD     day (2 digits 01-31)

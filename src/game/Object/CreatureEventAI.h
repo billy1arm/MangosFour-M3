@@ -2,7 +2,7 @@
  * MaNGOS is a full featured server for World of Warcraft, supporting
  * the following clients: 1.12.x, 2.4.3, 3.3.5a, 4.3.4a and 5.4.8
  *
- * Copyright (C) 2005-2021 MaNGOS <https://getmangos.eu>
+ * Copyright (C) 2005-2025 MaNGOS <https://www.getmangos.eu>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -126,7 +126,9 @@ enum EventAI_ActionType
     ACTION_T_SET_THROW_MASK             = 46,               // EventTypeMask, unused, unused
     ACTION_T_SET_STAND_STATE            = 47,               // StandState, unused, unused
     ACTION_T_CHANGE_MOVEMENT            = 48,               // MovementType, WanderDistance, unused
-    ACTION_T_DYNAMIC_MOVEMENT           = 49,               // EnableDynamicMovement (1 = on; 0 = off)
+    ACTION_T_SUMMON_UNIQUE              = 49,               // CreatureId, Target, SpawnId
+    ACTION_T_EMOTE_TARGET               = 50,               // EmoteId, TargetGuid
+    ACTION_T_DYNAMIC_MOVEMENT           = 51,               // EnableDynamicMovement (1 = on; 0 = off)
 
     ACTION_T_END
 };
@@ -424,6 +426,19 @@ struct CreatureEventAI_Action
             uint32 wanderDistance;
             uint32 unused1;
         } changeMovement;
+        // ACTION_T_SUMMON_ID                               = 49
+        struct
+        {
+            uint32 creatureId;
+            uint32 target;
+            uint32 spawnId;
+        } summon_unique;
+        // ACTION_T_EMOTE_TARGET                            = 50
+        struct
+        {
+            uint32 emoteId;
+            uint32 targetGuid;
+        } emoteTarget;
         // ACTION_T_DYNAMIC_MOVEMENT                        = 49
         struct
         {
@@ -431,6 +446,7 @@ struct CreatureEventAI_Action
             uint32 unused1;
             uint32 unused2;
         } dynamicMovement;
+
         // RAW
         struct
         {
@@ -602,7 +618,7 @@ struct CreatureEventAI_Event
 
 // Event_Map
 typedef std::vector<CreatureEventAI_Event> CreatureEventAI_Event_Vec;
-typedef UNORDERED_MAP<uint32, CreatureEventAI_Event_Vec > CreatureEventAI_Event_Map;
+typedef std::unordered_map<uint32, CreatureEventAI_Event_Vec > CreatureEventAI_Event_Map;
 
 struct CreatureEventAI_Summon
 {
@@ -616,7 +632,7 @@ struct CreatureEventAI_Summon
 };
 
 // EventSummon_Map
-typedef UNORDERED_MAP<uint32, CreatureEventAI_Summon> CreatureEventAI_Summon_Map;
+typedef std::unordered_map<uint32, CreatureEventAI_Summon> CreatureEventAI_Summon_Map;
 
 struct CreatureEventAIHolder
 {

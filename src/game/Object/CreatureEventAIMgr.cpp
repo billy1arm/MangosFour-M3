@@ -2,7 +2,7 @@
  * MaNGOS is a full featured server for World of Warcraft, supporting
  * the following clients: 1.12.x, 2.4.3, 3.3.5a, 4.3.4a and 5.4.8
  *
- * Copyright (C) 2005-2021 MaNGOS <https://getmangos.eu>
+ * Copyright (C) 2005-2025 MaNGOS <https://www.getmangos.eu>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -178,6 +178,7 @@ void CreatureEventAIMgr::CheckUnusedAISummons()
                 switch (action.type)
                 {
                     case ACTION_T_SUMMON_ID:
+                    case ACTION_T_SUMMON_UNIQUE:
                     {
                         if (action.summon_id.spawnId)
                         {
@@ -1038,6 +1039,18 @@ void CreatureEventAIMgr::LoadCreatureEventAI_Scripts()
                         {
                             sLog.outErrorEventAI("Event %u Action %u uses invalid unit stand state %u (must be smaller than %u)", i, j + 1, action.setStandState.standState, MAX_UNIT_STAND_STATE);
                             continue;
+                        }
+                        break;
+
+                    case ACTION_T_SUMMON_UNIQUE:                                          //49
+                        if (!sCreatureStorage.LookupEntry<CreatureInfo>(action.summon_unique.creatureId))
+                        {
+                            sLog.outErrorEventAI("Event %u Action %u uses nonexistent creature entry %u.", i, j + 1, action.summon_unique.creatureId);
+                        }
+                        IsValidTargetType(temp.event_type, action.type, action.summon_unique.target, i, j + 1);
+                        if (m_CreatureEventAI_Summon_Map.find(action.summon_unique.spawnId) == m_CreatureEventAI_Summon_Map.end())
+                        {
+                            sLog.outErrorEventAI("Event %u Action %u summons missing CreatureEventAI_Summon %u", i, j + 1, action.summon_unique.spawnId);
                         }
                         break;
                     case ACTION_T_CHANGE_MOVEMENT:

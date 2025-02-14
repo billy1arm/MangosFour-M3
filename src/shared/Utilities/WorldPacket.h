@@ -2,7 +2,7 @@
  * MaNGOS is a full featured server for World of Warcraft, supporting
  * the following clients: 1.12.x, 2.4.3, 3.3.5a, 4.3.4a and 5.4.8
  *
- * Copyright (C) 2005-2021 MaNGOS <https://getmangos.eu>
+ * Copyright (C) 2005-2025 MaNGOS <https://www.getmangos.eu>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -51,7 +51,7 @@ class WorldPacket : public ByteBuffer
          * @param opcode
          * @param res
          */
-        explicit WorldPacket(Opcodes opcode, size_t res = 200) : ByteBuffer(res), m_opcode(opcode) { }
+        explicit WorldPacket(OpcodesList opcode, size_t res = 200) : ByteBuffer(res), m_opcode(opcode) { }
         /**
          * @brief copy constructor
          *
@@ -67,7 +67,7 @@ class WorldPacket : public ByteBuffer
          * @param opcode
          * @param newres
          */
-        void Initialize(Opcodes opcode, size_t newres = 200)
+        void Initialize(OpcodesList opcode, size_t newres = 200)
         {
             clear();
             _storage.reserve(newres);
@@ -79,13 +79,13 @@ class WorldPacket : public ByteBuffer
          *
          * @return uint16
          */
-        Opcodes GetOpcode() const { return m_opcode; }
+        OpcodesList GetOpcode() const { return m_opcode; }
         /**
          * @brief
          *
          * @param opcode
          */
-        void SetOpcode(Opcodes opcode) { m_opcode = opcode; }
+        void SetOpcode(OpcodesList opcode) { m_opcode = opcode; }
         /**
          * @brief
          *
@@ -94,6 +94,6 @@ class WorldPacket : public ByteBuffer
         inline const char* GetOpcodeName() const { return LookupOpcodeName(m_opcode); }
 
     protected:
-        Opcodes m_opcode;
+        OpcodesList m_opcode;
 };
 #endif

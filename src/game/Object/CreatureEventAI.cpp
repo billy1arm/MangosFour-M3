@@ -2,7 +2,7 @@
  * MaNGOS is a full featured server for World of Warcraft, supporting
  * the following clients: 1.12.x, 2.4.3, 3.3.5a, 4.3.4a and 5.4.8
  *
- * Copyright (C) 2005-2021 MaNGOS <https://getmangos.eu>
+ * Copyright (C) 2005-2025 MaNGOS <https://www.getmangos.eu>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -821,8 +821,8 @@ void CreatureEventAI::ProcessAction(CreatureEventAI_Action const& action, uint32
                     }
                     break;
                 }
-                case CAST_FAIL_TOO_FAR:
                 case CAST_FAIL_POWER:
+                case CAST_FAIL_TOO_FAR:
                 case CAST_FAIL_NOT_IN_LOS:
                 {
                     if (!m_creature->hasUnitState(UNIT_STAT_NO_COMBAT_MOVEMENT))
@@ -968,6 +968,7 @@ void CreatureEventAI::ProcessAction(CreatureEventAI_Action const& action, uint32
             {
                 sLog.outErrorEventAI("Event %u - NULL target for ACTION_T_REMOVE_UNIT_FLAG(%u), target-type %u", EventId, action.type, action.unit_flag.target);
             }
+            break;
         case ACTION_T_AUTO_ATTACK:          //20
             m_MeleeEnabled = action.auto_attack.state != 0;
             break;
@@ -1593,13 +1594,19 @@ void CreatureEventAI::MoveInLineOfSight(Unit* who)
 void CreatureEventAI::SpellHit(Unit* pUnit, const SpellEntry* pSpell)
 {
     for (CreatureEventAIList::iterator i = m_CreatureEventAIList.begin(); i != m_CreatureEventAIList.end(); ++i)
+    {
         if (i->Event.event_type == EVENT_T_SPELLHIT)
+        {
             // If spell id matches (or no spell id) & if spell school matches (or no spell school)
             if (!i->Event.spell_hit.spellId || pSpell->Id == i->Event.spell_hit.spellId)
+            {
                 if (pSpell->SchoolMask & i->Event.spell_hit.schoolMask)
                 {
                     ProcessEvent(*i, pUnit);
                 }
+            }
+        }
+    }
 }
 
 void CreatureEventAI::UpdateAI(const uint32 diff)
@@ -1620,7 +1627,7 @@ void CreatureEventAI::UpdateAI(const uint32 diff)
             {
                 if (i->Time > m_EventDiff)
                 {
-                    // Do not decrement timers if event cannot trigger in this phase
+                    // Do not decrement timers if event can not trigger in this phase
                     if (!(i->Event.event_inverse_phase_mask & (1 << m_Phase)))
                     {
                         i->Time -= m_EventDiff;
@@ -1846,7 +1853,7 @@ void CreatureEventAI::ReceiveEmote(Player* pPlayer, uint32 text_emote)
     }
 }
 
-#define HEALTH_STEPS 3
+constexpr auto HEALTH_STEPS = 3;
 
 void CreatureEventAI::DamageTaken(Unit* dealer, uint32& damage)
 {
@@ -1872,7 +1879,7 @@ void CreatureEventAI::DamageTaken(Unit* dealer, uint32& damage)
 
         if (newHealthPercent > healthSteps[step])
         {
-            return;                                          // Not reached the next mark
+            return; // Not reached the next mark
         }
 
         // search for highest reached mark (with actual event attached)

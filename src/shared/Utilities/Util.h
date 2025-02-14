@@ -2,7 +2,7 @@
  * MaNGOS is a full featured server for World of Warcraft, supporting
  * the following clients: 1.12.x, 2.4.3, 3.3.5a, 4.3.4a and 5.4.8
  *
- * Copyright (C) 2005-2021 MaNGOS <https://getmangos.eu>
+ * Copyright (C) 2005-2025 MaNGOS <https://www.getmangos.eu>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,12 +26,21 @@
 #define MANGOS_H_UTIL
 
 #include "Common/Common.h"
+#include <ace/Null_Mutex.h>
 #include <ace/INET_Addr.h>
 
 #include <string>
 #include <vector>
 #include <algorithm>
 #include <cctype>
+#include <functional>
+
+enum class TimeFormat : uint8
+{
+    FullText,       // 1 Days 2 Hours 3 Minutes 4 Seconds
+    ShortText,      // 1d 2h 3m 4s
+    Numeric         // 1:2:3:4
+};
 
 /**
  * @brief
@@ -72,12 +81,11 @@ float NormalizeOrientation(float o);
  */
 void stripLineInvisibleChars(std::string& src);
 
-/**
- * @brief
- *
- * @param localtime
- */
-std::tm localtime_r(const time_t& time);
+struct tm* localtime_r(const time_t* time, struct tm* result);
+
+time_t LocalTimeToUTCTime(time_t time);
+time_t GetLocalHourTimestamp(time_t time, uint8 hour, bool onlyAfterTime = true);
+tm TimeBreakdown(time_t t);
 
 /**
  * @brief
@@ -87,7 +95,7 @@ std::tm localtime_r(const time_t& time);
  * @param hoursOnly
  * @return std::string
  */
-std::string secsToTimeString(time_t timeInSecs, bool shortText = false, bool hoursOnly = false);
+std::string secsToTimeString(time_t timeInSecs, TimeFormat timeFormat = TimeFormat::FullText, bool hoursOnly = false);
 /**
  * @brief
  *
@@ -102,8 +110,6 @@ uint32 TimeStringToSecs(const std::string& timestring);
  * @return std::string
  */
 std::string TimeToTimestampStr(time_t t);
-
-
 time_t timeBitFieldsToSecs(uint32 packedDate);
 
 std::string MoneyToString(uint64 money);
@@ -119,6 +125,29 @@ inline uint32 secsToTimeBitFields(time_t secs)
     return (lt->tm_year - 100) << 24 | lt->tm_mon  << 20 | (lt->tm_mday - 1) << 14 | lt->tm_wday << 11 | lt->tm_hour << 6 | lt->tm_min;
 }
 
+
+inline std::string& ltrim(std::string& s)
+{
+    s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch)
+    {
+        return !std::isspace(ch);
+    }));
+    return s;
+}
+
+inline std::string& rtrim(std::string& s)
+{
+    s.erase(std::find_if(s.rbegin(), s.rend(), [](unsigned char ch)
+        {
+            return !std::isspace(ch);
+        }).base(), s.end());
+    return s;
+}
+
+inline std::string& trim(std::string& s)
+{
+    return ltrim(rtrim(s));
+}
 
 /**
  * @brief Return a random number in the range min..max; (max-min) must be smaller than 32768.

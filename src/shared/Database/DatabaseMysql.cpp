@@ -2,7 +2,7 @@
  * MaNGOS is a full featured server for World of Warcraft, supporting
  * the following clients: 1.12.x, 2.4.3, 3.3.5a, 4.3.4a and 5.4.8
  *
- * Copyright (C) 2005-2021 MaNGOS <https://getmangos.eu>
+ * Copyright (C) 2005-2025 MaNGOS <https://www.getmangos.eu>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,6 +21,8 @@
  * World of Warcraft, and all World of Warcraft or Warcraft art, images,
  * and lore are copyrighted by Blizzard Entertainment, Inc.
  */
+
+#ifndef DO_POSTGRESQL
 
 #include "Utilities/Util.h"
 #include "Policies/Singleton.h"
@@ -46,7 +48,7 @@ DatabaseMysql::DatabaseMysql()
     // before first connection
     if (db_count++ == 0)
     {
-        //Mysql Library Init
+        // Mysql Library Init
         if(mysql_library_init(-1, NULL, NULL))
         {
             sLog.outError("Could not initialize MySQL client library\n");
@@ -67,9 +69,9 @@ DatabaseMysql::~DatabaseMysql()
 
     // Free Mysql library pointers for last ~DB
     if (--db_count == 0)
-        {
-            mysql_library_end();
-        }
+    {
+        mysql_library_end();
+    }
 }
 
 SqlConnection* DatabaseMysql::CreateConnection()
@@ -543,3 +545,4 @@ enum_field_types MySqlPreparedStatement::ToMySQLType(const SqlStmtFieldData& dat
 
     return dataType;
 }
+#endif

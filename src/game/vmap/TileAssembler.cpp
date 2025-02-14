@@ -2,7 +2,7 @@
  * MaNGOS is a full featured server for World of Warcraft, supporting
  * the following clients: 1.12.x, 2.4.3, 3.3.5a, 4.3.4a and 5.4.8
  *
- * Copyright (C) 2005-2021 MaNGOS <https://getmangos.eu>
+ * Copyright (C) 2005-2025 MaNGOS <https://www.getmangos.eu>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -77,7 +77,7 @@ namespace VMAP
         // delete iCoordModelMapping;
     }
 
-    bool TileAssembler::convertWorld2(const char *RAW_VMAP_MAGIC)
+    bool TileAssembler::convertWorld2()
     {
         bool success = readMapSpawns();
         if (!success)
@@ -98,7 +98,7 @@ namespace VMAP
                 // M2 models don't have a bound set in WDT/ADT placement data, i still think they're not used for LoS at all on retail
                 if (entry->second.flags & MOD_M2)
                 {
-                    if (!calculateTransformedBound(entry->second, RAW_VMAP_MAGIC))
+                    if (!calculateTransformedBound(entry->second))
                     {
                         break;
                     }
@@ -221,14 +221,14 @@ namespace VMAP
         }
 
         // add an object models, listed in temp_gameobject_models file
-        exportGameobjectModels(RAW_VMAP_MAGIC);
+        exportGameobjectModels();
 
         // export objects
         std::cout <<  std::endl << "Converting Model Files" << std::endl;
         for (std::set<std::string>::iterator mfile = spawnedModelFiles.begin(); mfile != spawnedModelFiles.end(); ++mfile)
         {
             std::cout << "Converting " << *mfile << std::endl;
-            if (!convertRawFile(*mfile, RAW_VMAP_MAGIC))
+            if (!convertRawFile(*mfile))
             {
                 std::cout << "error converting " << *mfile << std::endl;
                 success = false;
@@ -292,7 +292,7 @@ namespace VMAP
         return success;
     }
 
-    bool TileAssembler::calculateTransformedBound(ModelSpawn& spawn, const char *RAW_VMAP_MAGIC)
+    bool TileAssembler::calculateTransformedBound(ModelSpawn& spawn)
     {
         std::string modelFilename = iSrcDir + "/" + spawn.name;
         ModelPosition modelPosition;
@@ -301,7 +301,7 @@ namespace VMAP
         modelPosition.init();
 
         WorldModel_Raw raw_model;
-        if (!raw_model.Read(modelFilename.c_str(), RAW_VMAP_MAGIC))
+        if (!raw_model.Read(modelFilename.c_str()))
         {
             return false;
         }
@@ -352,7 +352,7 @@ namespace VMAP
         short type;
     };
     //=================================================================
-    bool TileAssembler::convertRawFile(const std::string& pModelFilename, const char *RAW_VMAP_MAGIC)
+    bool TileAssembler::convertRawFile(const std::string& pModelFilename)
     {
         bool success = true;
         std::string filename = iSrcDir;
@@ -363,7 +363,7 @@ namespace VMAP
         filename.append(pModelFilename);
 
         WorldModel_Raw raw_model;
-        if (!raw_model.Read(filename.c_str(), RAW_VMAP_MAGIC))
+        if (!raw_model.Read(filename.c_str()))
         {
             return false;
         }
@@ -393,7 +393,7 @@ namespace VMAP
         return success;
     }
 
-    void TileAssembler::exportGameobjectModels(const char *RAW_VMAP_MAGIC)
+    void TileAssembler::exportGameobjectModels()
     {
         FILE* model_list = fopen((iSrcDir + "/" + GAMEOBJECT_MODELS).c_str(), "rb");
         if (!model_list)
@@ -440,7 +440,7 @@ namespace VMAP
             std::string model_name(buff, name_length);
 
             WorldModel_Raw raw_model;
-            if (!raw_model.Read((iSrcDir + "/" + model_name).c_str(), RAW_VMAP_MAGIC))
+            if (!raw_model.Read((iSrcDir + "/" + model_name).c_str()))
             {
                 continue;
             }
@@ -480,13 +480,15 @@ namespace VMAP
 
 // temporary use defines to simplify read/check code (close file and return at fail)
 #define READ_OR_RETURN(V,S) \
-        if(fread((V), (S), 1, rf) != 1) { \
-           fclose(rf); \
+        if(fread((V), (S), 1, rf) != 1) \
+        { \
+            fclose(rf); \
            std::cout << "readfail, op = " << readOperation << std::endl;\
            return(false); \
         }
 #define CMP_OR_RETURN(V,S) \
-        if(strcmp((V),(S)) != 0) { \
+        if(strcmp((V),(S)) != 0) \
+        { \
             fclose(rf); \
             std::cout << "cmpfail, " << (V) << "!=" << (S) << std::endl;\
             return(false);\
@@ -594,7 +596,7 @@ namespace VMAP
         delete liquid;
     }
 
-    bool WorldModel_Raw::Read(const char* path, const char *RAW_VMAP_MAGIC)
+    bool WorldModel_Raw::Read(const char* path)
     {
         FILE* rf = fopen(path, "rb");
         if (!rf)

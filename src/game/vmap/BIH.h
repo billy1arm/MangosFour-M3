@@ -2,7 +2,7 @@
  * MaNGOS is a full featured server for World of Warcraft, supporting
  * the following clients: 1.12.x, 2.4.3, 3.3.5a, 4.3.4a and 5.4.8
  *
- * Copyright (C) 2005-2021 MaNGOS <https://getmangos.eu>
+ * Copyright (C) 2005-2025 MaNGOS <https://www.getmangos.eu>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,17 +25,17 @@
 #ifndef MANGOS_H_BIH
 #define MANGOS_H_BIH
 
+#include <G3D/Vector3.h>
+#include <G3D/Ray.h>
+#include <G3D/AABox.h>
+
+#include <Platform/Define.h>
+
 #include <stdexcept>
 #include <vector>
 #include <algorithm>
 #include <limits>
 #include <cmath>
-
-#include <Platform/Define.h>
-
-#include <G3D/Vector3.h>
-#include <G3D/Ray.h>
-#include <G3D/AABox.h>
 
 #define MAX_STACK_SIZE 64
 
@@ -184,16 +184,15 @@ class BIH
          * @param maxDist
          * @param stopAtFirst
          */
-        void intersectRay(const Ray& r, RayCallback& intersectCallback, float& maxDist, bool stopAtFirst = false) const
+        void IntersectRay(const Ray& r, RayCallback& intersectCallback, float& maxDist, bool stopAtFirst = false) const
         {
             float intervalMin = -1.f;
             float intervalMax = -1.f;
-            Vector3 org = r.origin();
-            Vector3 dir = r.direction();
-            Vector3 invDir;
+            Vector3 const& org = r.origin();
+            Vector3 const& dir = r.direction();
+            Vector3 const& invDir = r.invDirection();
             for (int i = 0; i < 3; ++i)
             {
-                invDir[i] = 1.f / dir[i];
                 if (G3D::fuzzyNe(dir[i], 0.0f))
                 {
                     float t1 = (bounds.low()[i]  - org[i]) * invDir[i];

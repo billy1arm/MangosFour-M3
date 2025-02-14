@@ -2,7 +2,7 @@
  * MaNGOS is a full featured server for World of Warcraft, supporting
  * the following clients: 1.12.x, 2.4.3, 3.3.5a, 4.3.4a and 5.4.8
  *
- * Copyright (C) 2005-2021 MaNGOS <https://getmangos.eu>
+ * Copyright (C) 2005-2025 MaNGOS <https://www.getmangos.eu>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -54,6 +54,7 @@
 
 #ifdef ENABLE_ELUNA
 #include "LuaEngine.h"
+#include "ElunaConfig.h"
 #include "ElunaEventMgr.h"
 #endif /* ENABLE_ELUNA */
 
@@ -180,7 +181,7 @@ void Object::BuildCreateUpdateBlockForPlayer(UpdateData* data, Player* target) c
 
     // DEBUG_LOG("BuildCreateUpdate: update-type: %u, object-type: %u got updateFlags: %X", updatetype, m_objectTypeId, updateFlags);
 
-    ByteBuffer buf(500);
+    ByteBuffer& buf = data->GetBuffer();
     buf << uint8(updatetype);
     buf << GetPackGUID();
     buf << uint8(m_objectTypeId);
@@ -191,7 +192,7 @@ void Object::BuildCreateUpdateBlockForPlayer(UpdateData* data, Player* target) c
     updateMask.SetCount(m_valuesCount);
     _SetCreateBits(&updateMask, target);
     BuildValuesUpdate(updatetype, &buf, &updateMask, target);
-    data->AddUpdateBlock(buf);
+    data->AddUpdateBlock();
 }
 
 void Object::SendCreateUpdateToPlayer(Player* player)
@@ -207,7 +208,7 @@ void Object::SendCreateUpdateToPlayer(Player* player)
 
 void Object::BuildValuesUpdateBlockForPlayer(UpdateData* data, Player* target) const
 {
-    ByteBuffer buf(500);
+    ByteBuffer& buf = data->GetBuffer();
 
     buf << uint8(UPDATETYPE_VALUES);
     buf << GetPackGUID();
@@ -218,7 +219,7 @@ void Object::BuildValuesUpdateBlockForPlayer(UpdateData* data, Player* target) c
     _SetUpdateBits(&updateMask, target);
     BuildValuesUpdate(UPDATETYPE_VALUES, &buf, &updateMask, target);
 
-    data->AddUpdateBlock(buf);
+    data->AddUpdateBlock();
 }
 
 void Object::BuildOutOfRangeUpdateBlock(UpdateData* data) const
@@ -510,7 +511,7 @@ void Object::BuildMovementUpdate(ByteBuffer* data, uint16 updateFlags) const
 
     if (updateFlags & UPDATEFLAG_ROTATION)
     {
-        *data << uint32(GameTime::GetGameTimeMS());           // ms time
+        *data << int64(((GameObject*)this)->GetPackedWorldRotation());
     }
 
     if (updateFlags & UPDATEFLAG_TRANSPORT_ARR)
@@ -555,7 +556,7 @@ void Object::BuildMovementUpdate(ByteBuffer* data, uint16 updateFlags) const
 
     if (updateFlags & UPDATEFLAG_TRANSPORT)
     {
-        *data << uint32(GameTime::GetGameTimeMS());
+        *data << uint32(GameTime::GetGameTimeMS());           // ms time
     }
 }
 
@@ -1201,7 +1202,7 @@ void Object::ForceValuesUpdateAtIndex(uint32 index)
 
 WorldObject::WorldObject() :
 #ifdef ENABLE_ELUNA
-    elunaEvents(NULL),
+    elunaEvents(nullptr),
 #endif /* ENABLE_ELUNA */
     m_transportInfo(NULL),
     m_currMap(NULL),
@@ -1214,7 +1215,7 @@ WorldObject::~WorldObject()
 {
 #ifdef ENABLE_ELUNA
     delete elunaEvents;
-    elunaEvents = NULL;
+    elunaEvents = nullptr;
 #endif /* ENABLE_ELUNA */
 }
 
@@ -1226,7 +1227,10 @@ void WorldObject::CleanupsBeforeDelete()
 void WorldObject::Update(uint32 update_diff, uint32 time_diff)
 {
 #ifdef ENABLE_ELUNA
-    elunaEvents->Update(update_diff);
+    if (elunaEvents) // can be null on maps without eluna
+    {
+        elunaEvents->Update(update_diff);
+    }
 #endif /* ENABLE_ELUNA */
 }
 
@@ -1890,20 +1894,11 @@ void WorldObject::SetMap(Map* map)
     // lets save current map's Id/instanceId
     m_mapId = map->GetId();
     m_InstanceId = map->GetInstanceId();
-
-#ifdef ENABLE_ELUNA
-    delete elunaEvents;
-    // On multithread replace this with a pointer to map's Eluna pointer stored in a map
-    elunaEvents = new ElunaEventProcessor(&Eluna::GEluna, this);
-#endif
 }
 
 void WorldObject::ResetMap()
 {
-#ifdef ENABLE_ELUNA
-    delete elunaEvents;
-    elunaEvents = NULL;
-#endif
+    m_currMap = NULL;
 }
 
 TerrainInfo const* WorldObject::GetTerrain() const
@@ -1965,7 +1960,10 @@ Creature* WorldObject::SummonCreature(uint32 id, float x, float y, float z, floa
 #ifdef ENABLE_ELUNA
     if (Unit* summoner = ToUnit())
     {
-        sEluna->OnSummoned(pCreature, summoner);
+        if (Eluna* e = GetEluna())
+        {
+            e->OnSummoned(pCreature, summoner);
+        }
     }
 #endif /* ENABLE_ELUNA */
 
@@ -1999,6 +1997,7 @@ GameObject* WorldObject::SummonGameObject(uint32 id, float x, float y, float z, 
     pGameObj->SetRespawnTime(despwtime/IN_MILLISECONDS);
 
     map->Add(pGameObj);
+    pGameObj->AIM_Initialize();
 
     return pGameObj;
 }
@@ -2397,16 +2396,28 @@ void WorldObject::SetActiveObjectState(bool active)
 
     if (IsInWorld() && !isType(TYPEMASK_PLAYER))
         // player's update implemented in a different from other active worldobject's way
-        // it's considired to use generic way in future
+        // considered using a generic way in future
     {
         if (IsActiveObject() && !active)
         {
             GetMap()->RemoveFromActive(this);
         }
-        else if (!IsActiveObject() && active)
+        else if (IsActiveObject() && active)
         {
             GetMap()->AddToActive(this);
         }
     }
     m_isActiveObject = active;
 }
+
+#ifdef ENABLE_ELUNA
+Eluna* WorldObject::GetEluna() const
+{
+    if (IsInWorld())
+    {
+        return GetMap()->GetEluna();
+    }
+
+    return nullptr;
+}
+#endif /* ENABLE_ELUNA */

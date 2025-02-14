@@ -1,7 +1,7 @@
 # MaNGOS is a full featured server for World of Warcraft, supporting
 # the following clients: 1.12.x, 2.4.3, 3.3.5a, 4.3.4a and 5.4.8
 #
-# Copyright (C) 2005-2021 MaNGOS <https://getmangos.eu>
+# Copyright (C) 2005-2025 MaNGOS <https://www.getmangos.eu>
 #
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -40,6 +40,8 @@ set(SRC_GRP_COMMON
   Common/Common.cpp
   Common/Common.h
   Common/ServerDefines.h
+  Common/GitRevision.cpp
+  Common/GitRevision.h
 )
 source_group("Common" FILES ${SRC_GRP_COMMON})
 
@@ -167,6 +169,7 @@ set(SRC_GRP_UTILITIES
   Utilities/LinkedReference/Reference.h
   Utilities/TypeList.h
   Utilities/UnorderedMapSet.h
+  Utilities/Optional.h
 )
 source_group("Utilities" FILES ${SRC_GRP_UTILITIES})
 
@@ -189,6 +192,7 @@ set(TGT_INCL
   Policies
 )
 
+configure_file(revision_data.h.in ${CMAKE_CURRENT_BINARY_DIR}/revision_data.h)
 configure_file(SystemConfig.h.in ${CMAKE_CURRENT_BINARY_DIR}/SystemConfig.h)
 
 TEST_BIG_ENDIAN(ENDIAN_VALUE)
@@ -208,7 +212,7 @@ add_library(shared STATIC
     ${SRC_GRP_POLICIES}
     ${SRC_GRP_SVC}
     ${SRC_GRP_UTILITIES}
-    revision.h
+    ${CMAKE_CURRENT_BINARY_DIR/revision_data.h}
     ${CMAKE_CURRENT_BINARY_DIR/SystemConfig.h}
 )
 
@@ -216,6 +220,7 @@ target_include_directories(shared
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${CMAKE_CURRENT_BINARY_DIR}
+        ${OPENSSL_INCLUDE_DIR}
         ${TGT_INCL}
 )
 
@@ -225,6 +230,7 @@ target_compile_definitions(shared
         $<$<CONFIG:Debug>:MANGOS_DEBUG>
         MANGOS_ENDIAN=${ENDIAN_VALUE}
         $<$<BOOL:${ENDIAN_VALUE}>:ARCH_IS_BIG_ENDIAN>
+        $<$<BOOL:${SCRIPT_LIB_ELUNA}>:ENABLE_ELUNA ELUNA_EXPANSION=3 ELUNA_MANGOS>
 )
 
 target_link_libraries(shared
@@ -232,5 +238,6 @@ target_link_libraries(shared
         ace
         utf8
         MySQL::MySQL
+        ${OPENSSL_LIBRARIES}
         OpenSSL::Crypto
 )

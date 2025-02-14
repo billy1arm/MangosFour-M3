@@ -1,4 +1,11 @@
-/* Copyright (C) 2006 - 2013 ScriptDev2 <http://www.scriptdev2.com/>
+/**
+ * ScriptDev3 is an extension for mangos providing enhanced features for
+ * area triggers, creatures, game objects, instances, items, and spells beyond
+ * the default database scripting in mangos.
+ *
+ * Copyright (C) 2006-2013 ScriptDev2 <http://www.scriptdev2.com/>
+ * Copyright (C) 2014-2025 MaNGOS <https://www.getmangos.eu>
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -26,6 +33,7 @@ EndScriptData */
 
 #include "precompiled.h"
 #include "ulduar.h"
+#include <random>
 
 enum
 {
@@ -248,7 +256,9 @@ struct boss_freya : public CreatureScript
             m_uiGroundTremorTimer = 0;
 
             // make the spawn spells random
-            std::random_shuffle(spawnSpellsVector.begin(), spawnSpellsVector.end());
+            //std::random_shuffle(spawnSpellsVector.begin(), spawnSpellsVector.end());
+            std::mt19937 rng(std::time(nullptr));
+            std::shuffle(spawnSpellsVector.begin(), spawnSpellsVector.end(), rng);
         }
 
         void Aggro(Unit* /*pWho*/) override
@@ -466,11 +476,15 @@ struct boss_freya : public CreatureScript
                 if (m_uiAlliesWaveCount == MAX_ALLIES_SPELLS)
                 {
                     uint32 uiLastSpell = spawnSpellsVector[MAX_ALLIES_SPELLS - 1];
-                    std::random_shuffle(spawnSpellsVector.begin(), spawnSpellsVector.end());
+                    //std::random_shuffle(spawnSpellsVector.begin(), spawnSpellsVector.end());
+                    std::mt19937 rng(std::time(nullptr));
+                    std::shuffle(spawnSpellsVector.begin(), spawnSpellsVector.end(), rng);
 
                     // make sure we won't repeat the last spell
                     while (spawnSpellsVector[0] == uiLastSpell)
-                        std::random_shuffle(spawnSpellsVector.begin(), spawnSpellsVector.end());
+                        //std::random_shuffle(spawnSpellsVector.begin(), spawnSpellsVector.end());
+                        std::mt19937 rng(std::time(nullptr));
+                        std::shuffle(spawnSpellsVector.begin(), spawnSpellsVector.end(), rng);
                 }
             }
             else if (eventType == AI_EVENT_CUSTOM_B)

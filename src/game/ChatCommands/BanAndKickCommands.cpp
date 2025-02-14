@@ -2,7 +2,7 @@
  * MaNGOS is a full featured server for World of Warcraft, supporting
  * the following clients: 1.12.x, 2.4.3, 3.3.5a, 4.3.4a and 5.4.8
  *
- * Copyright (C) 2005-2021 MaNGOS <https://getmangos.eu>
+ * Copyright (C) 2005-2025 MaNGOS <https://www.getmangos.eu>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,6 +26,8 @@
 #include "Language.h"
 #include "World.h"
 #include "AccountMgr.h"
+#include "Util.h"
+#include "ObjectMgr.h"
 
  /**********************************************************************
      CommandTable : banCommandTable
@@ -86,22 +88,25 @@ bool ChatHandler::HandleBanListHelper(QueryResult* result)
                 Field* fields2 = banInfo->Fetch();
                 do
                 {
-                    time_t t_ban = fields2[0].GetUInt64();
-                    tm* aTm_ban = localtime(&t_ban);
+                    time_t timeBan = fields2[0].GetUInt64();
+                    tm tmBan;
+                    localtime_r(&timeBan, &tmBan);
 
                     if (fields2[0].GetUInt64() == fields2[1].GetUInt64())
                     {
                         PSendSysMessage("|%-15.15s|%02d-%02d-%02d %02d:%02d|   permanent  |%-15.15s|%-15.15s|",
-                                        account_name.c_str(), aTm_ban->tm_year % 100, aTm_ban->tm_mon + 1, aTm_ban->tm_mday, aTm_ban->tm_hour, aTm_ban->tm_min,
+                                        account_name.c_str(), tmBan.tm_year % 100, tmBan.tm_mon + 1, tmBan.tm_mday, tmBan.tm_hour, tmBan.tm_min,
                                         fields2[2].GetString(), fields2[3].GetString());
                     }
                     else
                     {
-                        time_t t_unban = fields2[1].GetUInt64();
-                        tm* aTm_unban = localtime(&t_unban);
+                        time_t timeUnban = fields2[1].GetUInt64();
+                        tm tmUnban;
+                        localtime_r(&timeUnban, &tmUnban);
+
                         PSendSysMessage("|%-15.15s|%02d-%02d-%02d %02d:%02d|%02d-%02d-%02d %02d:%02d|%-15.15s|%-15.15s|",
-                                        account_name.c_str(), aTm_ban->tm_year % 100, aTm_ban->tm_mon + 1, aTm_ban->tm_mday, aTm_ban->tm_hour, aTm_ban->tm_min,
-                                        aTm_unban->tm_year % 100, aTm_unban->tm_mon + 1, aTm_unban->tm_mday, aTm_unban->tm_hour, aTm_unban->tm_min,
+                                        account_name.c_str(), tmBan.tm_year % 100, tmBan.tm_mon + 1, tmBan.tm_mday, tmBan.tm_hour, tmBan.tm_min,
+                                        tmUnban.tm_year % 100, tmUnban.tm_mon + 1, tmUnban.tm_mday, tmUnban.tm_hour, tmUnban.tm_min,
                                         fields2[2].GetString(), fields2[3].GetString());
                     }
                 }
@@ -149,7 +154,7 @@ bool ChatHandler::HandleBanHelper(BanMode mode, char* args)
     switch (mode)
     {
         case BAN_ACCOUNT:
-            if (!AccountMgr::normalizeString(nameOrIP))
+            if (!Utf8ToUpperOnlyLatin(nameOrIP))
             {
                 PSendSysMessage(LANG_ACCOUNT_NOT_EXIST, nameOrIP.c_str());
                 SetSentErrorMessage(true);
@@ -177,7 +182,7 @@ bool ChatHandler::HandleBanHelper(BanMode mode, char* args)
         case BAN_SUCCESS:
             if (duration_secs > 0)
             {
-                PSendSysMessage(LANG_BAN_YOUBANNED, nameOrIP.c_str(), secsToTimeString(duration_secs, true).c_str(), reason);
+                PSendSysMessage(LANG_BAN_YOUBANNED, nameOrIP.c_str(), secsToTimeString(duration_secs, TimeFormat::ShortText).c_str(), reason);
             }
             else
             {
@@ -246,7 +251,7 @@ bool ChatHandler::HandleBanInfoHelper(uint32 accountid, char const* accountname)
             active = true;
         }
         bool permanent = (fields[1].GetUInt64() == (uint64)0);
-        std::string bantime = permanent ? GetMangosString(LANG_BANINFO_INFINITE) : secsToTimeString(fields[1].GetUInt64(), true);
+        std::string bantime = permanent ? GetMangosString(LANG_BANINFO_INFINITE) : secsToTimeString(fields[1].GetUInt64(), TimeFormat::ShortText);
         PSendSysMessage(LANG_BANINFO_HISTORYENTRY,
                         fields[0].GetString(), bantime.c_str(), active ? GetMangosString(LANG_BANINFO_YES) : GetMangosString(LANG_BANINFO_NO), fields[4].GetString(), fields[5].GetString());
     }
@@ -288,7 +293,7 @@ bool ChatHandler::HandleBanInfoIPCommand(char* args)
     bool permanent = !fields[6].GetUInt64();
     PSendSysMessage(LANG_BANINFO_IPENTRY,
                     fields[0].GetString(), fields[1].GetString(), permanent ? GetMangosString(LANG_BANINFO_NEVER) : fields[2].GetString(),
-                    permanent ? GetMangosString(LANG_BANINFO_INFINITE) : secsToTimeString(fields[3].GetUInt64(), true).c_str(), fields[4].GetString(), fields[5].GetString());
+                    permanent ? GetMangosString(LANG_BANINFO_INFINITE) : secsToTimeString(fields[3].GetUInt64(), TimeFormat::ShortText).c_str(), fields[4].GetString(), fields[5].GetString());
     delete result;
     return true;
 }
@@ -486,7 +491,7 @@ bool ChatHandler::HandleUnBanHelper(BanMode mode, char* args)
     switch (mode)
     {
         case BAN_ACCOUNT:
-            if (!AccountMgr::normalizeString(nameOrIP))
+            if (!Utf8ToUpperOnlyLatin(nameOrIP))
             {
                 PSendSysMessage(LANG_ACCOUNT_NOT_EXIST, nameOrIP.c_str());
                 SetSentErrorMessage(true);

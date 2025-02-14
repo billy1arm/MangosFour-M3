@@ -2,7 +2,7 @@
  * MaNGOS is a full featured server for World of Warcraft, supporting
  * the following clients: 1.12.x, 2.4.3, 3.3.5a, 4.3.4a and 5.4.8
  *
- * Copyright (C) 2005-2021 MaNGOS <https://getmangos.eu>
+ * Copyright (C) 2005-2025 MaNGOS <https://www.getmangos.eu>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1898,7 +1898,7 @@ void AchievementMgr::UpdateAchievementCriteria(AchievementCriteriaTypes type, ui
                 break;
             }
             case ACHIEVEMENT_CRITERIA_TYPE_EARN_HONORABLE_KILL:
-                change = GetPlayer()->GetUInt32Value(PLAYER_FIELD_LIFETIME_HONORBALE_KILLS);
+                change = GetPlayer()->GetUInt32Value(PLAYER_FIELD_LIFETIME_HONORABLE_KILLS);
                 progressType = PROGRESS_HIGHEST;
                 break;
             case ACHIEVEMENT_CRITERIA_TYPE_HK_CLASS:
@@ -3051,7 +3051,7 @@ void AchievementGlobalMgr::LoadCompletedAchievements()
     delete result;
 
     sLog.outString();
-    sLog.outString(">> Loaded " SIZEFMTD " realm completed achievements.", m_allCompletedAchievements.size());
+    sLog.outString(">> Loaded %zu realm completed achievements.", m_allCompletedAchievements.size());
 }
 
 void AchievementGlobalMgr::LoadRewards()
@@ -3200,8 +3200,14 @@ void AchievementGlobalMgr::LoadRewardLocales()
 {
     m_achievementRewardLocales.clear();                     // need for reload case
 
-    QueryResult* result = WorldDatabase.Query("SELECT `entry`,`gender`,`subject_loc1`,`text_loc1`,`subject_loc2`,`text_loc2`,`subject_loc3`,`text_loc3`,`subject_loc4`,`text_loc4`,`subject_loc5`,`text_loc5`,`subject_loc6`,`text_loc6`,`subject_loc7`,`text_loc7`,`subject_loc8`,`text_loc8` FROM `locales_achievement_reward`");
-
+    QueryResult* result = WorldDatabase.Query("SELECT `entry`,`gender`,"
+                                              "`subject_loc1`,`text_loc1`,`subject_loc2`,`text_loc2`,"
+                                              "`subject_loc3`,`text_loc3`,`subject_loc4`,`text_loc4`,"
+                                              "`subject_loc5`,`text_loc5`,`subject_loc6`,`text_loc6`,"
+                                              "`subject_loc7`,`text_loc7`,`subject_loc8`,`text_loc8`,"
+                                              "`subject_loc9`,`text_loc9`,`subject_loc10`,`text_loc10`,"
+                                              "`subject_loc11`,`text_loc11`"
+                                              " FROM `locales_achievement_reward`");
     if (!result)
     {
         BarGoLink bar(1);
@@ -3294,5 +3300,5 @@ void AchievementGlobalMgr::LoadRewardLocales()
     delete result;
 
     sLog.outString();
-    sLog.outString(">> Loaded " SIZEFMTD " achievement reward locale strings", m_achievementRewardLocales.size());
+    sLog.outString(">> Loaded %zu achievement reward locale strings", m_achievementRewardLocales.size());
 }
