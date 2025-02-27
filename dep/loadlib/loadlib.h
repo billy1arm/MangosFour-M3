@@ -126,8 +126,8 @@ class FileLoader
         file_MVER* version;
         FileLoader();
         ~FileLoader();
-        bool FileLoader::loadFile(char* filename, bool log = true);
-        bool FileLoader::loadFileFromDisk(const char* filename, bool log = true);
+        bool loadFile(char* filename, bool log = true);
+        bool loadFileFromDisk(const char* filename, bool log = true);
         virtual void free();
 };
 
@@ -160,8 +160,8 @@ public:
     ChunkedFile();
     virtual ~ChunkedFile();
     bool prepareLoadedData();
-    bool ChunkedFile::loadFile(HANDLE mpq, char *filename, bool log = true);
-    bool ChunkedFile::loadFileFromDisk(const char* filename, bool log = true);
+    bool loadFile(HANDLE mpq, char *filename, bool log = true);
+    bool loadFileFromDisk(const char* filename, bool log = true);
     void free();
 
     void parseChunks();
