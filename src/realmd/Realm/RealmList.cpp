@@ -41,6 +41,27 @@ extern DatabaseType LoginDatabase;
 // if you need more from old build then add it in cases in realmd sources code
 // list sorted from high to low build and first build used as low bound for accepted by default range (any > it will accepted by realmd at least)
 
+// Singleton instance
+RealmList& RealmList::Instance()
+{
+    static RealmList instance;
+    return instance;
+}
+
+void RealmList::InitVersionToBuild()
+{
+    // Initialize the map with build numbers and their corresponding versions
+    m_buildToVersion[5875] = REALM_VERSION_VANILLA;
+    m_buildToVersion[8606] = REALM_VERSION_TBC;
+    m_buildToVersion[12340] = REALM_VERSION_WOTLK;
+    m_buildToVersion[15595] = REALM_VERSION_CATA;
+    m_buildToVersion[18414] = REALM_VERSION_MOP;
+    m_buildToVersion[20726] = REALM_VERSION_WOD;
+    m_buildToVersion[23420] = REALM_VERSION_LEGION;
+    m_buildToVersion[29600] = REALM_VERSION_BFA;
+    m_buildToVersion[36532] = REALM_VERSION_SHADOWLANDS;
+}
+
 static const RealmBuildInfo ExpectedRealmdClientBuilds[] =
 {
     // highest supported build, also auto accept all above for simplify future supported builds testing
@@ -56,7 +77,7 @@ static const RealmBuildInfo ExpectedRealmdClientBuilds[] =
     {6141,  1, 12, 3, ' '}, // Vanilla - Chinese
     {6005,  1, 12, 2, ' '}, // Vanilla - Spanish
     {5875,  1, 12, 1, ' '}, // Vanilla
-    {0,     0, 0, 0, ' '}                                   // terminator
+    {0,     0, 0, 0, ' '}   // terminator
 };
 
 RealmBuildInfo const* FindBuildInfo(uint16 _build)
@@ -78,16 +99,17 @@ RealmBuildInfo const* FindBuildInfo(uint16 _build)
     return NULL;
 }
 
-RealmList::RealmList() : m_UpdateInterval(0), m_NextUpdateTime(time(NULL))
+// Constructor for RealmList, initializes member variables
+RealmList::RealmList()
+    : m_UpdateInterval(0),
+      m_NextUpdateTime(time(NULL)),
+      m_realms(),
+      m_realmsByVersion(),
+      m_buildToVersion()
 {
 }
 
-RealmList& sRealmList
-{
-    static RealmList realmlist;
-    return realmlist;
-}
-
+// Determines the version a build number belongs to
 RealmVersion RealmList::BelongsToVersion(uint32 build) const
 {
     RealmBuildVersionMap::const_iterator it;
@@ -101,39 +123,41 @@ RealmVersion RealmList::BelongsToVersion(uint32 build) const
     }
 }
 
+// Gets iterators for realms supporting the given build
 RealmList::RealmListIterators RealmList::GetIteratorsForBuild(uint32 build) const
 {
     RealmVersion version = BelongsToVersion(build);
-    if (version >= REALM_VERSION_COUNT)
+    if (version >= REALM_VERSION_COUNT || version < REALM_VERSION_VANILLA)
     {
         return RealmListIterators(
             m_realmsByVersion[0].end(),
             m_realmsByVersion[0].end()
-            );
+        );
     }
     return RealmListIterators(
         m_realmsByVersion[uint32(version)].begin(),
         m_realmsByVersion[uint32(version)].end()
-        );
-
+    );
 }
 
-/// Load the realm list from the database
+// Load the realm list from the database
 void RealmList::Initialize(uint32 updateInterval)
 {
     m_UpdateInterval = updateInterval;
 
     InitBuildToVersion();
 
-    ///- Get the content of the realmlist table in the database
+    // Get the content of the realmlist table in the database
     UpdateRealms(true);
 }
 
+// Returns the number of realms available for the given build
 uint32 RealmList::NumRealmsForBuild(uint32 build) const
 {
     return m_realmsByVersion[BelongsToVersion(build)].size();
 }
 
+// Adds a realm to the list sorted by version
 void RealmList::AddRealmToBuildList(const Realm& realm)
 {
     RealmBuilds builds = realm.realmbuilds;
@@ -141,6 +165,7 @@ void RealmList::AddRealmToBuildList(const Realm& realm)
     m_realmsByVersion[BelongsToVersion(buildNumber)].push_back(&realm);
 }
 
+// Initializes the map holding a link from build number to version
 void RealmList::InitBuildToVersion()
 {
     m_buildToVersion[5875] = REALM_VERSION_VANILLA;
@@ -165,9 +190,10 @@ void RealmList::InitBuildToVersion()
     m_buildToVersion[40000] = REALM_VERSION_SHADOWLANDS;
 }
 
+// Updates or creates a new realm entry
 void RealmList::UpdateRealm(uint32 ID, const std::string& name, ACE_INET_Addr const& address, ACE_INET_Addr const& localAddr, ACE_INET_Addr const& localSubmask, uint32 port, uint8 icon, RealmFlags realmflags, uint8 timezone, AccountTypes allowedSecurityLevel, float popu, const std::string& builds)
 {
-    ///- Create new if not exist or update existed
+    // Create new if not exist or update existed
     Realm& realm = m_realms[name];
 
     realm.m_ID       = ID;
@@ -177,6 +203,11 @@ void RealmList::UpdateRealm(uint32 ID, const std::string& name, ACE_INET_Addr co
     realm.timezone   = timezone;
     realm.allowedSecurityLevel = allowedSecurityLevel;
     realm.populationLevel      = popu;
+    realm.ExternalAddress = address;
+    realm.LocalAddress = localAddr;
+    realm.LocalSubnetMask = localSubmask;
+    realm.realmbuilds.clear(); // Ensure the set is cleared before inserting new builds
+    realm.realmBuildInfo = {0, 0, 0, 0, ' '}; // Initialize realmBuildInfo
 
     Tokens tokens = StrSplit(builds, " ");
     Tokens::iterator iter;
@@ -205,18 +236,18 @@ void RealmList::UpdateRealm(uint32 ID, const std::string& name, ACE_INET_Addr co
     realm.realmBuildInfo.hotfix_version = ' ';
 
     if (first_build)
+    {
         if (RealmBuildInfo const* bInfo = FindBuildInfo(first_build))
+        {
             if (bInfo->build == first_build)
             {
                 realm.realmBuildInfo = *bInfo;
             }
-
-    ///- Append port to IP address.
-    realm.ExternalAddress = address;
-    realm.LocalAddress = localAddr;
-    realm.LocalSubnetMask = localSubmask;
+        }
+    }
 }
 
+// Updates the realm list if needed
 void RealmList::UpdateIfNeed()
 {
     // maybe disabled or updated recently
@@ -238,14 +269,16 @@ void RealmList::UpdateIfNeed()
     UpdateRealms(false);
 }
 
+// Updates the realms from the database
 void RealmList::UpdateRealms(bool init)
 {
     DETAIL_LOG("Updating Realm List...");
 
+    // Query to get the content of the realmlist table in the database
     ////                                               0     1       2          3               4                  5       6       7             8           9                       10            11
     QueryResult* result = LoginDatabase.Query("SELECT `id`, `name`, `address`, `localAddress`, `localSubnetMask`, `port`, `icon`, `realmflags`, `timezone`, `allowedSecurityLevel`, `population`, `realmbuilds` FROM `realmlist` WHERE (`realmflags` & 1) = 0 ORDER BY `name`");
 
-    ///- Circle through results and add them to the realm map
+    // Circle through results and add them to the realm map
     if (result)
     {
         do

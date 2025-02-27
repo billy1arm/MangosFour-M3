@@ -137,6 +137,8 @@ WMOGroup::WMOGroup(std::string& filename)
       nVertices(0), nTriangles(0), nBatchA(0), nBatchB(0), nBatchC(0), mopy_size(0), moba_size(0), LiquEx_size(0), liquflags(0), groupName(0), descGroupName(0), mogpFlags(0),
       moprIdx(0), moprNItems(0), fogIdx(0), liquidType(0), groupWMOID(0)
 {
+    std::fill(std::begin(bbcorn1), std::end(bbcorn1), 0.0f);
+    std::fill(std::begin(bbcorn2), std::end(bbcorn2), 0.0f);
 }
 
 /**

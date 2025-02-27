@@ -47,10 +47,10 @@ constexpr auto LOCALES_COUNT = 13; /// Number of supported locales
 FILE* openWoWExe(char const* path = NULL);
 
 /// Gets the build number from the WoW executable
-int getBuildNumber(std::string path = NULL);
+int getBuildNumber(const std::string& path);
 
 /// Gets the core number
-int getCoreNumber();
+int getCoreNumber(const std::string& path);
 
 /// Gets the core number from the build number
 int getCoreNumberFromBuild(int iBuildNumber);

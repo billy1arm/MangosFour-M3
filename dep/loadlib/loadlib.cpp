@@ -351,6 +351,7 @@ bool FileLoader::loadFile(char* filename, bool log)
     if (!data)
     {
         std::cerr << "Not enough memory for file  " << filename << std::endl;
+        SFileCloseFile(fileHandle);
         return false;
     }
 
@@ -417,10 +418,8 @@ bool FileLoader::loadFileFromDisk(const char* filename, bool log)
 
     if (!prepareLoadedData())
     {
-        if (log)
-        {
-            printf("Error loading %s\n", filename);
-        }
+        //printf("Error loading %s\n\n", filename);
+        //free();
         return false;
     }
 

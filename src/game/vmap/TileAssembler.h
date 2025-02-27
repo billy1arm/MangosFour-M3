@@ -47,25 +47,35 @@ namespace VMAP
             G3D::Vector3 iPos; /**< Position of the model */
             G3D::Vector3 iDir; /**< Direction of the model */
             float iScale; /**< Scale of the model */
+
             /**
-             * @brief Initializes the rotation matrix based on the direction
-             */
+                * @brief Constructor to initialize member variables.
+                *
+                * Initializes iPos, iDir, and iScale to default values.
+                */
+            ModelPosition() : iPos(G3D::Vector3::zero()), iDir(G3D::Vector3::zero()), iScale(1.0f) {}
+
+            /**
+                * @brief Initializes the rotation matrix based on the direction
+                */
             void init()
             {
                 iRotation = G3D::Matrix3::fromEulerAnglesZYX(G3D::pi() * iDir.y / 180.f, G3D::pi() * iDir.x / 180.f, G3D::pi() * iDir.z / 180.f);
             }
+
             /**
-             * @brief Transforms a given vector by the model's position and rotation
-             *
-             * @param pIn The input vector to transform
-             * @return G3D::Vector3 The transformed vector
-             */
+                * @brief Transforms a given vector by the model's position and rotation
+                *
+                * @param pIn The input vector to transform
+                * @return G3D::Vector3 The transformed vector
+                */
             G3D::Vector3 transform(const G3D::Vector3& pIn) const;
+
             /**
-             * @brief Moves the model's position to the base position
-             *
-             * @param pBasePos The base position to move to
-             */
+                * @brief Moves the model's position to the base position
+                *
+                * @param pBasePos The base position to move to
+                */
             void moveToBasePos(const G3D::Vector3& pBasePos) { iPos -= pBasePos; }
     };
 

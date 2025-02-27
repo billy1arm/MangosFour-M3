@@ -35,18 +35,22 @@
 #include "Common.h"
 
 /**
- * @brief
+ * @brief Structure to hold information about a specific build of the game client.
  *
  */
 struct RealmBuildInfo
 {
-    int build; /**< TODO */
-    int major_version; /**< TODO */
-    int minor_version; /**< TODO */
-    int bugfix_version; /**< TODO */
-    int hotfix_version; /**< TODO */
+    int build; /**< Build number */
+    int major_version; /**< Major version number */
+    int minor_version; /**< Minor version number */
+    int bugfix_version; /**< Bugfix version number */
+    int hotfix_version; /**< Hotfix version identifier */
 };
 
+/**
+ * @brief Enumeration of the different versions of the game client.
+ *
+ */
 enum RealmVersion
 {
     REALM_VERSION_VANILLA     = 0,
@@ -70,41 +74,41 @@ enum RealmVersion
 RealmBuildInfo const* FindBuildInfo(uint16 _build);
 
 /**
- * @brief
+ * @brief Set of build numbers supported by a realm.
  *
  */
 typedef std::set<uint32> RealmBuilds;
 
 /// Storage object for a realm
 /**
- * @brief
+ * @brief Structure to hold information about a realm.
  *
  */
 struct Realm
 {
-    std::string name;
-    ACE_INET_Addr ExternalAddress;
-    ACE_INET_Addr LocalAddress;
-    ACE_INET_Addr LocalSubnetMask;
-    uint8 icon;
-    RealmFlags realmflags;                                  // realmflags
-    uint8 timezone;
-    uint32 m_ID;
-    AccountTypes allowedSecurityLevel;                      // current allowed join security level (show as locked for not fit accounts)
-    float populationLevel;
-    RealmBuilds realmbuilds;                                // list of supported builds (updated in DB by mangosd)
-    RealmBuildInfo realmBuildInfo;                          // build info for show version in list
+    std::string name; /**< Name of the realm */
+    ACE_INET_Addr ExternalAddress; /**< External IP address of the realm */
+    ACE_INET_Addr LocalAddress; /**< Local IP address of the realm */
+    ACE_INET_Addr LocalSubnetMask; /**< Subnet mask for the local network */
+    uint8 icon = 0; /**< Icon representing the realm */
+    RealmFlags realmflags = RealmFlags(0); /**< Flags representing the state of the realm */
+    uint8 timezone = 0; /**< Timezone of the realm */
+    uint32 m_ID = 0; /**< Unique ID of the realm */
+    AccountTypes allowedSecurityLevel = SEC_PLAYER; /**< Current allowed join security level (show as locked for not fit accounts) */
+    float populationLevel = 0.0f; /**< Population level of the realm */
+    RealmBuilds realmbuilds; /**< List of supported builds (updated in DB by mangosd) */
+    RealmBuildInfo realmBuildInfo = {0, 0, 0, 0, ' '}; /**< Build info for show version in list */
 };
 
 /**
- * @brief Storage object for the list of realms on the server
+ * @brief Storage object for the list of realms on the server.
  *
  */
 class RealmList
 {
     public:
         /**
-         * @brief
+         * @brief Map of realm names to Realm objects.
          *
          */
         typedef std::map<std::string, Realm> RealmMap;
@@ -112,93 +116,133 @@ class RealmList
         typedef std::pair<RealmStlList::const_iterator, RealmStlList::const_iterator> RealmListIterators;
         typedef std::map<uint32, RealmVersion> RealmBuildVersionMap;
 
+        /**
+         * @brief Get the singleton instance of the RealmList.
+         *
+         * @return RealmList& Reference to the singleton instance.
+         */
         static RealmList& Instance();
 
+        /**
+         * @brief Constructor for RealmList.
+         *
+         */
         RealmList();
+
+        /**
+         * @brief Destructor for RealmList.
+         *
+         */
         ~RealmList() {};
 
-        void Initialize(uint32 updateInterval);
         /**
-         * Initializes a map holding a link from build number to a version.
+         * @brief Initialize the realm list with the specified update interval.
+         *
+         * @param updateInterval Interval in seconds between updates.
+         */
+        void Initialize(uint32 updateInterval);
+
+        /**
+         * @brief Initializes a map holding a link from build number to a version.
          * \see RealmVersion
          */
         void InitVersionToBuild();
 
+        /**
+         * @brief Update the realm list if needed.
+         *
+         */
         void UpdateIfNeed();
 
         /**
-         * Get's the iterators for all realms supporting the given version as a pair,
-         * the first member is a iterator to the begin() and the second is an iterator
+         * @brief Get the iterators for all realms supporting the given version as a pair.
+         *
+         * The first member is an iterator to the begin() and the second is an iterator
          * to the end().
-         * @param build the build number to fetch the iterators for
-         * @return iterators to the begin() and end() part of the realms supporting
-         * the given build, if there is no matching build iterators are given to end()
-         * and end() of a list.
+         *
+         * @param build The build number to fetch the iterators for.
+         * @return RealmListIterators Iterators to the begin() and end() part of the realms supporting
+         * the given build. If there is no matching build, iterators are given to end() and end() of a list.
          */
         RealmListIterators GetIteratorsForBuild(uint32 build) const;
 
         /**
-         * Returns how many realms we have available for the current build
-         * @param build the build we want to know number of available realms for
-         * @return the number of available realms
+         * @brief Returns how many realms are available for the current build.
+         *
+         * @param build The build we want to know the number of available realms for.
+         * @return uint32 The number of available realms.
          */
         uint32 NumRealmsForBuild(uint32 build) const;
 
         /**
-         * @return the total number of realms available
+         * @brief Returns the total number of realms available.
+         *
+         * @return uint32 The total number of realms.
          * \see RealmList::NumRealmsForBuild
          */
         uint32 size() const { return m_realms.size(); };
     private:
         /**
-         * Checks what version (ie, vanilla, tbc) a certain build number belongs to
-         * @param build the build you want to check the version for
-         * @return the corresponding version to the given build number
+         * @brief Checks what version (ie, vanilla, tbc) a certain build number belongs to.
+         *
+         * @param build The build you want to check the version for.
+         * @return RealmVersion The corresponding version to the given build number.
          */
         RealmVersion BelongsToVersion(uint32 build) const;
 
         /**
-         * Adds entries to a map containing a link from a build number to a certain
+         * @brief Adds entries to a map containing a link from a build number to a certain
          * wow version, ie: \ref RealmVersion::REALM_VERSION_VANILLA.
          * \see RealmVersion
          */
         void InitBuildToVersion();
+
         /**
-         * Adds the given \ref Realm to a list sorted by version, ie: vanilla, tbc etc. This
-         * in turn is used to only present the compatible realms to the clients connecting,
+         * @brief Adds the given \ref Realm to a list sorted by version, ie: vanilla, tbc etc.
+         *
+         * This in turn is used to only present the compatible realms to the clients connecting,
          * ie: vanilla clients will only see vanilla realms.
          *
          * This is controlled by what you set in the allowedbuilds field in the realm.realmlist
-         * database, if you set more than one build the first one found in there will be
-         * used, so if you tag a realm as this: "8606 6141" only TBC clients will be able to
+         * database. If you set more than one build, the first one found in there will be
+         * used. So if you tag a realm as this: "8606 6141" only TBC clients will be able to
          * see the realm and connect to it.
-         * @param realm the realm you want to add to the sorted list, should be done for all realms
+         *
+         * @param realm The realm you want to add to the sorted list. Should be done for all realms.
          * \see RealmVersion
          */
         void AddRealmToBuildList(const Realm& realm);
 
-        void UpdateRealms(bool init);
         /**
-         * @brief
+         * @brief Update the realms from the database.
          *
-         * @param ID
-         * @param name
-         * @param address
-         * @param port
-         * @param icon
-         * @param realmflags
-         * @param timezone
-         * @param allowedSecurityLevel
-         * @param popu
-         * @param builds
+         * @param init Whether this is the initial update.
+         */
+        void UpdateRealms(bool init);
+
+        /**
+         * @brief Update or create a new realm entry.
+         *
+         * @param ID The ID of the realm.
+         * @param name The name of the realm.
+         * @param address The external address of the realm.
+         * @param localAddress The local address of the realm.
+         * @param localSubnetmask The local subnet mask of the realm.
+         * @param port The port of the realm.
+         * @param icon The icon representing the realm.
+         * @param realmflags The flags representing the state of the realm.
+         * @param timezone The timezone of the realm.
+         * @param allowedSecurityLevel The allowed security level for the realm.
+         * @param popu The population level of the realm.
+         * @param builds The builds supported by the realm.
          */
         void UpdateRealm(uint32 ID, const std::string& name, ACE_INET_Addr const& address, ACE_INET_Addr const& localAddress, ACE_INET_Addr const& localSubnetmask, uint32 port, uint8 icon, RealmFlags realmflags, uint8 timezone, AccountTypes allowedSecurityLevel, float popu, const std::string& builds);
     private:
         RealmMap m_realms;                                    ///< Internal map of realms
         RealmStlList m_realmsByVersion[REALM_VERSION_COUNT]; ///< This sorts the realms by their supported build
-        RealmBuildVersionMap m_buildToVersion;
-        uint32   m_UpdateInterval;
-        time_t   m_NextUpdateTime;
+        RealmBuildVersionMap m_buildToVersion;               ///< Map linking build numbers to versions
+        uint32   m_UpdateInterval;                           ///< Interval in seconds between updates
+        time_t   m_NextUpdateTime;                           ///< Time of the next update
 };
 
 #define sRealmList RealmList::Instance()

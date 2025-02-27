@@ -103,8 +103,15 @@ FILE* openWoWExe(char const* path)
 *  @PARAM sFilename is the filename of the WoW executable to be loaded
 *  @RETURN iBuild the build number of the WoW executable, or 0 if failed
 */
-int getBuildNumber(std::string path)
+int getBuildNumber(const std::string& path)
 {
+    if (path.empty())
+    {
+        printf("\nFatal Error: path is empty!\n\n");
+        printf("\nExiting program!!\n");
+        exit(0);
+    }
+
     int iBuild = -1; ///< build version # of the WoW executable (returned value)
 
     /// buffers used for working on the file's bytes
@@ -334,9 +341,9 @@ std::vector<std::string> getMPQListForCore(int coreNumber)
 *
 *  @RETURN iCoreNumber the build number of the WoW executable, or -1 if failed
 */
-int getCoreNumber()
+int getCoreNumber(const std::string &path)
 {
-    return getCoreNumberFromBuild(getBuildNumber());
+    return getCoreNumberFromBuild(getBuildNumber(path));
 }
 
 /**

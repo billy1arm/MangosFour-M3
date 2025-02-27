@@ -37,7 +37,7 @@
 #include <errno.h>
 #include <regex>
 
-//From Extractor
+// From Extractor
 #include "adtfile.h"
 #include "wdtfile.h"
 #include "wmo.h"
@@ -63,7 +63,7 @@
 #include <iostream>
 #include <limits>
 
-extern ArchiveSet gOpenArchives;    /**< TODO */
+extern ArchiveSet gOpenArchives;    /**< maintains a list of all currently opened MPQ archives. */
 
 /**
  * @brief The dataFile type is a structure that encapsulates information about a file, including its identifiers, names, handle, and folder organization attributes.
@@ -82,24 +82,24 @@ typedef struct
     int mpqId = 0;
 } dataFile;
 
-std::string output_path = ".";        /**< TODO */
-std::string input_path = ".";         /**< TODO */
-uint32 maxAreaId = 0;               /**< TODO */
-int iCoreNumber = 0;
-int iBuildNumber = 0;
-bool debugLog = false;
-std::vector<dataFile> MapList;
-std::vector<dataFile> AreaList;
-std::vector<dataFile> LiquidList;
-std::vector<std::string> LiquidTypeList;
-std::string szWorkDirWmo   = "./Buildings";
-std::string szRawVMAPMagic = "VMAP000";
-std::vector<dataFile> DBCFiles;
-std::vector<dataFile> DB2Files;
-std::vector<dataFile> WDTFiles;
-std::vector<dataFile> ADTFiles;
-std::vector<dataFile> FinalMPQList;
-std::string outDir = std::string(output_path) + "/vmaps";
+std::string output_path = ".";        /**< Output path for extracted files */
+std::string input_path = ".";         /**< Input path for game client archives */
+uint32 maxAreaId = 0;                 /**< Maximum area ID */
+int iCoreNumber = 0;                  /**< Core number of the client */
+int iBuildNumber = 0;                 /**< Build number of the client */
+bool debugLog = false;                /**< Debug log flag */
+std::vector<dataFile> MapList;        /**< List of map files */
+std::vector<dataFile> AreaList;       /**< List of area files */
+std::vector<dataFile> LiquidList;     /**< List of liquid files */
+std::vector<std::string> LiquidTypeList; /**< List of liquid types */
+std::string szWorkDirWmo   = "./Buildings"; /**< Working directory for WMO files */
+std::string szRawVMAPMagic = "VMAP000"; /**< VMAP magic string */
+std::vector<dataFile> DBCFiles;       /**< List of DBC files */
+std::vector<dataFile> DB2Files;       /**< List of DB2 files */
+std::vector<dataFile> WDTFiles;       /**< List of WDT files */
+std::vector<dataFile> ADTFiles;       /**< List of ADT files */
+std::vector<dataFile> FinalMPQList;   /**< Final list of MPQ files */
+std::string outDir = std::string(output_path) + "/vmaps"; /**< Output directory for VMAP files */
 
 /**
  * @brief Data types which can be extracted
@@ -136,11 +136,11 @@ int MAP_LIQUID_TYPE_SLIME    = 0x08;
 static const int LANG_COUNT = 13;
 
 // Map file format data
-std::string MAP_MAGIC           = "MAPS"; /**< TODO */
-std::string MAP_VERSION_MAGIC   = "0000"; /**< TODO */
-std::string MAP_AREA_MAGIC      = "AREA"; /**< TODO */
-std::string MAP_HEIGHT_MAGIC    = "MHGT"; /**< TODO */
-std::string MAP_LIQUID_MAGIC    = "MLIQ"; /**< TODO */
+std::string MAP_MAGIC           = "MAPS"; /**< Magic identifier for map files */
+std::string MAP_VERSION_MAGIC   = "0000"; /**< Version identifier for map files */
+std::string MAP_AREA_MAGIC      = "AREA"; /**< Magic identifier for area map */
+std::string MAP_HEIGHT_MAGIC    = "MHGT"; /**< Magic identifier for height map */
+std::string MAP_LIQUID_MAGIC    = "MLIQ"; /**< Magic identifier for liquid map */
 
 /**
  * @brief Structure representing the header of a map file.
@@ -148,17 +148,17 @@ std::string MAP_LIQUID_MAGIC    = "MLIQ"; /**< TODO */
  */
 struct map_fileheader
 {
-    std::string mapMagic;        /**< TODO */
-    std::string versionMagic;    /**< TODO */
-    uint32 buildMagic;
-    uint32 areaMapOffset;   /**< TODO */
-    uint32 areaMapSize;     /**< TODO */
-    uint32 heightMapOffset; /**< TODO */
-    uint32 heightMapSize;   /**< TODO */
-    uint32 liquidMapOffset; /**< TODO */
-    uint32 liquidMapSize;   /**< TODO */
-    uint32 holesOffset;     /**< TODO */
-    uint32 holesSize;       /**< TODO */
+    std::string mapMagic = "";     /**< Magic identifier for the map file format */
+    std::string versionMagic = ""; /**< Version identifier for the map file format */
+    uint32 buildMagic = 0;         /**< Build number of the client */
+    uint32 areaMapOffset = 0;      /**< Offset to the area map data */
+    uint32 areaMapSize = 0;        /**< Size of the area map data */
+    uint32 heightMapOffset = 0;    /**< Offset to the height map data */
+    uint32 heightMapSize = 0;      /**< Size of the height map data */
+    uint32 liquidMapOffset = 0;    /**< Offset to the liquid map data */
+    uint32 liquidMapSize = 0;      /**< Size of the liquid map data */
+    uint32 holesOffset = 0;        /**< Offset to the holes data */
+    uint32 holesSize = 0;          /**< Size of the holes data */
 };
 
 #define MAP_AREA_NO_AREA      0x0001
@@ -169,9 +169,9 @@ struct map_fileheader
  */
 struct map_areaHeader
 {
-    std::string fourcc;     /**< TODO */
-    uint16 flags;           /**< TODO */
-    uint16 gridArea;        /**< TODO */
+    std::string fourcc; /**< Four-character code (magic number) identifying the area map format */
+    uint16 flags = 0;   /**< Flags indicating properties of the area map */
+    uint16 gridArea = 0; /**< Grid area identifier */
 };
 
 #define MAP_HEIGHT_NO_HEIGHT  0x0001
@@ -184,10 +184,10 @@ struct map_areaHeader
  */
 struct map_heightHeader
 {
-    std::string fourcc;     /**< TODO */
-    uint32 flags;           /**< TODO */
-    float  gridHeight;      /**< TODO */
-    float  gridMaxHeight;   /**< TODO */
+    std::string fourcc;     /**< Four-character code (magic number) identifying the height map format */
+    uint32 flags;           /**< Flags indicating properties of the height map */
+    float gridHeight;       /**< Minimum height value in the grid */
+    float gridMaxHeight;    /**< Maximum height value in the grid */
 };
 
 #define MAP_LIQUID_TYPE_DARK_WATER  0x10
@@ -202,29 +202,29 @@ struct map_heightHeader
  */
 struct map_liquidHeader
 {
-    std::string fourcc;          /**< TODO */
-    uint16 flags;           /**< TODO */
-    uint16 liquidType;      /**< TODO */
-    uint8  offsetX;         /**< TODO */
-    uint8  offsetY;         /**< TODO */
-    uint8  width;           /**< TODO */
-    uint8  height;          /**< TODO */
-    float  liquidLevel;     /**< TODO */
+    std::string fourcc = "";          /**< Four-character code (magic number) identifying the liquid map format */
+    uint16 flags = 0;                 /**< Flags indicating properties of the liquid map */
+    uint16 liquidType = 0;            /**< Type of liquid */
+    uint8  offsetX = 0;               /**< X offset */
+    uint8  offsetY = 0;               /**< Y offset */
+    uint8  width = 0;                 /**< Width of the liquid map */
+    uint8  height = 0;                /**< Height of the liquid map */
+    float  liquidLevel = 0.0f;        /**< Liquid level */
 };
 
 uint16 area_flags[ADT_CELLS_PER_GRID][ADT_CELLS_PER_GRID];      /**< Temporary grid data store */
 
-float V8[ADT_GRID_SIZE][ADT_GRID_SIZE];                         /**< TODO */
-float V9[ADT_GRID_SIZE + 1][ADT_GRID_SIZE + 1];                 /**< TODO */
-uint16 uint16_V8[ADT_GRID_SIZE][ADT_GRID_SIZE];                 /**< TODO */
-uint16 uint16_V9[ADT_GRID_SIZE + 1][ADT_GRID_SIZE + 1];         /**< TODO */
-uint8  uint8_V8[ADT_GRID_SIZE][ADT_GRID_SIZE];                  /**< TODO */
-uint8  uint8_V9[ADT_GRID_SIZE + 1][ADT_GRID_SIZE + 1];          /**< TODO */
+float V8[ADT_GRID_SIZE][ADT_GRID_SIZE];                         /**< Height values for V8 grid */
+float V9[ADT_GRID_SIZE + 1][ADT_GRID_SIZE + 1];                 /**< Height values for V9 grid */
+uint16 uint16_V8[ADT_GRID_SIZE][ADT_GRID_SIZE];                 /**< Height values for V8 grid as uint16 */
+uint16 uint16_V9[ADT_GRID_SIZE + 1][ADT_GRID_SIZE + 1];         /**< Height values for V9 grid as uint16 */
+uint8  uint8_V8[ADT_GRID_SIZE][ADT_GRID_SIZE];                  /**< Height values for V8 grid as uint8 */
+uint8  uint8_V9[ADT_GRID_SIZE + 1][ADT_GRID_SIZE + 1];          /**< Height values for V9 grid as uint8 */
 
-uint16 liquid_entry[ADT_CELLS_PER_GRID][ADT_CELLS_PER_GRID];    /**< TODO */
-uint8 liquid_flags[ADT_CELLS_PER_GRID][ADT_CELLS_PER_GRID];     /**< TODO */
-bool  liquid_show[ADT_GRID_SIZE][ADT_GRID_SIZE];                /**< TODO */
-float liquid_height[ADT_GRID_SIZE + 1][ADT_GRID_SIZE + 1];      /**< TODO */
+uint16 liquid_entry[ADT_CELLS_PER_GRID][ADT_CELLS_PER_GRID];    /**< Liquid entry data */
+uint8 liquid_flags[ADT_CELLS_PER_GRID][ADT_CELLS_PER_GRID];     /**< Liquid flags */
+bool  liquid_show[ADT_GRID_SIZE][ADT_GRID_SIZE];                /**< Liquid show flags */
+float liquid_height[ADT_GRID_SIZE + 1][ADT_GRID_SIZE + 1];      /**< Liquid height values */
 
 /**
  * @brief Extracts a file from an MPQ archive.
@@ -273,10 +273,13 @@ int ExtractWDTFilefromMPQ(string mpqFilePath, string localPath);
  */
 int ExtractADTFilesfromMPQ(string mpqFilePath, string localPath);
 
+/**
+ * @brief Returns the area list ID for a given lookup ID.
+ *
+ * @param lookupId Lookup ID.
+ * @return int Area list ID.
+ */
 int ReturnAreaListId(int lookupId);
-
-
-
 
 // VMAP Additions
 
@@ -285,7 +288,7 @@ int ReturnAreaListId(int lookupId);
  *
  * @param prg Program name.
  */
-void Usage(char* prg)
+static void Usage(char* prg)
 {
     printf(" Usage: %s [OPTION]\n\n", prg);
     printf(" Extract client database files and generate map files.\n");
@@ -307,7 +310,7 @@ void Usage(char* prg)
  * @param argc Argument count.
  * @param argv Argument vector.
  */
-void HandleArgs(int argc, char* arg[])
+static void HandleArgs(int argc, char* arg[])
 {
     for (int c = 1; c < argc; ++c)
     {
@@ -364,6 +367,12 @@ void HandleArgs(int argc, char* arg[])
     }
 }
 
+/**
+ * @brief Returns the area list ID for a given lookup ID.
+ *
+ * @param lookupId Lookup ID.
+ * @return int Area list ID.
+ */
 int ReturnAreaListId(int lookupId)
 {
     if (lookupId <= AreaList.size())
@@ -379,7 +388,6 @@ int ReturnAreaListId(int lookupId)
     return 0;
 }
 
-
 /**
  * @brief Converts an ADT file to a map file.
  *
@@ -387,7 +395,7 @@ int ReturnAreaListId(int lookupId)
  * @param output_filename The location where the .map file is saved.
  * @return bool True if the conversion is successful, false otherwise.
  */
-bool ConvertADT(char* adt_filename, char* output_filename)
+static bool ConvertADT(char* adt_filename, char* output_filename)
 {
     ADT_file adt;
 
@@ -428,9 +436,6 @@ bool ConvertADT(char* adt_filename, char* output_filename)
             uint32 areaid = cell->areaid;
             if (areaid && areaid <= maxAreaId)
             {
-
-
-
                 if (AreaList[ReturnAreaListId(areaid)].uint16Value != 0xffff)
                 {
                     area_flags[i][j] = AreaList[ReturnAreaListId(areaid)].uint16Value;
