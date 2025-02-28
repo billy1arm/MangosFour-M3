@@ -83,6 +83,7 @@ namespace VMAP
      * @brief Map of unique model entries
      */
     typedef std::map<uint32, ModelSpawn> UniqueEntryMap;
+
     /**
      * @brief Multimap of tile entries
      */
@@ -101,7 +102,6 @@ namespace VMAP
      * @brief Map of map data
      */
     typedef std::map<uint32, MapSpawns*> MapData;
-    //===============================================
 
     /**
      * @brief Structure to hold raw group model data
@@ -120,6 +120,7 @@ namespace VMAP
          * @brief Constructor to initialize member variables
          */
         GroupModel_Raw() : mogpflags(0), GroupWMOID(0), liquidflags(0), liquid(nullptr) {}
+
         /**
          * @brief Destructor to clean up resources
          */
@@ -179,6 +180,7 @@ namespace VMAP
              * @param pDestDirName The destination directory name
              */
             TileAssembler(const std::string& pSrcDirName, const std::string& pDestDirName);
+
             /**
              * @brief Destructor to clean up resources
              */
@@ -190,12 +192,14 @@ namespace VMAP
              * @return bool True if successful, false otherwise
              */
             bool convertWorld2();
+
             /**
              * @brief Reads the map spawns from a file
              *
              * @return bool True if successful, false otherwise
              */
             bool readMapSpawns();
+
             /**
              * @brief Calculates the transformed bounding box for a model spawn
              *
@@ -208,6 +212,7 @@ namespace VMAP
              * @brief Exports the game object models
              */
             void exportGameobjectModels();
+
             /**
              * @brief Converts a raw file to a different format
              *
@@ -215,12 +220,14 @@ namespace VMAP
              * @return bool True if successful, false otherwise
              */
             bool convertRawFile(const std::string& pModelFilename);
+
             /**
              * @brief Sets the model name filter method
              *
              * @param pFilterMethod The filter method to set
              */
             void setModelNameFilterMethod(bool (*pFilterMethod)(char* pName)) { iFilterMethod = pFilterMethod; }
+
             /**
              * @brief Gets the directory entry name from the model name
              *
@@ -229,6 +236,7 @@ namespace VMAP
              * @return std::string The directory entry name
              */
             std::string getDirEntryNameFromModName(unsigned int pMapId, const std::string& pModPosName);
+
             /**
              * @brief Gets the unique name ID for a given name
              *
@@ -238,4 +246,4 @@ namespace VMAP
             unsigned int getUniqueNameId(const std::string pName);
     };
 }
-#endif
+#endif // MANGOS_H_TILEASSEMBLER

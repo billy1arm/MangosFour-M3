@@ -175,4 +175,4 @@ namespace VMAP
     };
 } // namespace VMAP
 
-#endif // _MODELINSTANCE
+#endif // MANGOS_H_MODELINSTANCE

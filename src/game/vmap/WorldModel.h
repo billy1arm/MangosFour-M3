@@ -30,7 +30,6 @@
 #include <G3D/AABox.h>
 #include <G3D/Ray.h>
 #include "BIH.h"
-
 #include "Platform/Define.h"
 
 namespace VMAP
@@ -40,355 +39,345 @@ namespace VMAP
     struct LocationInfo;
 
     /**
-     * @brief
-     *
+     * @brief Represents a triangle in a mesh.
      */
     class MeshTriangle
     {
-        public:
-            /**
-             * @brief
-             *
-             */
-            MeshTriangle() : idx0(0), idx1(0), idx2(0) {};
-            /**
-             * @brief
-             *
-             * @param na
-             * @param nb
-             * @param nc
-             */
-            MeshTriangle(uint32 na, uint32 nb, uint32 nc): idx0(na), idx1(nb), idx2(nc) {};
+    public:
+        /**
+         * @brief Default constructor initializing indices to 0.
+         */
+        MeshTriangle() : idx0(0), idx1(0), idx2(0) {};
 
-            uint32 idx0; /**< TODO */
-            uint32 idx1; /**< TODO */
-            uint32 idx2; /**< TODO */
+        /**
+         * @brief Constructor initializing indices with given values.
+         * @param na Index 0
+         * @param nb Index 1
+         * @param nc Index 2
+         */
+        MeshTriangle(uint32 na, uint32 nb, uint32 nc) : idx0(na), idx1(nb), idx2(nc) {};
+
+        uint32 idx0; /**< Index 0 of the triangle */
+        uint32 idx1; /**< Index 1 of the triangle */
+        uint32 idx2; /**< Index 2 of the triangle */
     };
 
     /**
-     * @brief
-     *
+     * @brief Represents liquid data in a WMO (World Map Object).
      */
     class WmoLiquid
     {
-        public:
-            /**
-             * @brief
-             *
-             * @param width
-             * @param height
-             * @param corner
-             * @param type
-             */
-            WmoLiquid(uint32 width, uint32 height, const Vector3& corner, uint32 type);
-            /**
-             * @brief
-             *
-             * @param other
-             */
-            WmoLiquid(const WmoLiquid& other);
-            /**
-             * @brief
-             *
-             */
-            ~WmoLiquid();
-            /**
-             * @brief
-             *
-             * @param other
-             * @return WmoLiquid &operator
-             */
-            WmoLiquid& operator=(const WmoLiquid& other);
-            /**
-             * @brief
-             *
-             * @param pos
-             * @param liqHeight
-             * @return bool
-             */
-            bool GetLiquidHeight(const Vector3& pos, float& liqHeight) const;
-            /**
-             * @brief
-             *
-             * @return uint32
-             */
-            uint32 GetType() const { return iType; }
-            /**
-             * @brief
-             *
-             * @return float
-             */
-            float* GetHeightStorage() { return iHeight; }
-            /**
-             * @brief
-             *
-             * @return uint8
-             */
-            uint8* GetFlagsStorage() { return iFlags; }
-            /**
-             * @brief
-             *
-             * @return uint32
-             */
-            uint32 GetFileSize();
-            /**
-             * @brief
-             *
-             * @param wf
-             * @return bool
-             */
-            bool WriteToFile(FILE* wf);
-            /**
-             * @brief
-             *
-             * @param rf
-             * @param liquid
-             * @return bool
-             */
-            static bool ReadFromFile(FILE* rf, WmoLiquid*& liquid);
-        private:
-            /**
-             * @brief
-             *
-             */
-            WmoLiquid(): iTilesX(0), iTilesY(0), iType(0), iHeight(0), iFlags(0) {};
+    public:
+        /**
+         * @brief Constructor initializing liquid with given dimensions, corner position, and type.
+         * @param width Width of the liquid
+         * @param height Height of the liquid
+         * @param corner Position of the lower corner
+         * @param type Type of the liquid
+         */
+        WmoLiquid(uint32 width, uint32 height, const Vector3& corner, uint32 type);
 
-            uint32 iTilesX;  /**< number of tiles in x direction, each */
-            uint32 iTilesY;  /**< TODO */
-            Vector3 iCorner; /**< the lower corner */
-            uint32 iType;    /**< liquid type */
-            float* iHeight;  /**< (tilesX + 1)*(tilesY + 1) height values */
-            uint8* iFlags;   /**< info if liquid tile is used */
+        /**
+         * @brief Copy constructor.
+         * @param other Another WmoLiquid object to copy from
+         */
+        WmoLiquid(const WmoLiquid& other);
+
+        /**
+         * @brief Destructor.
+         */
+        ~WmoLiquid();
+
+        /**
+         * @brief Assignment operator.
+         * @param other Another WmoLiquid object to assign from
+         * @return Reference to this object
+         */
+        WmoLiquid& operator=(const WmoLiquid& other);
+
+        /**
+         * @brief Gets the height of the liquid at a given position.
+         * @param pos Position to check
+         * @param liqHeight Output parameter for the liquid height
+         * @return True if the height was successfully retrieved, false otherwise
+         */
+        bool GetLiquidHeight(const Vector3& pos, float& liqHeight) const;
+
+        /**
+         * @brief Gets the type of the liquid.
+         * @return Liquid type
+         */
+        uint32 GetType() const { return iType; }
+
+        /**
+         * @brief Gets the height storage array.
+         * @return Pointer to the height storage array
+         */
+        float* GetHeightStorage() { return iHeight; }
+
+        /**
+         * @brief Gets the flags storage array.
+         * @return Pointer to the flags storage array
+         */
+        uint8* GetFlagsStorage() { return iFlags; }
+
+        /**
+         * @brief Gets the file size of the liquid data.
+         * @return File size in bytes
+         */
+        uint32 GetFileSize();
+
+        /**
+         * @brief Writes the liquid data to a file.
+         * @param wf File pointer to write to
+         * @return True if the write was successful, false otherwise
+         */
+        bool WriteToFile(FILE* wf);
+
+        /**
+         * @brief Reads the liquid data from a file.
+         * @param rf File pointer to read from
+         * @param liquid Output parameter for the read liquid data
+         * @return True if the read was successful, false otherwise
+         */
+        static bool ReadFromFile(FILE* rf, WmoLiquid*& liquid);
+
+    private:
+        /**
+         * @brief Default constructor initializing members to 0.
+         */
+        WmoLiquid() : iTilesX(0), iTilesY(0), iType(0), iHeight(0), iFlags(0) {};
+
+        uint32 iTilesX;  /**< Number of tiles in x direction */
+        uint32 iTilesY;  /**< Number of tiles in y direction */
+        Vector3 iCorner; /**< Position of the lower corner */
+        uint32 iType;    /**< Type of the liquid */
+        float* iHeight;  /**< Height values array */
+        uint8* iFlags;   /**< Flags array indicating if liquid tile is used */
+
 #ifdef MMAP_GENERATOR
-        public:
-            void getPosInfo(uint32& tilesX, uint32& tilesY, Vector3& corner) const;
+    public:
+        /**
+         * @brief Gets the position information of the liquid.
+         * @param tilesX Output parameter for the number of tiles in x direction
+         * @param tilesY Output parameter for the number of tiles in y direction
+         * @param corner Output parameter for the position of the lower corner
+         */
+        void getPosInfo(uint32& tilesX, uint32& tilesY, Vector3& corner) const;
 #endif
     };
 
     /**
-     * @brief holding additional info for WMO group files
-     *
+     * @brief Holds additional information for WMO group files.
      */
     class GroupModel
     {
-        public:
-            /**
-             * @brief
-             *
-             */
-            GroupModel() : iMogpFlags(0), iGroupWMOID(0), iLiquid(0) {}
+    public:
+        /**
+         * @brief Default constructor initializing members to 0.
+         */
+        GroupModel() : iMogpFlags(0), iGroupWMOID(0), iLiquid(0) {}
 
-            /**
-             * @brief
-             *
-             * @param other
-             */
-            GroupModel(const GroupModel& other);
+        /**
+         * @brief Copy constructor.
+         * @param other Another GroupModel object to copy from
+         */
+        GroupModel(const GroupModel& other);
 
-            /**
-             * @brief
-             *
-             * @param mogpFlags
-             * @param groupWMOID
-             * @param bound
-             */
-            GroupModel(uint32 mogpFlags, uint32 groupWMOID, const AABox& bound):
+        /**
+         * @brief Constructor initializing with given flags, group WMO ID, and bounding box.
+         * @param mogpFlags Flags for the group model
+         * @param groupWMOID Group WMO ID
+         * @param bound Bounding box of the group model
+         */
+        GroupModel(uint32 mogpFlags, uint32 groupWMOID, const AABox& bound) :
                 iBound(bound), iMogpFlags(mogpFlags), iGroupWMOID(groupWMOID), iLiquid(0) {}
 
-            /**
-             * @brief
-             *
-             */
-            ~GroupModel() { delete iLiquid; }
+        /**
+         * @brief Destructor.
+         */
+        ~GroupModel() { delete iLiquid; }
 
-            /**
-             * @brief pass mesh data to object and create BIH. Passed vectors get get swapped with old geometry!
-             *
-             * @param vert
-             * @param tri
-             */
-            void SetMeshData(std::vector<Vector3>& vert, std::vector<MeshTriangle>& tri);
+        /**
+         * @brief Sets the mesh data for the group model.
+         * @param vert Vector of vertices
+         * @param tri Vector of triangles
+         */
+        void SetMeshData(std::vector<Vector3>& vert, std::vector<MeshTriangle>& tri);
 
-            /**
-             * @brief
-             *
-             * @param liquid
-             */
-            void setLiquidData(WmoLiquid*& liquid) { iLiquid = liquid; liquid = NULL; }
+        /**
+         * @brief Sets the liquid data for the group model.
+         * @param liquid Pointer to the liquid data
+         */
+        void setLiquidData(WmoLiquid*& liquid) { iLiquid = liquid; liquid = NULL; }
 
-            /**
-             * @brief
-             *
-             * @param ray
-             * @param distance
-             * @param stopAtFirstHit
-             * @return bool
-             */
-            bool IntersectRay(const G3D::Ray& ray, float& distance, bool stopAtFirstHit) const;
+        /**
+         * @brief Checks if a ray intersects with the group model.
+         * @param ray Ray to check
+         * @param distance Output parameter for the distance to the intersection
+         * @param stopAtFirstHit Whether to stop at the first hit
+         * @return True if the ray intersects, false otherwise
+         */
+        bool IntersectRay(const G3D::Ray& ray, float& distance, bool stopAtFirstHit) const;
 
-            /**
-             * @brief
-             *
-             * @param pos
-             * @param down
-             * @param z_dist
-             * @return bool
-             */
-            bool IsInsideObject(const Vector3& pos, const Vector3& down, float& z_dist) const;
+        /**
+         * @brief Checks if a position is inside the group model.
+         * @param pos Position to check
+         * @param down Direction vector pointing downwards
+         * @param z_dist Output parameter for the distance to the ground
+         * @return True if the position is inside, false otherwise
+         */
+        bool IsInsideObject(const Vector3& pos, const Vector3& down, float& z_dist) const;
 
-            /**
-             * @brief
-             *
-             * @param pos
-             * @param liqHeight
-             * @return bool
-             */
-            bool GetLiquidLevel(const Vector3& pos, float& liqHeight) const;
+        /**
+         * @brief Gets the liquid level at a given position.
+         * @param pos Position to check
+         * @param liqHeight Output parameter for the liquid height
+         * @return True if the liquid level was successfully retrieved, false otherwise
+         */
+        bool GetLiquidLevel(const Vector3& pos, float& liqHeight) const;
 
-            /**
-             * @brief
-             *
-             * @return uint32
-             */
-            uint32 GetLiquidType() const;
+        /**
+         * @brief Gets the type of the liquid in the group model.
+         * @return Liquid type
+         */
+        uint32 GetLiquidType() const;
 
-            /**
-             * @brief
-             *
-             * @param wf
-             * @return bool
-             */
-            bool WriteToFile(FILE* wf);
+        /**
+         * @brief Writes the group model data to a file.
+         * @param wf File pointer to write to
+         * @return True if the write was successful, false otherwise
+         */
+        bool WriteToFile(FILE* wf);
 
-            /**
-             * @brief
-             *
-             * @param rf
-             * @return bool
-             */
-            bool ReadFromFile(FILE* rf);
+        /**
+         * @brief Reads the group model data from a file.
+         * @param rf File pointer to read from
+         * @return True if the read was successful, false otherwise
+         */
+        bool ReadFromFile(FILE* rf);
 
-            /**
-             * @brief
-             *
-             * @return const G3D::AABox
-             */
-            const G3D::AABox& GetBound() const { return iBound; }
+        /**
+         * @brief Gets the bounding box of the group model.
+         * @return Bounding box
+         */
+        const G3D::AABox& GetBound() const { return iBound; }
 
-            /**
-             * @brief
-             *
-             * @return uint32
-             */
-            uint32 GetMogpFlags() const { return iMogpFlags; }
+        /**
+         * @brief Gets the flags of the group model.
+         * @return Flags
+         */
+        uint32 GetMogpFlags() const { return iMogpFlags; }
 
-            /**
-             * @brief
-             *
-             * @return uint32
-             */
-            uint32 GetWmoID() const { return iGroupWMOID; }
+        /**
+         * @brief Gets the group WMO ID.
+         * @return Group WMO ID
+         */
+        uint32 GetWmoID() const { return iGroupWMOID; }
 
-        protected:
-            G3D::AABox iBound;  /**< TODO */
-            uint32 iMogpFlags;  /**< 0x8 outdor; 0x2000 indoor */
-            uint32 iGroupWMOID; /**< TODO */
-            std::vector<Vector3> vertices; /**< TODO */
-            std::vector<MeshTriangle> triangles; /**< TODO */
-            BIH meshTree; /**< TODO */
-            WmoLiquid* iLiquid; /**< TODO */
+    protected:
+        G3D::AABox iBound;  /**< Bounding box of the group model */
+        uint32 iMogpFlags;  /**< Flags for the group model */
+        uint32 iGroupWMOID; /**< Group WMO ID */
+        std::vector<Vector3> vertices; /**< Vertices of the group model */
+        std::vector<MeshTriangle> triangles; /**< Triangles of the group model */
+        BIH meshTree; /**< Bounding Interval Hierarchy for the mesh */
+        WmoLiquid* iLiquid; /**< Liquid data for the group model */
 
 #ifdef MMAP_GENERATOR
-        public:
-            void getMeshData(std::vector<Vector3>& vertices, std::vector<MeshTriangle>& triangles, WmoLiquid*& liquid);
+    public:
+        /**
+         * @brief Gets the mesh data of the group model.
+         * @param vertices Output parameter for the vertices
+         * @param triangles Output parameter for the triangles
+         * @param liquid Output parameter for the liquid data
+         */
+        void getMeshData(std::vector<Vector3>& vertices, std::vector<MeshTriangle>& triangles, WmoLiquid*& liquid);
 #endif
     };
 
     /**
-     * @brief Holds a model (converted M2 or WMO) in its original coordinate space
-     *
+     * @brief Holds a model (converted M2 or WMO) in its original coordinate space.
      */
     class WorldModel
     {
-        public:
-            /**
-             * @brief
-             *
-             */
-            WorldModel() : RootWMOID(0), Flags(0) {}
+    public:
+        /**
+         * @brief Default constructor initializing members to 0.
+         */
+        WorldModel() : RootWMOID(0), Flags(0) {}
 
-            /**
-             * @brief pass group models to WorldModel and create BIH. Passed vector is swapped with old geometry!
-             *
-             * @param models
-             */
-            void SetGroupModels(std::vector<GroupModel>& models);
+        /**
+         * @brief Sets the group models for the world model.
+         * @param models Vector of group models
+         */
+        void SetGroupModels(std::vector<GroupModel>& models);
 
-            /**
-             * @brief
-             *
-             * @param id
-             */
-            void SetRootWmoID(uint32 id) { RootWMOID = id; }
+        /**
+         * @brief Sets the root WMO ID.
+         * @param id Root WMO ID
+         */
+        void SetRootWmoID(uint32 id) { RootWMOID = id; }
 
-            /**
-             * @brief
-             *
-             * @param ray
-             * @param distance
-             * @param stopAtFirstHit
-             * @return bool
-             */
-            bool IntersectRay(const G3D::Ray& ray, float& distance, bool stopAtFirstHit) const;
+        /**
+         * @brief Checks if a ray intersects with the world model.
+         * @param ray Ray to check
+         * @param distance Output parameter for the distance to the intersection
+         * @param stopAtFirstHit Whether to stop at the first hit
+         * @return True if the ray intersects, false otherwise
+         */
+        bool IntersectRay(const G3D::Ray& ray, float& distance, bool stopAtFirstHit) const;
 
-            /**
-             * @brief
-             *
-             * @param p
-             * @param down
-             * @param dist
-             * @param info
-             * @return bool
-             */
-            bool GetAreaInfo(const G3D::Vector3& p, const G3D::Vector3& down, float& dist, AreaInfo& info) const;
+        /**
+         * @brief Gets area information at a given position.
+         * @param p Position to check
+         * @param down Direction vector pointing downwards
+         * @param dist Output parameter for the distance to the ground
+         * @param info Output parameter for the area information
+         * @return True if the area information was successfully retrieved, false otherwise
+         */
+        bool GetAreaInfo(const G3D::Vector3& p, const G3D::Vector3& down, float& dist, AreaInfo& info) const;
 
-            /**
-             * @brief
-             *
-             * @param p
-             * @param down
-             * @param dist
-             * @param info
-             * @return bool
-             */
-            bool GetLocationInfo(const G3D::Vector3& p, const G3D::Vector3& down, float& dist, LocationInfo& info) const;
+        /**
+         * @brief Gets location information at a given position.
+         * @param p Position to check
+         * @param down Direction vector pointing downwards
+         * @param dist Output parameter for the distance to the ground
+         * @param info Output parameter for the location information
+         * @return True if the location information was successfully retrieved, false otherwise
+         */
+        bool GetLocationInfo(const G3D::Vector3& p, const G3D::Vector3& down, float& dist, LocationInfo& info) const;
 
-            /**
-             * @brief
-             *
-             * @param filename
-             * @return bool
-             */
-            bool writeFile(const std::string& filename);
+        /**
+         * @brief Writes the world model data to a file.
+         * @param filename Name of the file to write to
+         * @return True if the write was successful, false otherwise
+         */
+        bool writeFile(const std::string& filename);
 
-            /**
-             * @brief
-             *
-             * @param filename
-             * @return bool
-             */
-            bool readFile(const std::string& filename);
-            uint32 Flags;
-        protected:
-            uint32 RootWMOID; /**< TODO */
-            std::vector<GroupModel> groupModels; /**< TODO */
-            BIH groupTree; /**< TODO */
+        /**
+         * @brief Reads the world model data from a file.
+         * @param filename Name of the file to read from
+         * @return True if the read was successful, false otherwise
+         */
+        bool readFile(const std::string& filename);
+
+        uint32 Flags; /**< Flags for the world model */
+
+    protected:
+        uint32 RootWMOID; /**< Root WMO ID */
+        std::vector<GroupModel> groupModels; /**< Group models in the world model */
+        BIH groupTree; /**< Bounding Interval Hierarchy for the group models */
 
 #ifdef MMAP_GENERATOR
-        public:
-            void getGroupModels(std::vector<GroupModel>& groupModels);
+    public:
+        /**
+         * @brief Gets the group models of the world model.
+         * @param groupModels Output parameter for the group models
+         */
+        void getGroupModels(std::vector<GroupModel>& groupModels);
 #endif
     };
 } // namespace VMAP
 
-#endif // _WORLDMODEL_H
+#endif // MANGOS_H_WORLDMODEL

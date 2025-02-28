@@ -346,245 +346,244 @@ class BIH
                     break;
                 }
                 while (true);
-            }
+        }
+    }
+
+    /**
+     * @brief Intersects a point with the BIH.
+     *
+     * @tparam IsectCallback Callback type for point intersection.
+     * @param p The point to intersect.
+     * @param intersectCallback The callback to handle intersections.
+     */
+    template<typename IsectCallback>
+    void intersectPoint(const Vector3& p, IsectCallback& intersectCallback) const
+    {
+        if (!bounds.contains(p))
+        {
+            return;
         }
 
-        template<typename IsectCallback>
-        /**
-         * @brief
-         *
-         * @param p
-         * @param intersectCallback
-         */
-        void intersectPoint(const Vector3& p, IsectCallback& intersectCallback) const
+        StackNode stack[MAX_STACK_SIZE];
+        int stackPos = 0;
+        int node = 0;
+
+        while (true)
         {
-            if (!bounds.contains(p))
+            while (true)
+            {
+                uint32 tn = tree[node];
+                uint32 axis = (tn & (3 << 30)) >> 30;
+                bool BVH2 = tn & (1 << 29);
+                int offset = tn & ~(7 << 29);
+                if (!BVH2)
+                {
+                    if (axis < 3)
+                    {
+                        // "normal" interior node
+                        float tl = intBitsToFloat(tree[node + 1]);
+                        float tr = intBitsToFloat(tree[node + 2]);
+                        // point is between clip zones
+                        if (tl < p[axis] && tr > p[axis])
+                        {
+                            break;
+                        }
+                        int right = offset + 3;
+                        node = right;
+                        // point is in right node only
+                        if (tl < p[axis])
+                        {
+                            continue;
+                        }
+                        node = offset; // left
+                        // point is in left node only
+                        if (tr > p[axis])
+                        {
+                            continue;
+                        }
+                        // point is in both nodes
+                        // push back right node
+                        stack[stackPos].node = right;
+                        ++stackPos;
+                        continue;
+                    }
+                    else
+                    {
+                        // leaf - test some objects
+                        int n = tree[node + 1];
+                        while (n > 0)
+                        {
+                            intersectCallback(p, objects[offset]); // !!!
+                            --n;
+                            ++offset;
+                        }
+                        break;
+                    }
+                }
+                else // BVH2 node (empty space cut off left and right)
+                {
+                    if (axis > 2)
+                    {
+                        return;  // should not happen
+                    }
+                    float tl = intBitsToFloat(tree[node + 1]);
+                    float tr = intBitsToFloat(tree[node + 2]);
+                    node = offset;
+                    if (tl > p[axis] || tr < p[axis])
+                    {
+                        break;
+                    }
+                    continue;
+                }
+            } // traversal loop
+
+            // stack is empty?
+            if (stackPos == 0)
             {
                 return;
             }
+            // move back up the stack
+            --stackPos;
+            node = stack[stackPos].node;
+        }
+    }
 
-            StackNode stack[MAX_STACK_SIZE];
-            int stackPos = 0;
-            int node = 0;
+    /**
+     * @brief Writes the BIH to a file.
+     *
+     * @param wf File pointer to write to.
+     * @return True if the write was successful, false otherwise.
+     */
+    bool WriteToFile(FILE* wf) const;
 
-            while (true)
+    /**
+     * @brief Reads the BIH from a file.
+     *
+     * @param rf File pointer to read from.
+     * @return True if the read was successful, false otherwise.
+     */
+    bool ReadFromFile(FILE* rf);
+
+protected:
+    std::vector<uint32> tree; /**< Tree structure of the BIH */
+    std::vector<uint32> objects; /**< List of objects in the BIH */
+    AABox bounds; /**< Bounding box of the BIH */
+
+    /**
+     * @brief Structure to hold build data.
+     */
+    struct buildData
+    {
+        uint32* indices; /**< Indices of the primitives */
+        AABox* primBound; /**< Bounding boxes of the primitives */
+        uint32 numPrims; /**< Number of primitives */
+        int maxPrims; /**< Maximum number of primitives in a leaf node */
+    };
+
+    /**
+     * @brief Structure to represent a stack node.
+     */
+    struct StackNode
+    {
+        uint32 node; /**< Node index */
+        float tnear; /**< Near intersection distance */
+        float tfar; /**< Far intersection distance */
+    };
+
+    /**
+     * @brief Class to hold build statistics.
+     */
+    class BuildStats
+    {
+    private:
+        int numNodes; /**< Number of nodes */
+        int numLeaves; /**< Number of leaf nodes */
+        int sumObjects; /**< Sum of objects in leaf nodes */
+        int minObjects; /**< Minimum number of objects in a leaf node */
+        int maxObjects; /**< Maximum number of objects in a leaf node */
+        int sumDepth; /**< Sum of depths of leaf nodes */
+        int minDepth; /**< Minimum depth of a leaf node */
+        int maxDepth; /**< Maximum depth of a leaf node */
+        int numLeavesN[6]; /**< Number of leaf nodes with specific number of objects */
+        int numBVH2; /**< Number of BVH2 nodes */
+
+    public:
+        /**
+         * @brief Default constructor for BuildStats.
+         */
+        BuildStats() :
+            numNodes(0), numLeaves(0), sumObjects(0), minObjects(0x0FFFFFFF),
+            maxObjects(0xFFFFFFFF), sumDepth(0), minDepth(0x0FFFFFFF),
+            maxDepth(0xFFFFFFFF), numBVH2(0)
+        {
+            for (int i = 0; i < 6; ++i)
             {
-                while (true)
-                {
-                    uint32 tn = tree[node];
-                    uint32 axis = (tn & (3 << 30)) >> 30;
-                    bool BVH2 = tn & (1 << 29);
-                    int offset = tn & ~(7 << 29);
-                    if (!BVH2)
-                    {
-                        if (axis < 3)
-                        {
-                            // "normal" interior node
-                            float tl = intBitsToFloat(tree[node + 1]);
-                            float tr = intBitsToFloat(tree[node + 2]);
-                            // point is between clip zones
-                            if (tl < p[axis] && tr > p[axis])
-                            {
-                                break;
-                            }
-                            int right = offset + 3;
-                            node = right;
-                            // point is in right node only
-                            if (tl < p[axis])
-                            {
-                                continue;
-                            }
-                            node = offset; // left
-                            // point is in left node only
-                            if (tr > p[axis])
-                            {
-                                continue;
-                            }
-                            // point is in both nodes
-                            // push back right node
-                            stack[stackPos].node = right;
-                            ++stackPos;
-                            continue;
-                        }
-                        else
-                        {
-                            // leaf - test some objects
-                            int n = tree[node + 1];
-                            while (n > 0)
-                            {
-                                intersectCallback(p, objects[offset]); // !!!
-                                --n;
-                                ++offset;
-                            }
-                            break;
-                        }
-                    }
-                    else // BVH2 node (empty space cut off left and right)
-                    {
-                        if (axis > 2)
-                        {
-                            return;  // should not happen
-                        }
-                        float tl = intBitsToFloat(tree[node + 1]);
-                        float tr = intBitsToFloat(tree[node + 2]);
-                        node = offset;
-                        if (tl > p[axis] || tr < p[axis])
-                        {
-                            break;
-                        }
-                        continue;
-                    }
-                } // traversal loop
-
-                // stack is empty?
-                if (stackPos == 0)
-                {
-                    return;
-                }
-                // move back up the stack
-                --stackPos;
-                node = stack[stackPos].node;
+                numLeavesN[i] = 0;
             }
         }
 
         /**
-         * @brief
-         *
-         * @param wf
-         * @return bool
+         * @brief Updates statistics for an inner node.
          */
-        bool WriteToFile(FILE* wf) const;
-        /**
-         * @brief
-         *
-         * @param rf
-         * @return bool
-         */
-        bool ReadFromFile(FILE* rf);
-
-    protected:
-        std::vector<uint32> tree; /**< TODO */
-        std::vector<uint32> objects; /**< TODO */
-        AABox bounds; /**< TODO */
+        void updateInner() { ++numNodes; }
 
         /**
-         * @brief
-         *
+         * @brief Updates statistics for a BVH2 node.
          */
-        struct buildData
-        {
-            uint32* indices; /**< TODO */
-            AABox* primBound; /**< TODO */
-            uint32 numPrims; /**< TODO */
-            int maxPrims; /**< TODO */
-        };
-        /**
-         * @brief
-         *
-         */
-        struct StackNode
-        {
-            uint32 node; /**< TODO */
-            float tnear; /**< TODO */
-            float tfar; /**< TODO */
-        };
+        void updateBVH2() { ++numBVH2; }
 
         /**
-         * @brief
+         * @brief Updates statistics for a leaf node.
          *
+         * @param depth Depth of the leaf node.
+         * @param n Number of objects in the leaf node.
          */
-        class BuildStats
-        {
-            private:
-                int numNodes; /**< TODO */
-                int numLeaves; /**< TODO */
-                int sumObjects; /**< TODO */
-                int minObjects; /**< TODO */
-                int maxObjects; /**< TODO */
-                int sumDepth; /**< TODO */
-                int minDepth; /**< TODO */
-                int maxDepth; /**< TODO */
-                int numLeavesN[6]; /**< TODO */
-                int numBVH2; /**< TODO */
-
-            public:
-                /**
-                 * @brief
-                 *
-                 */
-                BuildStats():
-                    numNodes(0), numLeaves(0), sumObjects(0), minObjects(0x0FFFFFFF),
-                    maxObjects(0xFFFFFFFF), sumDepth(0), minDepth(0x0FFFFFFF),
-                    maxDepth(0xFFFFFFFF), numBVH2(0)
-                {
-                    for (int i = 0; i < 6; ++i)
-                    {
-                        numLeavesN[i] = 0;
-                    }
-                }
-
-                /**
-                 * @brief
-                 *
-                 */
-                void updateInner() { ++numNodes; }
-                /**
-                 * @brief
-                 *
-                 */
-                void updateBVH2() { ++numBVH2; }
-                /**
-                 * @brief
-                 *
-                 * @param depth
-                 * @param n
-                 */
-                void updateLeaf(int depth, int n);
-                /**
-                 * @brief
-                 *
-                 */
-                void printStats();
-        };
+        void updateLeaf(int depth, int n);
 
         /**
-         * @brief
-         *
-         * @param tempTree
-         * @param dat
-         * @param stats
+         * @brief Prints the build statistics.
          */
-        void buildHierarchy(std::vector<uint32>& tempTree, buildData& dat, BuildStats& stats);
+        void printStats();
+    };
 
-        /**
-         * @brief
-         *
-         * @param tempTree
-         * @param nodeIndex
-         * @param left
-         * @param right
-         */
-        void createNode(std::vector<uint32>& tempTree, int nodeIndex, uint32 left, uint32 right)
-        {
-            // write leaf node
-            tempTree[nodeIndex + 0] = (3 << 30) | left;
-            tempTree[nodeIndex + 1] = right - left + 1;
-        }
+    /**
+     * @brief Builds the hierarchy of the BIH.
+     *
+     * @param tempTree Temporary tree structure.
+     * @param dat Build data.
+     * @param stats Build statistics.
+     */
+    void buildHierarchy(std::vector<uint32>& tempTree, buildData& dat, BuildStats& stats);
 
-        /**
-         * @brief
-         *
-         * @param left
-         * @param right
-         * @param tempTree
-         * @param dat
-         * @param gridBox
-         * @param nodeBox
-         * @param nodeIndex
-         * @param depth
-         * @param stats
-         */
-        void subdivide(int left, int right, std::vector<uint32>& tempTree, buildData& dat, AABound& gridBox, AABound& nodeBox, int nodeIndex, int depth, BuildStats& stats);
+    /**
+     * @brief Creates a leaf node in the BIH.
+     *
+     * @param tempTree Temporary tree structure.
+     * @param nodeIndex Index of the node to create.
+     * @param left Index of the first object in the leaf node.
+     * @param right Index of the last object in the leaf node.
+     */
+    void createNode(std::vector<uint32>& tempTree, int nodeIndex, uint32 left, uint32 right)
+    {
+        // write leaf node
+        tempTree[nodeIndex + 0] = (3 << 30) | left;
+        tempTree[nodeIndex + 1] = right - left + 1;
+    }
+
+    /**
+     * @brief Subdivides a node in the BIH.
+     *
+     * @param left Index of the first object in the node.
+     * @param right Index of the last object in the node.
+     * @param tempTree Temporary tree structure.
+     * @param dat Build data.
+     * @param gridBox Bounding box of the grid.
+     * @param nodeBox Bounding box of the node.
+     * @param nodeIndex Index of the node to subdivide.
+     * @param depth Depth of the node in the tree.
+     * @param stats Build statistics.
+     */
+    void subdivide(int left, int right, std::vector<uint32>& tempTree, buildData& dat, AABound& gridBox, AABound& nodeBox, int nodeIndex, int depth, BuildStats& stats);
 };
 
 #endif // _BIH_H
