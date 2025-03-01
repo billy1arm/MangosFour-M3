@@ -61,7 +61,7 @@ class adt_MCVT
     public:
         float height_map[(ADT_CELL_SIZE + 1) * (ADT_CELL_SIZE + 1) + ADT_CELL_SIZE* ADT_CELL_SIZE];
 
-        bool  prepareLoadedData();
+        bool prepareLoadedData() const;
 };
 
 //
@@ -84,7 +84,7 @@ class adt_MCLQ
             float  height;
         } liquid[ADT_CELL_SIZE + 1][ADT_CELL_SIZE + 1];
 
-        // 1<<0 - ochen
+        // 1<<0 - ocean
         // 1<<1 - lava/slime
         // 1<<2 - water
         // 1<<6 - all water
@@ -92,7 +92,7 @@ class adt_MCLQ
         // == 0x0F - not show liquid
         uint8 flags[ADT_CELL_SIZE][ADT_CELL_SIZE];
         uint8 data[84];
-        bool  prepareLoadedData();
+        bool prepareLoadedData() const;
 };
 
 //
@@ -229,7 +229,7 @@ class adt_MH2O
             uint32 offsData2;
         } liquid[ADT_CELLS_PER_GRID][ADT_CELLS_PER_GRID];
 
-        bool   prepareLoadedData();
+        bool prepareLoadedData() const;
 
         adt_liquid_header* getLiquidData(int x, int y)
         {

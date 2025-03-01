@@ -24,10 +24,17 @@
 
 #include "adt.h"
 
-// Helper
+// Helper arrays for hole detection
 int holetab_h[4] = {0x1111, 0x2222, 0x4444, 0x8888};
 int holetab_v[4] = {0x000F, 0x00F0, 0x0F00, 0xF000};
 
+/**
+ * @brief Check if a specific position is a hole.
+ * @param holes The holes bitmask.
+ * @param i The horizontal position.
+ * @param j The vertical position.
+ * @return True if the position is a hole, false otherwise.
+ */
 bool isHole(int holes, int i, int j)
 {
     int testi = i / 2;
@@ -46,18 +53,27 @@ bool isHole(int holes, int i, int j)
 //
 // Adt file loader class
 //
+
+/**
+ * @brief Constructor for ADT_file.
+ */
 ADT_file::ADT_file()
 {
     a_grid = 0;
     memset(cells, 0, sizeof(cells)); // Initialize cells to zero
-
 }
 
+/**
+ * @brief Destructor for ADT_file.
+ */
 ADT_file::~ADT_file()
 {
     free();
 }
 
+/**
+ * @brief Free the resources used by ADT_file.
+ */
 void ADT_file::free()
 {
     a_grid = 0;
@@ -67,6 +83,11 @@ void ADT_file::free()
 //
 // Adt file check function
 //
+
+/**
+ * @brief Prepare the loaded data for ADT_file.
+ * @return True if the data is prepared successfully, false otherwise.
+ */
 bool ADT_file::prepareLoadedData()
 {
     // Check parent
@@ -82,7 +103,7 @@ bool ADT_file::prepareLoadedData()
         return false;
     }
 
-    // funny offsets calculations because there is no mapping for them and they have variable lengths
+    // Funny offsets calculations because there is no mapping for them and they have variable lengths
     uint8* ptr = (uint8*)a_grid + a_grid->size + 8;
     uint32 mcnk_count = 0;
     memset(cells, 0, ADT_CELLS_PER_GRID * ADT_CELLS_PER_GRID * sizeof(adt_MCNK*));
@@ -96,7 +117,7 @@ bool ADT_file::prepareLoadedData()
             ++mcnk_count;
         }
 
-        // move to next chunk
+        // Move to next chunk
         ptr += size + 8;
     }
 
@@ -108,6 +129,10 @@ bool ADT_file::prepareLoadedData()
     return true;
 }
 
+/**
+ * @brief Prepare the loaded data for adt_MHDR.
+ * @return True if the data is prepared successfully, false otherwise.
+ */
 bool adt_MHDR::prepareLoadedData()
 {
     if (fcc != 'MHDR')
@@ -135,6 +160,10 @@ bool adt_MHDR::prepareLoadedData()
     return true;
 }
 
+/**
+ * @brief Prepare the loaded data for adt_MCIN.
+ * @return True if the data is prepared successfully, false otherwise.
+ */
 bool adt_MCIN::prepareLoadedData()
 {
     if (fcc != 'MCIN')
@@ -156,7 +185,11 @@ bool adt_MCIN::prepareLoadedData()
     return true;
 }
 
-bool adt_MH2O::prepareLoadedData()
+/**
+ * @brief Prepare the loaded data for adt_MH2O.
+ * @return True if the data is prepared successfully, false otherwise.
+ */
+bool adt_MH2O::prepareLoadedData() const
 {
     if (fcc != 'MH2O')
     {
@@ -170,6 +203,10 @@ bool adt_MH2O::prepareLoadedData()
     return true;
 }
 
+/**
+ * @brief Prepare the loaded data for adt_MCNK.
+ * @return True if the data is prepared successfully, false otherwise.
+ */
 bool adt_MCNK::prepareLoadedData()
 {
     if (fcc != 'MCNK')
@@ -192,7 +229,11 @@ bool adt_MCNK::prepareLoadedData()
     return true;
 }
 
-bool adt_MCVT::prepareLoadedData()
+/**
+ * @brief Prepare the loaded data for adt_MCVT.
+ * @return True if the data is prepared successfully, false otherwise.
+ */
+bool adt_MCVT::prepareLoadedData() const
 {
     if (fcc != 'MCVT')
     {
@@ -207,7 +248,11 @@ bool adt_MCVT::prepareLoadedData()
     return true;
 }
 
-bool adt_MCLQ::prepareLoadedData()
+/**
+ * @brief Prepare the loaded data for adt_MCLQ.
+ * @return True if the data is prepared successfully, false otherwise.
+ */
+bool adt_MCLQ::prepareLoadedData() const
 {
     if (fcc != 'MCLQ')
     {

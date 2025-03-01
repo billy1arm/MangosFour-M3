@@ -34,7 +34,7 @@ class wdt_MWMO
         };
     public:
         uint32 size;
-        bool prepareLoadedData();
+        bool prepareLoadedData() const;
 };
 
 class wdt_MPHD
@@ -55,7 +55,7 @@ class wdt_MPHD
         uint32 data6;
         uint32 data7;
         uint32 data8;
-        bool   prepareLoadedData();
+        bool prepareLoadedData() const;
 };
 
 class wdt_MAIN
@@ -74,7 +74,7 @@ class wdt_MAIN
             uint32 data1;
         } adt_list[64][64];
 
-        bool   prepareLoadedData();
+        bool prepareLoadedData() const;
 };
 
 class WDT_file : public FileLoader

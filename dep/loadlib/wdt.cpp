@@ -2,27 +2,42 @@
 
 #include "wdt.h"
 
-bool wdt_MWMO::prepareLoadedData()
+/**
+ * @brief Prepare loaded data for wdt_MWMO.
+ * @return True if the data is prepared successfully, false otherwise.
+ */
+bool wdt_MWMO::prepareLoadedData() const
 {
     if (fcc != 'MWMO')
         return false;
     return true;
 }
 
-bool wdt_MPHD::prepareLoadedData()
+/**
+ * @brief Prepare loaded data for wdt_MPHD.
+ * @return True if the data is prepared successfully, false otherwise.
+ */
+bool wdt_MPHD::prepareLoadedData() const
 {
     if (fcc != 'MPHD')
         return false;
     return true;
 }
 
-bool wdt_MAIN::prepareLoadedData()
+/**
+ * @brief Prepare loaded data for wdt_MAIN.
+ * @return True if the data is prepared successfully, false otherwise.
+ */
+bool wdt_MAIN::prepareLoadedData() const
 {
     if (fcc != 'MAIN')
         return false;
     return true;
 }
 
+/**
+ * @brief Constructor for WDT_file.
+ */
 WDT_file::WDT_file()
 {
     mphd = 0;
@@ -30,11 +45,17 @@ WDT_file::WDT_file()
     wmo  = 0;
 }
 
+/**
+ * @brief Destructor for WDT_file.
+ */
 WDT_file::~WDT_file()
 {
     free();
 }
 
+/**
+ * @brief Free the resources used by WDT_file.
+ */
 void WDT_file::free()
 {
     mphd = 0;
@@ -43,6 +64,10 @@ void WDT_file::free()
     FileLoader::free();
 }
 
+/**
+ * @brief Prepare loaded data for WDT_file.
+ * @return True if the data is prepared successfully, false otherwise.
+ */
 bool WDT_file::prepareLoadedData()
 {
     // Check parent
