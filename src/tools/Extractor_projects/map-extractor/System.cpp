@@ -92,7 +92,7 @@ std::vector<dataFile> MapList;        /**< List of map files */
 std::vector<dataFile> AreaList;       /**< List of area files */
 std::vector<dataFile> LiquidList;     /**< List of liquid files */
 std::vector<std::string> LiquidTypeList; /**< List of liquid types */
-std::string szWorkDirWmo   = "./Buildings"; /**< Working directory for WMO files */
+std::string szWorkDirWmo   = "/Buildings"; /**< Working directory for WMO files */
 std::string szRawVMAPMagic = "VMAP000"; /**< VMAP magic string */
 std::vector<dataFile> DBCFiles;       /**< List of DBC files */
 std::vector<dataFile> DB2Files;       /**< List of DB2 files */
@@ -237,7 +237,7 @@ float liquid_height[ADT_GRID_SIZE + 1][ADT_GRID_SIZE + 1];      /**< Liquid heig
  * @return int Number of files extracted.
  */
 int ExtractFilefromMPQ(std::vector<dataFile>& dbcFiles, const char * mpqPath,string fileMask,string localPath, bool trimLength);
-
+bool ParseMapFiles(uint32 mapIndex, uint32 xcoord, uint32 ycoord, std::string adt_filename);
 /**
  * @brief Appends a list of files to a vector based on a file mask.
  *
@@ -1618,6 +1618,7 @@ int ExtractADTFilesfromMPQ(string mpqFilePath, string localPath)
                     try
                     {
                         ConvertADT(mpq_filename, output_filename);// , y, x);
+                        ParseMapFiles(i, xcoord, ycoord, mpq_filename);
                     }
                     catch (const std::exception&)
                     {
@@ -1698,6 +1699,7 @@ int ExtractADTFilesfromMPQ(string mpqFilePath, string localPath)
                     try
                     {
                         ConvertADT(mpq_filename, output_filename);// , y, x);
+                        ParseMapFiles(i, xcoord, ycoord, mpq_filename);
                     }
                     catch (const std::exception&)
                     {
@@ -1888,7 +1890,36 @@ void NewReadDbcFromMPQ(const char* fileName, std::vector<dataFile>& mapList, int
 /**
  * @brief Parses the map files and processes each map.
  */
-static void ParseMapFiles()
+bool ParseMapFiles(uint32 mapIndex, uint32 xcoord, uint32 ycoord, std::string adt_filename)
+{
+    char* fn = new char[512];
+    char* id = new char[10];
+    StringSet failedPaths;
+
+    ADTFile* adt = new ADTFile(adt_filename);
+    adt->initLoadFileFromDisk(mapIndex, xcoord, ycoord, failedPaths, iCoreNumber, szRawVMAPMagic, true, szWorkDirWmo, adt_filename);
+    //adt->init(mapIndex, xcoord, ycoord, failedPaths, iCoreNumber, szRawVMAPMagic, true, szWorkDirWmo);
+    delete adt;
+
+    if (!failedPaths.empty())
+    {
+        printf(" Warning: Some models could not be extracted, see below\n");
+        for (StringSet::const_iterator itr = failedPaths.begin(); itr != failedPaths.end(); ++itr)
+        {
+            printf("Could not find file of model %s\n", itr->c_str());
+        }
+        printf(" A few not found models can be expected and are not alarming.\n");
+    }
+
+    delete[] fn;
+    delete[] id;
+}
+
+
+/**
+ * @brief Parses the map files and processes each map.
+ */
+static void OldParseMapFiles()
 {
     char* fn = new char[512];
     char* id = new char[10];

@@ -33,7 +33,6 @@
 #include <vector>
 #include <md5.h>
 #include <list>
-#include "../vmap-extractor/adtfile.h"
 
 /// All of the updates for this version of WoW
 uint32 const Builds[] = {16016, 16048, 16057, 16309, 16357, 16516, 16650, 16844, 16965, 17116, 17266, 17325, 17345, 17538, 17645, 17688, 17898, 18273};

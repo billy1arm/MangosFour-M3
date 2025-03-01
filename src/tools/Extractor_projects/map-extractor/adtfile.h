@@ -66,6 +66,8 @@ class ADTFile
          * @return True if the initialization was successful, false otherwise.
          */
         bool init(uint32 map_num, uint32 tileX, uint32 tileY, StringSet& failedPaths, int iCoreNumber, std::string szRawVMAPMagic, bool preciseVectorData, std::string szWorkDirWmo);
+        bool initLoadFileFromDisk(uint32 map_num, uint32 tileX, uint32 tileY, StringSet& failedPaths, int iCoreNumber, std::string szRawVMAPMagic, bool preciseVectorData, std::string szWorkDirWmo, std::string localAdtFilename);
+
     private:
         std::string AdtFilename; /**< The name of the ADT file. */
 };
