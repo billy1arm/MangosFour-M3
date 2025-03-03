@@ -53,54 +53,55 @@ namespace VMAP
      */
     class ModelSpawn
     {
-        public:
-            uint32 flags = 0; /**< Flags for the model spawn. */
-            uint16 adtId = 0; /**< ADT ID for the model spawn. */
-            uint32 ID = 0; /**< ID for the model spawn. */
-            G3D::Vector3 iPos; /**< Position of the model spawn. */
-            G3D::Vector3 iRot; /**< Rotation of the model spawn. */
-            float iScale = 1.0f; /**< Scale of the model spawn. */
-            G3D::AABox iBound; /**< Bounding box of the model spawn. */
-            std::string name; /**< Name of the model spawn. */
+    public:
+        // mapID, tileX, tileY, Flags, ID, Pos, Rot, Scale, Bound_lo, Bound_hi, name
+        uint32 flags; /**< Model flags. */
+        uint16 adtId; /**< ADT ID. */
+        uint32 ID; /**< Model ID. */
+        G3D::Vector3 iPos; /**< Position of the model. */
+        G3D::Vector3 iRot; /**< Rotation of the model. */
+        float iScale; /**< Scale of the model. */
+        G3D::AABox iBound; /**< Bounding box of the model. */
+        std::string name; /**< Name of the model. */
 
-            /**
-             * @brief Equality operator for ModelSpawn.
-             *
-             * @param other The other ModelSpawn to compare with.
-             * @return True if the IDs are equal, false otherwise.
-             */
-            bool operator==(const ModelSpawn& other) const { return ID == other.ID; }
+        /**
+         * @brief Equality operator for ModelSpawn.
+         *
+         * @param other The other ModelSpawn to compare with.
+         * @return bool True if the ModelSpawns are equal, false otherwise.
+         */
+        bool operator==(const ModelSpawn& other) const { return ID == other.ID; }
 
-            /**
-             * @brief Get the bounding box of the model spawn.
-             *
-             * @return The bounding box of the model spawn.
-             */
-            const G3D::AABox& getBounds() const { return iBound; }
+        /**
+         * @brief Gets the bounding box of the model.
+         *
+         * @return const G3D::AABox& The bounding box of the model.
+         */
+        const G3D::AABox& getBounds() const { return iBound; }
 
-            /**
-             * @brief Read a ModelSpawn from a file.
-             *
-             * @param rf The file to read from.
-             * @param spawn The ModelSpawn to read into.
-             * @return True if successful, false otherwise.
-             */
-            static bool ReadFromFile(FILE* rf, ModelSpawn& spawn);
+        /**
+         * @brief Reads a ModelSpawn from a file.
+         *
+         * @param rf The file to read from.
+         * @param spawn The ModelSpawn to read into.
+         * @return bool True if the read was successful, false otherwise.
+         */
+        static bool ReadFromFile(FILE* rf, ModelSpawn& spawn);
 
-            /**
-             * @brief Write a ModelSpawn to a file.
-             *
-             * @param rw The file to write to.
-             * @param spawn The ModelSpawn to write.
-             * @return True if successful, false otherwise.
-             */
-            static bool WriteToFile(FILE* rw, const ModelSpawn& spawn);
+        /**
+         * @brief Writes a ModelSpawn to a file.
+         *
+         * @param rw The file to write to.
+         * @param spawn The ModelSpawn to write.
+         * @return bool True if the write was successful, false otherwise.
+         */
+        static bool WriteToFile(FILE* rw, const ModelSpawn& spawn);
     };
 
     /**
      * @brief Class representing a model instance.
      */
-    class ModelInstance: public ModelSpawn
+    class ModelInstance : public ModelSpawn
     {
         public:
             /**
@@ -164,13 +165,13 @@ namespace VMAP
             WorldModel* iModel; /**< Pointer to the WorldModel associated with this instance. */
 
 #ifdef MMAP_GENERATOR
-        public:
-            /**
-             * @brief Get the WorldModel associated with this instance.
-             *
-             * @return The WorldModel associated with this instance.
-             */
-            WorldModel* const getWorldModel();
+    public:
+        /**
+         * @brief Gets the world model.
+         *
+         * @return WorldModel* Pointer to the world model.
+         */
+        WorldModel* const getWorldModel();
 #endif
     };
 } // namespace VMAP

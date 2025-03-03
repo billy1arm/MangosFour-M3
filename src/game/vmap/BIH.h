@@ -50,10 +50,10 @@ using G3D::AABox;
 using G3D::Ray;
 
 /**
- * @brief
+ * @brief Converts a float to its raw integer bits representation.
  *
- * @param f
- * @return uint32
+ * @param f The float value to convert.
+ * @return uint32 The raw integer bits of the float.
  */
 static inline uint32 floatToRawIntBits(float f)
 {
@@ -67,10 +67,10 @@ static inline uint32 floatToRawIntBits(float f)
 }
 
 /**
- * @brief
+ * @brief Converts raw integer bits to a float.
  *
- * @param i
- * @return float
+ * @param i The raw integer bits.
+ * @return float The float value.
  */
 static inline float intBitsToFloat(uint32 i)
 {
@@ -84,275 +84,292 @@ static inline float intBitsToFloat(uint32 i)
 }
 
 /**
- * @brief
- *
+ * @brief Structure representing an axis-aligned bounding box.
  */
 struct AABound
 {
-    Vector3 lo, hi; /**< TODO */
+    Vector3 lo, hi; /**< Lower and upper bounds of the box. */
 };
 
 /**
  * @brief Bounding Interval Hierarchy Class.
- *  Building and Ray-Intersection functions based on BIH from
- *  Sunflow, a Java Raytracer, released under MIT/X11 License
- *  http://sunflow.sourceforge.net/
- *  Copyright (c) 2003-2007 Christopher Kulla
  *
+ * Building and Ray-Intersection functions based on BIH from
+ * Sunflow, a Java Raytracer, released under MIT/X11 License
+ * http://sunflow.sourceforge.net/
+ * Copyright (c) 2003-2007 Christopher Kulla
  */
 class BIH
 {
-    private:
-        /**
-         * @brief
-         *
-         */
-        void init_empty()
+private:
+    /**
+     * @brief Initializes an empty BIH.
+     */
+    void init_empty()
+    {
+        tree.clear();
+        objects.clear();
+        // Create space for the first node (dummy leaf)
+        tree.push_back((uint32)3 << 30);
+        tree.insert(tree.end(), 2, 0);
+    }
+
+public:
+    /**
+     * @brief Default constructor for BIH.
+     */
+    BIH() { init_empty(); }
+
+    /**
+     * @brief Builds the BIH tree.
+     *
+     * @tparam BoundsFunc Function type for getting bounds.
+     * @tparam PrimArray Array type for primitives.
+     * @param primitives Array of primitives.
+     * @param getBounds Function to get bounds of a primitive.
+     * @param leafSize Maximum number of primitives in a leaf node.
+     * @param printStats Whether to print build statistics.
+     */
+    template<class BoundsFunc, class PrimArray>
+    void build(const PrimArray& primitives, BoundsFunc& getBounds, uint32 leafSize = 3, bool printStats = false)
+    {
+        if (primitives.size() == 0)
         {
-            tree.clear();
-            objects.clear();
-            // create space for the first node
-            tree.push_back((uint32)3 << 30); // dummy leaf
-            tree.insert(tree.end(), 2, 0);
+            init_empty();
+            return;
         }
 
-    public:
-        /**
-         * @brief
-         *
-         */
-        BIH() {init_empty();}
-        template< class BoundsFunc, class PrimArray >
-        /**
-         * @brief
-         *
-         * @param primitives
-         * @param getBounds
-         * @param leafSize
-         * @param printStats
-         */
-        void build(const PrimArray& primitives, BoundsFunc& getBounds, uint32 leafSize = 3, bool printStats = false)
-        {
-            if (primitives.size() == 0)
-            {
-                init_empty();
-                return;
-            }
-            buildData dat;
-            dat.maxPrims = leafSize;
-            dat.numPrims = primitives.size();
-            dat.indices = new uint32[dat.numPrims];
-            dat.primBound = new AABox[dat.numPrims];
-            getBounds(primitives[0], bounds);
-            for (uint32 i = 0; i < dat.numPrims; ++i)
-            {
-                dat.indices[i] = i;
-                getBounds(primitives[i], dat.primBound[i]);
-                bounds.merge(dat.primBound[i]);
-            }
-            std::vector<uint32> tempTree;
-            BuildStats stats;
-            buildHierarchy(tempTree, dat, stats);
-            if (printStats)
-            {
-                stats.printStats();
-            }
+        buildData dat{};
+        dat.maxPrims = leafSize;
+        dat.numPrims = primitives.size();
+        dat.indices = new uint32[dat.numPrims];
+        dat.primBound = new AABox[dat.numPrims];
+        getBounds(primitives[0], bounds);
 
-            objects.resize(dat.numPrims);
-            for (uint32 i = 0; i < dat.numPrims; ++i)
-            {
-                objects[i] = dat.indices[i];
-            }
-            // nObjects = dat.numPrims;
-            tree = tempTree;
-            delete[] dat.primBound;
-            delete[] dat.indices;
+        for (uint32 i = 0; i < dat.numPrims; ++i)
+        {
+            dat.indices[i] = i;
+            getBounds(primitives[i], dat.primBound[i]);
+            bounds.merge(dat.primBound[i]);
         }
-        /**
-         * @brief
-         *
-         * @return uint32
-         */
-        uint32 primCount() { return objects.size(); }
 
-        template<typename RayCallback>
-        /**
-         * @brief
-         *
-         * @param r
-         * @param intersectCallback
-         * @param maxDist
-         * @param stopAtFirst
-         */
-        void IntersectRay(const Ray& r, RayCallback& intersectCallback, float& maxDist, bool stopAtFirst = false) const
+        std::vector<uint32> tempTree;
+        BuildStats stats;
+        buildHierarchy(tempTree, dat, stats);
+        if (printStats)
         {
-            float intervalMin = -1.f;
-            float intervalMax = -1.f;
-            Vector3 const& org = r.origin();
-            Vector3 const& dir = r.direction();
-            Vector3 const& invDir = r.invDirection();
-            for (int i = 0; i < 3; ++i)
+            stats.printStats();
+        }
+
+        objects.resize(dat.numPrims);
+        for (uint32 i = 0; i < dat.numPrims; ++i)
+        {
+            objects[i] = dat.indices[i];
+        }
+
+        tree = tempTree;
+        delete[] dat.primBound;
+        delete[] dat.indices;
+    }
+
+    /**
+     * @brief Returns the number of primitives in the BIH.
+     *
+     * @return uint32 Number of primitives.
+     */
+    uint32 primCount() { return objects.size(); }
+
+    /**
+     * @brief Intersects a ray with the BIH.
+     *
+     * @tparam RayCallback Callback type for intersection.
+     * @param r The ray to intersect.
+     * @param intersectCallback The callback to handle intersections.
+     * @param maxDist Maximum distance for intersection.
+     * @param stopAtFirst Whether to stop at the first intersection.
+     */
+    template<typename RayCallback>
+    void IntersectRay(const Ray& r, RayCallback& intersectCallback, float& maxDist, bool stopAtFirst = false) const
+    {
+        float intervalMin = -1.f;
+        float intervalMax = -1.f;
+        Vector3 const& org = r.origin();
+        Vector3 const& dir = r.direction();
+        Vector3 const& invDir = r.invDirection();
+
+        for (int i = 0; i < 3; ++i)
+        {
+            if (G3D::fuzzyNe(dir[i], 0.0f))
             {
-                if (G3D::fuzzyNe(dir[i], 0.0f))
+                float t1 = (bounds.low()[i] - org[i]) * invDir[i];
+                float t2 = (bounds.high()[i] - org[i]) * invDir[i];
+                if (t1 > t2)
                 {
-                    float t1 = (bounds.low()[i]  - org[i]) * invDir[i];
-                    float t2 = (bounds.high()[i] - org[i]) * invDir[i];
-                    if (t1 > t2)
-                    {
-                        std::swap(t1, t2);
-                    }
-                    if (t1 > intervalMin)
-                    {
-                        intervalMin = t1;
-                    }
-                    if (t2 < intervalMax || intervalMax < 0.f)
-                    {
-                        intervalMax = t2;
-                    }
-                    // intervalMax can only become smaller for other axis,
-                    //  and intervalMin only larger respectively, so stop early
-                    if (intervalMax <= 0 || intervalMin >= maxDist)
-                    {
-                        return;
-                    }
+                    std::swap(t1, t2);
+                }
+                if (t1 > intervalMin)
+                {
+                    intervalMin = t1;
+                }
+                if (t2 < intervalMax || intervalMax < 0.f)
+                {
+                    intervalMax = t2;
+                }
+                // intervalMax can only become smaller for other axis,
+                //  and intervalMin only larger respectively, so stop early
+                if (intervalMax <= 0 || intervalMin >= maxDist)
+                {
+                    return;
                 }
             }
+        }
 
-            if (intervalMin > intervalMax)
-            {
-                return;
-            }
-            intervalMin = std::max(intervalMin, 0.f);
-            intervalMax = std::min(intervalMax, maxDist);
+        if (intervalMin > intervalMax)
+        {
+            return;
+        }
 
-            uint32 offsetFront[3];
-            uint32 offsetBack[3];
-            uint32 offsetFront3[3];
-            uint32 offsetBack3[3];
+        intervalMin = std::max(intervalMin, 0.f);
+        intervalMax = std::min(intervalMax, maxDist);
+
+        uint32 offsetFront[3]{};
+        uint32 offsetBack[3]{};
+        uint32 offsetFront3[3]{};
+        uint32 offsetBack3[3]{};
             // compute custom offsets from direction sign bit
 
-            for (int i = 0; i < 3; ++i)
-            {
-                offsetFront[i] = floatToRawIntBits(dir[i]) >> 31;
-                offsetBack[i] = offsetFront[i] ^ 1;
-                offsetFront3[i] = offsetFront[i] * 3;
-                offsetBack3[i] = offsetBack[i] * 3;
+        for (int i = 0; i < 3; ++i)
+        {
+            offsetFront[i] = floatToRawIntBits(dir[i]) >> 31;
+            offsetBack[i] = offsetFront[i] ^ 1;
+            offsetFront3[i] = offsetFront[i] * 3;
+            offsetBack3[i] = offsetBack[i] * 3;
 
                 // avoid always adding 1 during the inner loop
-                ++offsetFront[i];
-                ++offsetBack[i];
-            }
+            ++offsetFront[i];
+            ++offsetBack[i];
+        }
 
-            StackNode stack[MAX_STACK_SIZE];
-            int stackPos = 0;
-            int node = 0;
+        StackNode stack[MAX_STACK_SIZE];
+        int stackPos = 0;
+        int node = 0;
 
+        while (true)
+        {
             while (true)
             {
-                while (true)
+                uint32 tn = tree[node];
+                uint32 axis = (tn & (3 << 30)) >> 30;
+                bool BVH2 = tn & (1 << 29);
+                int offset = tn & ~(7 << 29);
+
+                if (!BVH2)
                 {
-                    uint32 tn = tree[node];
-                    uint32 axis = (tn & (3 << 30)) >> 30;
-                    bool BVH2 = tn & (1 << 29);
-                    int offset = tn & ~(7 << 29);
-                    if (!BVH2)
+                    if (axis < 3)
                     {
-                        if (axis < 3)
-                        {
                             // "normal" interior node
-                            float tf = (intBitsToFloat(tree[node + offsetFront[axis]]) - org[axis]) * invDir[axis];
-                            float tb = (intBitsToFloat(tree[node + offsetBack[axis]]) - org[axis]) * invDir[axis];
-                            // ray passes between clip zones
-                            if (tf < intervalMin && tb > intervalMax)
-                            {
-                                break;
-                            }
-                            int back = offset + offsetBack3[axis];
-                            node = back;
-                            // ray passes through far node only
-                            if (tf < intervalMin)
-                            {
-                                intervalMin = (tb >= intervalMin) ? tb : intervalMin;
-                                continue;
-                            }
-                            node = offset + offsetFront3[axis]; // front
-                            // ray passes through near node only
-                            if (tb > intervalMax)
-                            {
-                                intervalMax = (tf <= intervalMax) ? tf : intervalMax;
-                                continue;
-                            }
-                            // ray passes through both nodes
-                            // push back node
-                            stack[stackPos].node = back;
-                            stack[stackPos].tnear = (tb >= intervalMin) ? tb : intervalMin;
-                            stack[stackPos].tfar = intervalMax;
-                            ++stackPos;
-                            // update ray interval for front node
+                        float tf = (intBitsToFloat(tree[node + offsetFront[axis]]) - org[axis]) * invDir[axis];
+                        float tb = (intBitsToFloat(tree[node + offsetBack[axis]]) - org[axis]) * invDir[axis];
+                        // ray passes between clip zones
+                        if (tf < intervalMin && tb > intervalMax)
+                        {
+                            break;
+                        }
+
+                        int back = offset + offsetBack3[axis];
+                        node = back;
+                        // ray passes through far node only
+                        if (tf < intervalMin)
+                        {
+                            intervalMin = (tb >= intervalMin) ? tb : intervalMin;
+                            continue;
+                        }
+
+                        node = offset + offsetFront3[axis]; // front
+                        // ray passes through near node only
+                        if (tb > intervalMax)
+                        {
                             intervalMax = (tf <= intervalMax) ? tf : intervalMax;
                             continue;
                         }
-                        else
-                        {
-                            // leaf - test some objects
-                            int n = tree[node + 1];
-                            while (n > 0)
-                            {
-                                bool hit = intersectCallback(r, objects[offset], maxDist, stopAtFirst);
-                                if (stopAtFirst && hit)
-                                {
-                                    return;
-                                }
-                                --n;
-                                ++offset;
-                            }
-                            break;
-                        }
+                        // ray passes through both nodes
+                        // push back node
+                        stack[stackPos].node = back;
+                        stack[stackPos].tnear = (tb >= intervalMin) ? tb : intervalMin;
+                        stack[stackPos].tfar = intervalMax;
+                        ++stackPos;
+                        // update ray interval for front node
+                        intervalMax = (tf <= intervalMax) ? tf : intervalMax;
+                        continue;
                     }
                     else
                     {
-                        if (axis > 2)
+                        // leaf - test some objects
+                        int n = tree[node + 1];
+                        while (n > 0)
                         {
-                            return;  // should not happen
+                            bool hit = intersectCallback(r, objects[offset], maxDist, stopAtFirst);
+                            if (stopAtFirst && hit)
+                            {
+                                return;
+                            }
+                            --n;
+                            ++offset;
                         }
-                        float tf = (intBitsToFloat(tree[node + offsetFront[axis]]) - org[axis]) * invDir[axis];
-                        float tb = (intBitsToFloat(tree[node + offsetBack[axis]]) - org[axis]) * invDir[axis];
-                        node = offset;
-                        intervalMin = (tf >= intervalMin) ? tf : intervalMin;
-                        intervalMax = (tb <= intervalMax) ? tb : intervalMax;
-                        if (intervalMin > intervalMax)
-                        {
-                            break;
-                        }
-                        continue;
+                        break;
                     }
-                } // traversal loop
-                do
-                {
-                    // stack is empty?
-                    if (stackPos == 0)
-                    {
-                        return;
-                    }
-                    // move back up the stack
-                    --stackPos;
-                    intervalMin = stack[stackPos].tnear;
-                    if (maxDist < intervalMin)
-                    {
-                        continue;
-                    }
-                    node = stack[stackPos].node;
-                    intervalMax = stack[stackPos].tfar;
-                    break;
                 }
-                while (true);
+                else
+                {
+                    if (axis > 2)
+                    {
+                        return;  // should not happen
+                    }
+
+                    float tf = (intBitsToFloat(tree[node + offsetFront[axis]]) - org[axis]) * invDir[axis];
+                    float tb = (intBitsToFloat(tree[node + offsetBack[axis]]) - org[axis]) * invDir[axis];
+                    node = offset;
+                    intervalMin = (tf >= intervalMin) ? tf : intervalMin;
+                    intervalMax = (tb <= intervalMax) ? tb : intervalMax;
+
+                    if (intervalMin > intervalMax)
+                    {
+                        break;
+                    }
+                    continue;
+                }
+            } // traversal loop
+
+            do
+            {
+                // stack is empty?
+                if (stackPos == 0)
+                {
+                    return;
+                }
+                // move back up the stack
+                --stackPos;
+                intervalMin = stack[stackPos].tnear;
+                if (maxDist < intervalMin)
+                {
+                    continue;
+                }
+                node = stack[stackPos].node;
+                intervalMax = stack[stackPos].tfar;
+                break;
+            }
+            while (true);
         }
     }
 
     /**
      * @brief Intersects a point with the BIH.
      *
+<<<<<<< HEAD
      * @tparam IsectCallback Callback type for point intersection.
+=======
+     * @tparam IsectCallback Callback type for intersection.
+>>>>>>> f4189c9f5 (Added comments to game/vmap and fix some warnings)
      * @param p The point to intersect.
      * @param intersectCallback The callback to handle intersections.
      */
@@ -449,63 +466,63 @@ class BIH
     }
 
     /**
-     * @brief Writes the BIH to a file.
+     * @brief Writes the BIH tree to a file.
      *
      * @param wf File pointer to write to.
-     * @return True if the write was successful, false otherwise.
+     * @return bool True if the write was successful, false otherwise.
      */
     bool WriteToFile(FILE* wf) const;
 
     /**
-     * @brief Reads the BIH from a file.
+     * @brief Reads the BIH tree from a file.
      *
      * @param rf File pointer to read from.
-     * @return True if the read was successful, false otherwise.
+     * @return bool True if the read was successful, false otherwise.
      */
     bool ReadFromFile(FILE* rf);
 
 protected:
-    std::vector<uint32> tree; /**< Tree structure of the BIH */
-    std::vector<uint32> objects; /**< List of objects in the BIH */
-    AABox bounds; /**< Bounding box of the BIH */
+    std::vector<uint32> tree; /**< The BIH tree structure. */
+    std::vector<uint32> objects; /**< The objects in the BIH. */
+    AABox bounds; /**< The bounding box of the BIH. */
 
     /**
-     * @brief Structure to hold build data.
+     * @brief Structure for build data.
      */
     struct buildData
     {
-        uint32* indices; /**< Indices of the primitives */
-        AABox* primBound; /**< Bounding boxes of the primitives */
-        uint32 numPrims; /**< Number of primitives */
-        int maxPrims; /**< Maximum number of primitives in a leaf node */
+        uint32* indices; /**< Indices of the primitives. */
+        AABox* primBound; /**< Bounding boxes of the primitives. */
+        uint32 numPrims; /**< Number of primitives. */
+        int maxPrims; /**< Maximum number of primitives in a leaf node. */
     };
 
     /**
-     * @brief Structure to represent a stack node.
+     * @brief Structure for stack nodes during traversal.
      */
     struct StackNode
     {
         uint32 node; /**< Node index */
-        float tnear; /**< Near intersection distance */
-        float tfar; /**< Far intersection distance */
+        float tnear; /**< Near intersection distance. */
+        float tfar; /**< Far intersection distance. */
     };
 
     /**
-     * @brief Class to hold build statistics.
+     * @brief Class for build statistics.
      */
     class BuildStats
     {
     private:
-        int numNodes; /**< Number of nodes */
-        int numLeaves; /**< Number of leaf nodes */
-        int sumObjects; /**< Sum of objects in leaf nodes */
-        int minObjects; /**< Minimum number of objects in a leaf node */
-        int maxObjects; /**< Maximum number of objects in a leaf node */
-        int sumDepth; /**< Sum of depths of leaf nodes */
-        int minDepth; /**< Minimum depth of a leaf node */
-        int maxDepth; /**< Maximum depth of a leaf node */
-        int numLeavesN[6]; /**< Number of leaf nodes with specific number of objects */
-        int numBVH2; /**< Number of BVH2 nodes */
+        int numNodes; /**< Number of nodes. */
+        int numLeaves; /**< Number of leaf nodes. */
+        int sumObjects; /**< Sum of objects in leaf nodes. */
+        int minObjects; /**< Minimum number of objects in a leaf node. */
+        int maxObjects; /**< Maximum number of objects in a leaf node. */
+        int sumDepth; /**< Sum of depths of leaf nodes. */
+        int minDepth; /**< Minimum depth of a leaf node. */
+        int maxDepth; /**< Maximum depth of a leaf node. */
+        int numLeavesN[6]; /**< Number of leaf nodes with specific number of objects. */
+        int numBVH2; /**< Number of BVH2 nodes. */
 
     public:
         /**
@@ -547,16 +564,16 @@ protected:
     };
 
     /**
-     * @brief Builds the hierarchy of the BIH.
+     * @brief Builds the BIH hierarchy.
      *
      * @param tempTree Temporary tree structure.
-     * @param dat Build data.
-     * @param stats Build statistics.
+     * @param dat Build data containing primitives and bounds.
+     * @param stats Statistics for the build process.
      */
     void buildHierarchy(std::vector<uint32>& tempTree, buildData& dat, BuildStats& stats);
 
     /**
-     * @brief Creates a leaf node in the BIH.
+     * @brief Creates a leaf node in the BIH tree.
      *
      * @param tempTree Temporary tree structure.
      * @param nodeIndex Index of the node to create.
@@ -565,25 +582,25 @@ protected:
      */
     void createNode(std::vector<uint32>& tempTree, int nodeIndex, uint32 left, uint32 right)
     {
-        // write leaf node
+        // Write leaf node
         tempTree[nodeIndex + 0] = (3 << 30) | left;
         tempTree[nodeIndex + 1] = right - left + 1;
     }
 
     /**
-     * @brief Subdivides a node in the BIH.
+     * @brief Subdivides the BIH tree.
      *
-     * @param left Index of the first object in the node.
-     * @param right Index of the last object in the node.
+     * @param left Left index of the range.
+     * @param right Right index of the range.
      * @param tempTree Temporary tree structure.
-     * @param dat Build data.
-     * @param gridBox Bounding box of the grid.
-     * @param nodeBox Bounding box of the node.
-     * @param nodeIndex Index of the node to subdivide.
-     * @param depth Depth of the node in the tree.
-     * @param stats Build statistics.
+     * @param dat Build data containing primitives and bounds.
+     * @param gridBox Grid bounding box.
+     * @param nodeBox Node bounding box.
+     * @param nodeIndex Index of the current node.
+     * @param depth Current depth of the tree.
+     * @param stats Statistics for the build process.
      */
     void subdivide(int left, int right, std::vector<uint32>& tempTree, buildData& dat, AABound& gridBox, AABound& nodeBox, int nodeIndex, int depth, BuildStats& stats);
 };
 
-#endif // _BIH_H
+#endif // MANGOS_H_BIH
