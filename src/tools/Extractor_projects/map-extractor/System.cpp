@@ -60,7 +60,6 @@
 #include <sys/stat.h>
 #endif
 
-#include <iostream>
 #include <limits>
 
 extern ArchiveSet gOpenArchives;    /**< maintains a list of all currently opened MPQ archives. */
@@ -133,7 +132,7 @@ int MAP_LIQUID_TYPE_MAGMA    = 0x04;
 int MAP_LIQUID_TYPE_SLIME    = 0x08;
 #endif
 
-static const int LANG_COUNT = 13;
+static int LANG_COUNT = 13;
 
 // Map file format data
 std::string MAP_MAGIC           = "MAPS"; /**< Magic identifier for map files */
@@ -1563,7 +1562,7 @@ int ExtractADTFilesfromMPQ(string mpqFilePath, string localPath)
     //for (int i = 0; i < 1; ++i)
     for (uint32 i = 0; i < ADTFiles.size(); ++i)
     {
-        printf("   (%03i/%03i) Extracting map Id: %04i Name: %s (%s) ADT files\n",i, (int)ADTFiles.size(), (int)ADTFiles[i].lookupId, ADTFiles[i].fileName.c_str(), ADTFiles[i].displayName.c_str());
+        printf("   (%03i/%03i) Extracting map Id: %04i Name: %s (%s) ADT files\n",i+1, (int)ADTFiles.size(), (int)ADTFiles[i].lookupId, ADTFiles[i].fileName.c_str(), ADTFiles[i].displayName.c_str());
         // Loop Through x coords
         for (uint32 xcoord = 0; xcoord < WDT_MAP_SIZE; xcoord++)
         {
@@ -1806,7 +1805,7 @@ void NewReadDbcFromMPQ(const char* fileName, std::vector<dataFile>& mapList, int
                         int idField = 0;
                         int valueField = 3;
                         int nameField = 0;
-
+                        int liquidField = 3;
 
                         switch (dbcType)
                         {
@@ -1814,7 +1813,27 @@ void NewReadDbcFromMPQ(const char* fileName, std::vector<dataFile>& mapList, int
                                 dbc_record.lookupId = dbc.getRecord(x).getUInt(0);      // Map Id
                                 dbc_record.mpqId = FinalMPQList[i].lookupId;                // MPQ Id that the dbc is in
                                 dbc_record.fileName = dbc.getRecord(x).getString(1);    // Map Folder Name
-                                tempString = dbc.getRecord(x).getString(5);
+                                switch (iCoreNumber)
+                                {
+                                    case CLIENT_CLASSIC:
+                                        nameField = 4;
+                                        break;
+                                    case CLIENT_TBC:
+                                        nameField = 4;
+                                        break;
+                                    case CLIENT_WOTLK:
+                                        nameField = 5;
+                                        break;
+                                    case CLIENT_CATA:
+                                        nameField = 6;
+                                        break;
+                                        case CLIENT_MOP:
+                                        nameField = 5;
+                                        break;
+                                    default:
+                                        break;
+                                }
+                                tempString = dbc.getRecord(x).getString(nameField);
                                 if (tempString.length() == 0)
                                 {
                                     tempString = dbc_record.fileName;
@@ -1859,13 +1878,48 @@ void NewReadDbcFromMPQ(const char* fileName, std::vector<dataFile>& mapList, int
 
                                 break;
                             case 3: // LiquidType.dbc
-                                dbc_record.lookupId = dbc.getRecord(x).getUInt(0);                       // Liquid Id
-                                dbc_record.uint16Value = dbc.getRecord(x).getUInt(3);                    // Base Liquid Type Id
-                                dbc_record.mpqId = FinalMPQList[i].lookupId;                                 // MPQ Id that the dbc is in
-                                dbc_record.fileName = dbc.getRecord(x).getString(1);                     // Liquid Name
-                                dbc_record.displayName = LiquidTypeList[dbc_record.uint16Value].c_str(); // Base Liquid Name
+                                try
+                                {
+                                    dbc_record.lookupId = dbc.getRecord(x).getUInt(0);                       // Liquid Id
+                                    switch (iCoreNumber)
+                                    {
+                                        case CLIENT_CLASSIC:
+                                            liquidField = 2;
+                                            break;
+                                        case CLIENT_TBC:
+                                            liquidField = 2;
+                                            break;
+                                        case CLIENT_WOTLK:
+                                            liquidField = 3;
+                                            break;
+                                        case CLIENT_CATA:
+                                            liquidField = 3;
+                                            break;
+                                            case CLIENT_MOP:
+                                            liquidField = 3;
+                                            break;
+                                        default:
+                                            break;
+                                    }
+
+                                    dbc_record.uint16Value = dbc.getRecord(x).getUInt(liquidField);          // Base Liquid Type Id
+                                    dbc_record.mpqId = FinalMPQList[i].lookupId;                             // MPQ Id that the dbc is in
+                                    dbc_record.fileName = dbc.getRecord(x).getString(1);                     // Liquid Name
+
+                                    if (dbc_record.uint16Value>3)
+                                    {
+                                        printf("   ERROR: NewReadDbcFromMPQ (LiquidTypeId invalid): %i\n", dbc_record.uint16Value );
+                                        dbc_record.uint16Value = 0;
+                                    }
+                                    dbc_record.displayName = LiquidTypeList[dbc_record.uint16Value].c_str(); // Base Liquid Name
+                                }
+                                catch (std::exception& ex)
+                                {
+                                    printf("   ERROR: NewReadDbcFromMPQ (displayname) failed with an exception: %s\n", ex.what());
+                                }
                                 break;
                             default:
+                                printf("   ERROR: NewReadDbcFromMPQ (unknown dbcType): %i\n", dbcType);
                                 break;
                         }
 
@@ -1879,6 +1933,7 @@ void NewReadDbcFromMPQ(const char* fileName, std::vector<dataFile>& mapList, int
         }
         catch (std::exception& ex)
         {
+            printf("   ERROR: NewReadDbcFromMPQ failed with an exception: %s\n", ex.what());
         }
     }
 }
@@ -1930,7 +1985,7 @@ static void OldParseMapFiles()
         sprintf(id, "%04u", MapList[i].lookupId);
         sprintf(fn, "World\\Maps\\%s\\%s.wdt", MapList[i].fileName.c_str(), MapList[i].fileName.c_str());
 
-        HANDLE handleWDT;
+        HANDLE handleWDT = nullptr;
         //if (!OpenNewestFile(fn, &handleWDT))
         //{
         //    printf("Error opening WDT file %s\n", fn);
@@ -2252,12 +2307,18 @@ int main(int argc, char** argv)
             std::string LocaleString = MPQList[i].c_str();
             if (!LocaleString.find("%"))
             {
+                if (iCoreNumber == CLIENT_CLASSIC)
+                {
+                    LANG_COUNT=1;
+                }
                 for (int iThisLocale = 0; iThisLocale < LANG_COUNT; iThisLocale++)
                 {
                     std::string tmp2 = input_path;
                     tmp2.append ("/Data/");
-                    tmp2.append(std::regex_replace(LocaleString, std::regex("%s"), Locales[iThisLocale]));
-
+                    if (iCoreNumber != CLIENT_CLASSIC)
+                    {
+                        tmp2.append(std::regex_replace(LocaleString, std::regex("%s"), Locales[iThisLocale]));
+                    }
                     if (ClientFileExists(tmp2.c_str()))
                     {
                         dataFile thisFile;
@@ -2365,15 +2426,22 @@ int main(int argc, char** argv)
     LiquidTypeList.push_back("Magma");
     LiquidTypeList.push_back("Slime");
 
+    printf("\n");
+    printf(" Stage 5: Load Liquid Types from LiquidType.dbc\n");
+    printf(" ==============================================\n");
+
     NewReadDbcFromMPQ("DBFilesClient\\LiquidType.dbc",LiquidList, 3);
 
+    printf("\n");
+    printf(" Stage 6: Load Area Types from AreaTable.dbc\n");
+    printf(" ===========================================\n");
     NewReadDbcFromMPQ("DBFilesClient\\AreaTable.dbc",AreaList, 2);
 
     printf("\n");
     printf("  Summary: Maps: %i, Areas: %i, Liquids: %i Loaded: \n", (int)MapList.size(), (int)AreaList.size(), (int)LiquidList.size());
 
     printf("\n");
-    printf(" Stage 5: Extract WDT files needed by the extractor\n");
+    printf(" Stage 7: Extract WDT files needed by the extractor\n");
     printf(" ==================================================\n");
 
     for (int i = 0; i < MapList.size(); ++i)
@@ -2415,7 +2483,7 @@ int main(int argc, char** argv)
 
     ////// Stage 5: Extract the adt files from the wdt files
     printf("\n");
-    printf(" Stage 5: Extract ADT files needed by the extractor and create .map files\n");
+    printf(" Stage 8: Extract ADT files needed by the extractor and create .map files\n");
     printf(" ========================================================================\n");
     ADTCount += ExtractADTFilesfromMPQ("world\\maps\\", "adt/");
 
@@ -2455,19 +2523,19 @@ int main(int argc, char** argv)
     printf(" Beginning work ....\n");
 
 
-    // Stage 8: Create VMTile files
+    // Stage 9: Create VMTile files
 
 
-    // Stage 9: Create VMTileSet files
+    // Stage 10: Create VMTileSet files
 
 
-    //Stage 10: Create VMMap files
+    //Stage 11: Create VMMap files
 
 
-    //Stage 11: Create VMMapSet files
+    //Stage 12: Create VMMapSet files
 
 
-    //Stage 12: Create VMap files
+    //Stage 13: Create VMap files
 
 
     // Clean up, close down and release all the mpq handles we had stored
