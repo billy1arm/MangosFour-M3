@@ -1081,7 +1081,7 @@ void World::SetInitialWorldSettings()
         (m_configUint32Values[CONFIG_UINT32_EXPANSION] >= EXPANSION_MOP &&
               !MapManager::ExistMapAndVMap(870, 3001.38f, -542.47f)))                // Pandaren
 #endif
-	{
+    {
         sLog.outError("Correct *.map files not found in path '%smaps' or *.vmtree/*.vmtile files in '%svmaps'. Please place *.map and vmap files in appropriate directories or correct the DataDir value in the mangosd.conf file.", m_dataPath.c_str(), m_dataPath.c_str());
         Log::WaitBeforeContinueIfNeed();
         exit(1);
