@@ -28,7 +28,7 @@
 #ifndef MANGOS_H_UPDATEFIELDS_AUTO
 #define MANGOS_H_UPDATEFIELDS_AUTO
 
-enum EObjectFields	// Auto generated for version 5, 4, 1, 17538
+enum EObjectFields  // Auto generated for version 5, 4, 1, 17538
 {
     OBJECT_FIELD_GUID                                = 0x0000, // Size: 2, Type: LONG, Flags: PUBLIC
     OBJECT_FIELD_DATA                                = 0x0002, // Size: 2, Type: LONG, Flags: PUBLIC
@@ -533,7 +533,7 @@ enum EPlayerFields
     PLAYER_END                                       = UNIT_END + 0x071B
 };
 
-enum EContainerFields	// Auto generated for version 5, 4, 1, 17538
+enum EContainerFields  // Auto generated for version 5, 4, 1, 17538
 {
 #if defined (CATA)
     CONTAINER_FIELD_NUM_SLOTS                        = ITEM_END + 0x0,
